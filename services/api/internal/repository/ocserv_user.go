@@ -60,6 +60,7 @@ type OcservUserStats interface {
 	TotalBandwidthDateRange(ctx context.Context, dateStart, dateEnd *time.Time) (TotalBandwidths, error)
 	TotalBandwidthUserDateRange(ctx context.Context, id string, dateStart, dateEnd *time.Time) (TotalBandwidths, error)
 	UsersStat(ctx context.Context) (UserStatsResult, error)
+	UserSessionLogs(ctx context.Context, pagination *request.Pagination, username string, dateStart, dateEnd *time.Time) (*[]models.OcservUserSessionLog, int64, error)
 }
 
 type OcservUserPassword interface {
@@ -686,4 +687,37 @@ func (o *OcservUserRepository) UsersStat(ctx context.Context) (UserStatsResult, 
 	}
 
 	return result, nil
+}
+
+func (o *OcservUserRepository) UserSessionLogs(
+	ctx context.Context,
+	pagination *request.Pagination,
+	username string,
+	dateStart, dateEnd *time.Time,
+) (*[]models.OcservUserSessionLog, int64, error) {
+	var totalRecords int64
+
+	query := o.db.WithContext(ctx).
+		Model(&models.OcservUserSessionLog{}).
+		Where("username = ?", username)
+
+	if dateStart != nil {
+		query = query.Where("created_at >= ?", *dateStart)
+	}
+
+	if dateEnd != nil {
+		query = query.Where("created_at < ?", dateEnd.AddDate(0, 0, 1))
+	}
+
+	if err := query.Count(&totalRecords).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var logs []models.OcservUserSessionLog
+	if err := request.Paginator(ctx, query, pagination).
+		Order("created_at DESC").
+		Find(&logs).Error; err != nil {
+		return nil, 0, err
+	}
+	return &logs, totalRecords, nil
 }

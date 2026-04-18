@@ -90,7 +90,6 @@ func (s *StatService) CalculateUserStats() {
 
 			sessionLog := s.getUserSessionLog(cleanLine)
 			if sessionLog == nil {
-				//logger.Error("Failed to get user session log on cleanLine %s", cleanLine)
 				continue
 			}
 
@@ -98,15 +97,13 @@ func (s *StatService) CalculateUserStats() {
 				logger.Error("Error saving session msg (%v): %v", sessionLog.Username, err)
 				continue
 			}
-			logger.Info("Processed user: %v successfully", sessionLog.Username)
-
+			//logger.Info("Processed user: %v successfully", sessionLog.Username)
 		}
 	}
 }
 
 func (s *StatService) getUserSessionLog(cleanLine string) *models.OcservUserSessionLog {
 	workerRe := regexp.MustCompile(`worker\[(?P<user>[^\]]+)\]:\s*(?P<rest>.*)`)
-	//ipRe := regexp.MustCompile(`^(?P<ip>\d+\.\d+\.\d+\.\d+)\s+(?P<rest>.*)$`)
 	ipRe := regexp.MustCompile(`^(?P<ip>\d+\.\d+\.\d+\.\d+)(?::\d+)?\s+(?P<rest>.*)$`)
 	var username, ip, msg string
 

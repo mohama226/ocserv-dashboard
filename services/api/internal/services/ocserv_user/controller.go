@@ -11,6 +11,7 @@ import (
 	"github.com/mmtaee/ocserv-dashboard/common/ocserv/user"
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
 	"net/http"
 	"slices"
 	"strings"
@@ -817,5 +818,79 @@ func (ctl *Controller) UserStats(c echo.Context) error {
 		Active:      result.Active,
 		Deactivated: result.Deactivated,
 		Locked:      result.Locked,
+	})
+}
+
+// OcservUserSessionLogs 	     Ocserv User session logs
+//
+// @Summary      Ocserv User session logs
+// @Description  Ocserv User session logs
+// @Tags         Ocserv(Users)
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer TOKEN"
+// @Param 		 page query int false "Page number, starting from 1" minimum(1)
+// @Param 		 size query int false "Number of items per page" minimum(1) maximum(100) name(size)
+// @Param 		 order query string false "Field to order by"
+// @Param 		 sort query string false "Sort order, either ASC or DESC" Enums(ASC, DESC)
+// @Param 		 uid path string true "Ocserv User UID"
+// @Param 		 date_start query string false "date_start"
+// @Param 		 date_end query string false "date_end"
+// @Failure      400 {object} request.ErrorResponse
+// @Failure      401 {object} middlewares.Unauthorized
+// @Success      200  {object} SessionLogsResponse
+// @Router       /ocserv/users/{uid}/session_logs [get]
+func (ctl *Controller) OcservUserSessionLogs(c echo.Context) error {
+	userID := c.Param("uid")
+	if userID == "" {
+		return ctl.request.BadRequest(c, errors.New("user id is required"))
+	}
+
+	var data SessionLogsData
+	if err := c.Bind(&data); err != nil {
+		return ctl.request.BadRequest(c, err)
+	}
+
+	pagination := ctl.request.Pagination(c)
+
+	var startDate, endDate *time.Time
+
+	if data.DateStart != "" {
+		t, err := time.Parse("2006-01-02", data.DateStart)
+		if err != nil {
+			return ctl.request.BadRequest(c, fmt.Errorf("invalid date_start: %w", err))
+		}
+		startDate = &t
+	}
+
+	if data.DateEnd != "" {
+		t, err := time.Parse("2006-01-02", data.DateEnd)
+		if err != nil {
+			return ctl.request.BadRequest(c, fmt.Errorf("invalid date_end: %w", err))
+		}
+		t = t.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+		endDate = &t
+	}
+
+	u, err := ctl.ocservUserRepo.GetByUID(c.Request().Context(), userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, nil)
+		}
+		return ctl.request.BadRequest(c, err)
+	}
+
+	logs, total, err := ctl.ocservUserRepo.UserSessionLogs(c.Request().Context(), pagination, u.Username, startDate, endDate)
+	if err != nil {
+		return ctl.request.BadRequest(c, err)
+	}
+
+	return c.JSON(http.StatusOK, SessionLogsResponse{
+		Meta: request.Meta{
+			Page:         pagination.Page,
+			TotalRecords: total,
+			PageSize:     pagination.PageSize,
+		},
+		Result: logs,
 	})
 }

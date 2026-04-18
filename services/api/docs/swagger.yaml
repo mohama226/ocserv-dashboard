@@ -494,6 +494,29 @@ definitions:
           type: string
         type: array
     type: object
+  models.OcservUserSessionLog:
+    properties:
+      created_at:
+        type: string
+      event:
+        enum:
+        - user-agent
+        - handshake
+        - periodic-stats
+        - disconnect
+        type: string
+      ip:
+        type: string
+      message:
+        type: string
+      username:
+        type: string
+    required:
+    - created_at
+    - event
+    - message
+    - username
+    type: object
   models.OnlineUserSession:
     properties:
       _Connected at:
@@ -668,6 +691,17 @@ definitions:
     required:
     - meta
     type: object
+  ocserv_user.SessionLogsResponse:
+    properties:
+      meta:
+        $ref: '#/definitions/request.Meta'
+      result:
+        items:
+          $ref: '#/definitions/models.OcservUserSessionLog'
+        type: array
+    required:
+    - meta
+    type: object
   ocserv_user.StatisticsResponse:
     properties:
       statistics:
@@ -807,6 +841,17 @@ definitions:
     - page
     - size
     - total_records
+    type: object
+  statistics.SessionLogsResponse:
+    properties:
+      meta:
+        $ref: '#/definitions/request.Meta'
+      result:
+        items:
+          $ref: '#/definitions/models.OcservUserSessionLog'
+        type: array
+    required:
+    - meta
     type: object
   system.ChangeUserPassword:
     properties:
@@ -1870,6 +1915,70 @@ paths:
       summary: Ocserv User locking
       tags:
       - Ocserv(Users)
+  /ocserv/users/{uid}/session_logs:
+    get:
+      consumes:
+      - application/json
+      description: Ocserv User session logs
+      parameters:
+      - description: Bearer TOKEN
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Page number, starting from 1
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: size
+        type: integer
+      - description: Field to order by
+        in: query
+        name: order
+        type: string
+      - description: Sort order, either ASC or DESC
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sort
+        type: string
+      - description: Ocserv User UID
+        in: path
+        name: uid
+        required: true
+        type: string
+      - description: date_start
+        in: query
+        name: date_start
+        type: string
+      - description: date_end
+        in: query
+        name: date_end
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ocserv_user.SessionLogsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middlewares.Unauthorized'
+      summary: Ocserv User session logs
+      tags:
+      - Ocserv(Users)
   /ocserv/users/{uid}/statistics:
     get:
       consumes:
@@ -2173,6 +2282,65 @@ paths:
       summary: Ocserv Users TotalBandwidth calculating
       tags:
       - Ocserv(Bandwidth)
+  /reports/session_logs:
+    get:
+      consumes:
+      - application/json
+      description: Ocserv session logs
+      parameters:
+      - description: Bearer TOKEN
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Page number, starting from 1
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: size
+        type: integer
+      - description: Field to order by
+        in: query
+        name: order
+        type: string
+      - description: Sort order, either ASC or DESC
+        enum:
+        - ASC
+        - DESC
+        in: query
+        name: sort
+        type: string
+      - description: date_start
+        in: query
+        name: date_start
+        type: string
+      - description: date_end
+        in: query
+        name: date_end
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/statistics.SessionLogsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middlewares.Unauthorized'
+      summary: Ocserv session logs
+      tags:
+      - Report
   /system:
     get:
       consumes:
