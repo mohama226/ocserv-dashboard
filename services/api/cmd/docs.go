@@ -11,9 +11,9 @@ import (
 	"os"
 )
 
-var swaggerCmd = &cobra.Command{
-	Use:   "swagger",
-	Short: "Run the swagger api server",
+var docsCmd = &cobra.Command{
+	Use:   "docs",
+	Short: "Run the swagger docs server",
 	Run: func(cmd *cobra.Command, args []string) {
 		e := echo.New()
 		e.Debug = true
@@ -29,5 +29,5 @@ var swaggerCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(swaggerCmd)
+	rootCmd.AddCommand(docsCmd)
 }

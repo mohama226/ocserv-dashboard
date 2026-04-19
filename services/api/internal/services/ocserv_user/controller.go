@@ -14,7 +14,6 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"slices"
-	"strings"
 	"sync"
 	"time"
 )
@@ -24,6 +23,7 @@ type Controller struct {
 	userRepo        repository.UserRepositoryInterface
 	ocservUserRepo  repository.OcservUserRepositoryInterface
 	ocservOcctlRepo repository.OcctlRepositoryInterface
+	reportRepo      repository.ReportRepositoryInterface
 }
 
 func New() *Controller {
@@ -31,6 +31,7 @@ func New() *Controller {
 		request:         request.NewCustomRequest(),
 		ocservUserRepo:  repository.NewtOcservUserRepository(),
 		ocservOcctlRepo: repository.NewOcctlRepository(),
+		reportRepo:      repository.NewtReportRepository(),
 	}
 }
 
@@ -425,7 +426,7 @@ func (ctl *Controller) DisconnectOcservUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
-// StatisticsOcservUser 	     Ocserv User Statistics
+// OcservUserStatistics 	     Ocserv User Statistics
 //
 // @Summary      Ocserv User Statistics
 // @Description  Ocserv User Statistics
@@ -440,7 +441,7 @@ func (ctl *Controller) DisconnectOcservUser(c echo.Context) error {
 // @Failure      401 {object} middlewares.Unauthorized
 // @Success      200  {object} StatisticsResponse
 // @Router       /ocserv/users/{uid}/statistics [get]
-func (ctl *Controller) StatisticsOcservUser(c echo.Context) error {
+func (ctl *Controller) OcservUserStatistics(c echo.Context) error {
 	userID := c.Param("uid")
 	if userID == "" {
 		return ctl.request.BadRequest(c, errors.New("user id is required"))
@@ -488,7 +489,7 @@ func (ctl *Controller) StatisticsOcservUser(c echo.Context) error {
 	})
 
 	g.Go(func() error {
-		t, err := ctl.ocservUserRepo.TotalBandwidthUser(ctx, userID)
+		t, err := ctl.reportRepo.TotalBandWidthUser(ctx, userID)
 		if err != nil {
 			return err
 		}
@@ -504,106 +505,6 @@ func (ctl *Controller) StatisticsOcservUser(c echo.Context) error {
 		Statistics:      stats,
 		TotalBandwidths: total,
 	})
-}
-
-// Statistics 	 Ocserv Users Statistics
-//
-// @Summary      Ocserv Users Statistics
-// @Description  Ocserv Users Statistics
-// @Tags         Ocserv(Statistics)
-// @Accept       json
-// @Produce      json
-// @Param        Authorization header string true "Bearer TOKEN"
-// @Param 		 date_start query string true "date_start"
-// @Param 		 date_end query string true "date_end"
-// @Failure      400 {object} request.ErrorResponse
-// @Failure      401 {object} middlewares.Unauthorized
-// @Success      200 {object} []models.DailyTraffic
-// @Router       /ocserv/users/statistics [get]
-func (ctl *Controller) Statistics(c echo.Context) error {
-	var data StatisticsData
-	if err := c.Bind(&data); err != nil {
-		return ctl.request.BadRequest(c, err)
-	}
-
-	if data.DateStart == "" || data.DateEnd == "" {
-		return ctl.request.BadRequest(c, errors.New("statistics date start and end are required"))
-	}
-
-	var startDate, endDate *time.Time
-
-	tStart, err := time.Parse("2006-01-02", data.DateStart)
-	if err != nil {
-		return ctl.request.BadRequest(c, fmt.Errorf("invalid date_start: %w", err))
-	}
-	startDate = &tStart
-
-	tEnd, err := time.Parse("2006-01-02", data.DateEnd)
-	if err != nil {
-		return ctl.request.BadRequest(c, fmt.Errorf("invalid date_end: %w", err))
-	}
-	tEnd = tEnd.Add(23*time.Hour + 59*time.Minute + 59*time.Second + 999999999*time.Nanosecond)
-	endDate = &tEnd
-
-	if tStart.After(*endDate) {
-		return ctl.request.BadRequest(c, errors.New("date start is after end"))
-	}
-
-	stats, err := ctl.ocservUserRepo.Statistics(c.Request().Context(), startDate, endDate)
-	if err != nil {
-		return ctl.request.BadRequest(c, err)
-	}
-	return c.JSON(http.StatusOK, stats)
-}
-
-// TotalBandwidth 	 Ocserv Users TotalBandwidth calculating
-//
-// @Summary      Ocserv Users TotalBandwidth calculating
-// @Description  Ocserv Users TotalBandwidth calculating
-// @Tags         Ocserv(Bandwidth)
-// @Accept       json
-// @Produce      json
-// @Param        Authorization header string true "Bearer TOKEN"
-// @Param 		 date_start query string true "date_start"
-// @Param 		 date_end query string true "date_end"
-// @Failure      400 {object} request.ErrorResponse
-// @Failure      401 {object} middlewares.Unauthorized
-// @Success      200 {object} repository.TotalBandwidths
-// @Router       /ocserv/users/total-bandwidth [get]
-func (ctl *Controller) TotalBandwidth(c echo.Context) error {
-	var data TotalBandwidthData
-	if err := c.Bind(&data); err != nil {
-		return ctl.request.BadRequest(c, err)
-	}
-
-	var startDate, endDate *time.Time
-
-	if data.DateStart != "" {
-		t, err := time.Parse("2006-01-02", data.DateStart)
-		if err != nil {
-			return ctl.request.BadRequest(c, fmt.Errorf("invalid date_start: %w", err))
-		}
-		startDate = &t
-	}
-
-	if data.DateEnd != "" {
-		t, err := time.Parse("2006-01-02", data.DateEnd)
-		if err != nil {
-			return ctl.request.BadRequest(c, fmt.Errorf("invalid date_end: %w", err))
-		}
-		t = t.Add(23*time.Hour + 59*time.Minute + 59*time.Second + 999999999*time.Nanosecond)
-		endDate = &t
-	}
-
-	if startDate != nil && endDate != nil && startDate.After(*endDate) {
-		return ctl.request.BadRequest(c, errors.New("date start is after end"))
-	}
-
-	bandwidth, err := ctl.ocservUserRepo.TotalBandwidthDateRange(c.Request().Context(), startDate, endDate)
-	if err != nil {
-		return ctl.request.BadRequest(c, err)
-	}
-	return c.JSON(http.StatusOK, bandwidth)
 }
 
 // OcpasswdUsers  Ocserv Users from ocpasswd file
@@ -757,68 +658,6 @@ func (ctl *Controller) ActivateExpiredOcservUsers(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, nil)
-}
-
-// UserStats     Result of all user simple stats
-//
-// @Summary      Result of all user simple stats
-// @Description  Result of all user simple stats
-// @Tags         Ocserv(Users)
-// @Accept       json
-// @Produce      json
-// @Param        Authorization header string true "Bearer TOKEN"
-// @Failure      400 {object} request.ErrorResponse
-// @Failure      401 {object} middlewares.Unauthorized
-// @Success      200 {object} UserStatsResponse
-// @Router       /ocserv/users/stats [get]
-func (ctl *Controller) UserStats(c echo.Context) error {
-	var wg sync.WaitGroup
-	var onlineUsers []string
-	var result repository.UserStatsResult
-
-	errChan := make(chan error, 2)
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
-
-		users, err := ctl.ocservOcctlRepo.OnlineUsers()
-		if err != nil {
-			errChan <- fmt.Errorf("failed to get online users: %w", err)
-			return
-		}
-		onlineUsers = users
-	}()
-
-	go func() {
-		defer wg.Done()
-
-		res, err := ctl.ocservUserRepo.UsersStat(c.Request().Context())
-		if err != nil {
-			errChan <- fmt.Errorf("failed to get users stats: %w", err)
-			return
-		}
-		result = res
-	}()
-
-	wg.Wait()
-	close(errChan)
-
-	var errs []string
-	for e := range errChan {
-		errs = append(errs, e.Error())
-	}
-
-	if len(errs) > 0 {
-		return ctl.request.BadRequest(c, errors.New(strings.Join(errs, "; ")))
-	}
-
-	return c.JSON(http.StatusOK, UserStatsResponse{
-		Online:      len(onlineUsers),
-		Active:      result.Active,
-		Deactivated: result.Deactivated,
-		Locked:      result.Locked,
-	})
 }
 
 // OcservUserSessionLogs 	     Ocserv User session logs
