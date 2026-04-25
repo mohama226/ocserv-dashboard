@@ -77,6 +77,17 @@ uninstall_systemd() {
         fi
     fi
 
+    warn "⚠️ You are about to uninstall PostgreSQL."
+    read -rp "Do you want to proceed? [y/N]: " confirm
+    confirm=${confirm:-N}
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        log "🗑️ Uninstalling PostgreSQL..."
+        sudo apt remove postgresql-17 -y
+        ok "✅ PostgreSQL removed."
+    else
+        log "⏭️ Skipping PostgreSQL removal."
+    fi
+
     log "🌐 Removing Nginx frontend files..."
     sudo rm -rf /var/www/site
     sudo rm -f /etc/nginx/conf.d/site.conf
