@@ -43,6 +43,7 @@ models/models-daily-traffic.ts
 models/models-ipban-points.ts
 models/models-ocserv-group-config.ts
 models/models-ocserv-group.ts
+models/models-ocserv-info.ts
 models/models-ocserv-user-config.ts
 models/models-ocserv-user-session-log.ts
 models/models-ocserv-user.ts

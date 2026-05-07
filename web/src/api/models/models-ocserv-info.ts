@@ -13,24 +13,27 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import type { ModelsServerVersion } from './models-server-version';
 
 /**
  * 
  * @export
- * @interface ModelsServerVersion
+ * @interface ModelsOcservInfo
  */
-export interface ModelsServerVersion {
+export interface ModelsOcservInfo {
     /**
      * 
      * @type {string}
-     * @memberof ModelsServerVersion
+     * @memberof ModelsOcservInfo
      */
-    'occtl_version'?: string;
+    'status': string;
     /**
      * 
-     * @type {string}
-     * @memberof ModelsServerVersion
+     * @type {ModelsServerVersion}
+     * @memberof ModelsOcservInfo
      */
-    'ocserv_version'?: string;
+    'version': ModelsServerVersion;
 }
 
