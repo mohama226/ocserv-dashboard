@@ -563,7 +563,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.ServerVersion"
+                            "$ref": "#/definitions/models.OcservInfo"
                         }
                     },
                     "400": {
@@ -3564,6 +3564,21 @@ const docTemplate = `{
                 }
             }
         },
+        "models.OcservInfo": {
+            "type": "object",
+            "required": [
+                "status",
+                "version"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "$ref": "#/definitions/models.ServerVersion"
+                }
+            }
+        },
         "models.OcservUser": {
             "type": "object",
             "required": [
@@ -3775,7 +3790,7 @@ const docTemplate = `{
                 "occtl_version": {
                     "type": "string"
                 },
-                "version": {
+                "ocserv_version": {
                     "type": "string"
                 }
             }

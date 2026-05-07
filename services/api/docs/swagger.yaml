@@ -435,6 +435,16 @@ definitions:
           for 200 KB/s'
         type: integer
     type: object
+  models.OcservInfo:
+    properties:
+      status:
+        type: string
+      version:
+        $ref: '#/definitions/models.ServerVersion'
+    required:
+    - status
+    - version
+    type: object
   models.OcservUser:
     properties:
       config:
@@ -596,7 +606,7 @@ definitions:
     properties:
       occtl_version:
         type: string
-      version:
+      ocserv_version:
         type: string
     type: object
   models.System:
@@ -1465,7 +1475,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.ServerVersion'
+            $ref: '#/definitions/models.OcservInfo'
         "400":
           description: Bad Request
           schema:
