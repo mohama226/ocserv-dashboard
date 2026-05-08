@@ -76,7 +76,7 @@ onMounted(load);
         <v-col cols="12">
             <UiParentCard :title="t('TELEGRAM_SETTINGS')">
                 <v-form @submit.prevent="save" class="pa-4">
-                    <v-row>
+                    <v-row dense>
                         <v-col cols="12" md="6">
                             <v-switch
                                 v-model="settings.enabled"
@@ -95,18 +95,38 @@ onMounted(load);
                                 hide-details
                             />
                         </v-col>
+                    </v-row>
+
+                    <v-row dense class="mt-2">
                         <v-col cols="12">
-                            <v-text-field
-                                v-model="settings.bot_token"
-                                :label="t('TELEGRAM_BOT_TOKEN')"
-                                :type="showToken ? 'text' : 'password'"
-                                :append-inner-icon="showToken ? 'mdi-eye-off' : 'mdi-eye'"
-                                @click:append-inner="showToken = !showToken"
-                                variant="outlined"
-                                density="comfortable"
-                                :hint="t('TELEGRAM_BOT_TOKEN_HINT')"
-                            />
+                            <v-card variant="outlined" class="pa-4 mb-2">
+                                <v-text-field
+                                    v-model="settings.bot_token"
+                                    class="telegram-token-input"
+                                    :class="{ 'telegram-token-input--masked': !showToken }"
+                                    :label="t('TELEGRAM_BOT_TOKEN')"
+                                    type="text"
+                                    name="telegram_bot_token"
+                                    autocomplete="off"
+                                    autocorrect="off"
+                                    autocapitalize="off"
+                                    spellcheck="false"
+                                    inputmode="text"
+                                    data-lpignore="true"
+                                    data-1p-ignore="true"
+                                    data-form-type="other"
+                                    :append-inner-icon="showToken ? 'mdi-eye-off' : 'mdi-eye'"
+                                    @click:append-inner="showToken = !showToken"
+                                    variant="outlined"
+                                    density="comfortable"
+                                    :hint="t('TELEGRAM_BOT_TOKEN_HINT')"
+                                    persistent-hint
+                                />
+                            </v-card>
                         </v-col>
+                    </v-row>
+
+                    <v-row dense>
                         <v-col cols="12" md="6">
                             <v-text-field
                                 v-model.number="settings.admin_chat_id"
@@ -174,3 +194,9 @@ onMounted(load);
         </v-col>
     </v-row>
 </template>
+
+<style scoped>
+.telegram-token-input--masked :deep(input) {
+    -webkit-text-security: disc;
+}
+</style>
