@@ -97,6 +97,12 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 			return ctl.request.BadRequest(c, err)
 		}
 
+		// Users are already filtered to occtl-reported sessions; IsOnline must be true
+		// or the UI shows "disconnected" (normal-list branch sets this via onlineMap).
+		for i := range users {
+			users[i].IsOnline = true
+		}
+
 		return c.JSON(http.StatusOK, OcservUsersResponse{
 			Meta: request.Meta{
 				Page:         pagination.Page,
