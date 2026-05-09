@@ -77,13 +77,31 @@ func (r *Repository) UpsertAccount(ctx context.Context, chatID int64, telegramUs
 		Language:         language,
 		OcservUserID:     ocservUserID,
 	}
-	err := r.db.WithContext(ctx).
+	if err := r.db.WithContext(ctx).
 		Where("chat_id = ? AND ocserv_user_id = ?", chatID, ocservUserID).
-		FirstOrCreate(account).Error
-	if err != nil {
+		FirstOrCreate(account).Error; err != nil {
 		return nil, err
 	}
+	if telegramUsername != "" && account.TelegramUsername != telegramUsername {
+		if err := r.db.WithContext(ctx).
+			Model(&models.TelegramAccount{}).
+			Where("id = ?", account.ID).
+			Update("telegram_username", telegramUsername).Error; err != nil {
+			return nil, err
+		}
+		account.TelegramUsername = telegramUsername
+	}
 	return account, nil
+}
+
+func (r *Repository) RefreshUsernameForChat(ctx context.Context, chatID int64, telegramUsername string) error {
+	if telegramUsername == "" {
+		return nil
+	}
+	return r.db.WithContext(ctx).
+		Model(&models.TelegramAccount{}).
+		Where("chat_id = ? AND telegram_username <> ?", chatID, telegramUsername).
+		Update("telegram_username", telegramUsername).Error
 }
 
 func (r *Repository) DeleteAccount(ctx context.Context, id uint) error {

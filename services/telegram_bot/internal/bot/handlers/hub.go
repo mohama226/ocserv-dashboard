@@ -300,6 +300,14 @@ func (h *Hub) HandleStart(ctx context.Context, m *tgbotapi.Message) {
 	}
 	lang := h.LanguageFor(ctx, chatID)
 
+	// Opportunistically backfill the @username for any pre-existing linked
+	// rows of this chat (older builds stored an empty string at link time).
+	if uname := fromUsername(m); uname != "" {
+		if err := h.deps.Repo.RefreshUsernameForChat(ctx, chatID, uname); err != nil {
+			logger.Warn("telegram_bot: refresh telegram_username failed: %v", err)
+		}
+	}
+
 	if settings.AdminChatID != 0 && settings.AdminChatID == chatID {
 		text := i18n.T(lang, i18n.AdminWelcome, htmlEscape(h.deps.BrandName))
 		kb := adminMenuKeyboard(lang, panelURL(settings))
@@ -560,7 +568,7 @@ func (h *Hub) HandleStateful(ctx context.Context, m *tgbotapi.Message) bool {
 		// Delete the password message immediately so it does not linger in
 		// the chat history.
 		h.deleteMessage(chatID, m.MessageID)
-		h.completeLink(ctx, chatID, username, password, lang)
+		h.completeLink(ctx, chatID, username, password, lang, fromUsername(m))
 		return true
 
 	case session.WaitingUsernameForNew:
@@ -603,7 +611,7 @@ func (h *Hub) HandleSkip(ctx context.Context, m *tgbotapi.Message) {
 	}
 }
 
-func (h *Hub) completeLink(ctx context.Context, chatID int64, username, password, lang string) {
+func (h *Hub) completeLink(ctx context.Context, chatID int64, username, password, lang, tgUsername string) {
 	user, err := h.deps.Verifier.Verify(ctx, username, password)
 	if err != nil {
 		h.deps.Sessions.Reset(chatID)
@@ -624,7 +632,7 @@ func (h *Hub) completeLink(ctx context.Context, chatID int64, username, password
 		}
 	}
 
-	if _, err := h.deps.Repo.UpsertAccount(ctx, chatID, "", lang, user.ID); err != nil {
+	if _, err := h.deps.Repo.UpsertAccount(ctx, chatID, tgUsername, lang, user.ID); err != nil {
 		logger.Warn("telegram_bot: failed to link account: %v", err)
 	}
 	h.deps.Sessions.Reset(chatID)
