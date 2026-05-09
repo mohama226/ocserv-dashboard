@@ -14,6 +14,7 @@ import {
 import { getAuthorization } from '@/utils/request';
 import { bytesToGB, formatDate, trafficTypesTransformer } from '@/utils/convertors';
 import DeleteDialog from '@/components/ocserv_user/DeleteDialog.vue';
+import ActivateDialog from '@/components/ocserv_user/ActivateDialog.vue';
 import Pagination from '@/components/shared/Pagination.vue';
 import type { Meta } from '@/types/metaTypes/MetaType';
 import { useSnackbarStore } from '@/stores/snackbar';
