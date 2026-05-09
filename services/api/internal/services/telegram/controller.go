@@ -630,11 +630,16 @@ func formatAwaitingPaymentMessage(lang string, settings *models.TelegramSettings
 			holder = "—"
 		}
 		if fa {
-			cardLine = fmt.Sprintf("\n\n💳 <b>شماره کارت برای واریز:</b>\n<pre>%s</pre>\n<b>دارنده:</b> %s",
-				htmlEsc(cardNum), htmlEsc(holder))
+			// Inline <code> inherits paragraph direction better than <pre> (monospace block is LTR and widens the bubble).
+			cardLine = fmt.Sprintf(
+				"\n\n\u200f💳 <b>شماره کارت:</b> <code>%s</code>\n\u200f<b>دارنده:</b> %s",
+				htmlEsc(cardNum), htmlEsc(holder),
+			)
 		} else {
-			cardLine = fmt.Sprintf("\n\n💳 <b>Payment card:</b>\n<pre>%s</pre>\n<b>Holder:</b> %s",
-				htmlEsc(cardNum), htmlEsc(holder))
+			cardLine = fmt.Sprintf(
+				"\n\n💳 <b>Payment card:</b> <code>%s</code>\n<b>Holder:</b> %s",
+				htmlEsc(cardNum), htmlEsc(holder),
+			)
 		}
 	}
 
@@ -642,7 +647,7 @@ func formatAwaitingPaymentMessage(lang string, settings *models.TelegramSettings
 	if opts != nil && strings.TrimSpace(opts.ReplyToUser) != "" {
 		reply := strings.TrimSpace(opts.ReplyToUser)
 		if fa {
-			replyBlock = "\n\n💬 <b>پیام ادمین:</b>\n" + htmlEsc(reply)
+			replyBlock = "\n\n\u200f💬 <b>پیام ادمین:</b>\n\u200f" + htmlEsc(reply)
 		} else {
 			replyBlock = "\n\n💬 <b>Message from admin:</b>\n" + htmlEsc(reply)
 		}
@@ -659,9 +664,10 @@ func formatAwaitingPaymentMessage(lang string, settings *models.TelegramSettings
 
 	receiptLine := ""
 	if fa {
-		receiptLine = "\n\n🧾 لطفاً تصویر رسید پرداخت را به‌صورت <b>عکس</b> به همین چت ارسال کنید."
+		// Shorter lines avoid one ultra-wide row that makes short RTL lines look like a large empty margin.
+		receiptLine = "\n\n\u200f🧾 رسید را به‌صورت <b>عکس</b> به همین چت بفرستید.\n\u200f📎 فقط عکس (نه فایل یا لینک)."
 	} else {
-		receiptLine = "\n\n🧾 Please send the payment receipt as a <b>photo</b> to this chat."
+		receiptLine = "\n\n🧾 Send the receipt as a <b>photo</b> in this chat.\n📎 Photo only (not a file or link)."
 	}
 
 	if fa {
