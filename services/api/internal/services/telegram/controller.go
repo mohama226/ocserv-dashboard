@@ -630,9 +630,8 @@ func formatAwaitingPaymentMessage(lang string, settings *models.TelegramSettings
 			holder = "—"
 		}
 		if fa {
-			// Inline <code> inherits paragraph direction better than <pre> (monospace block is LTR and widens the bubble).
 			cardLine = fmt.Sprintf(
-				"\n\n\u200f💳 <b>شماره کارت:</b> <code>%s</code>\n\u200f<b>دارنده:</b> %s",
+				"\n\n\u200f<b>شماره کارت:</b> <code>%s</code> 💳\n\u200f<b>دارنده:</b> %s",
 				htmlEsc(cardNum), htmlEsc(holder),
 			)
 		} else {
@@ -647,7 +646,7 @@ func formatAwaitingPaymentMessage(lang string, settings *models.TelegramSettings
 	if opts != nil && strings.TrimSpace(opts.ReplyToUser) != "" {
 		reply := strings.TrimSpace(opts.ReplyToUser)
 		if fa {
-			replyBlock = "\n\n\u200f💬 <b>پیام ادمین:</b>\n\u200f" + htmlEsc(reply)
+			replyBlock = "\n\n\u200f<b>پیام ادمین:</b> 💬\n\u200f" + htmlEsc(reply)
 		} else {
 			replyBlock = "\n\n💬 <b>Message from admin:</b>\n" + htmlEsc(reply)
 		}
@@ -656,7 +655,7 @@ func formatAwaitingPaymentMessage(lang string, settings *models.TelegramSettings
 	missingCard := ""
 	if cardNum == "" {
 		if fa {
-			missingCard = "\n\n⚠️ <b>اطلاعات کارت ثبت نشده است.</b> لطفاً با ادمین برای جزئیات پرداخت هماهنگ کنید."
+			missingCard = "\n\n\u200f<b>اطلاعات کارت ثبت نشده است.</b> لطفاً با ادمین برای جزئیات پرداخت هماهنگ کنید. ⚠️"
 		} else {
 			missingCard = "\n\n⚠️ <b>No payment card was configured.</b> Please contact the administrator for payment instructions."
 		}
@@ -664,14 +663,13 @@ func formatAwaitingPaymentMessage(lang string, settings *models.TelegramSettings
 
 	receiptLine := ""
 	if fa {
-		// Shorter lines avoid one ultra-wide row that makes short RTL lines look like a large empty margin.
-		receiptLine = "\n\n\u200f🧾 رسید را به‌صورت <b>عکس</b> به همین چت بفرستید.\n\u200f📎 فقط عکس (نه فایل یا لینک)."
+		receiptLine = "\n\n\u200fرسید را به‌صورت <b>عکس</b> به همین چت بفرستید. 🧾\n\u200fفقط عکس (نه فایل یا لینک). 📎"
 	} else {
 		receiptLine = "\n\n🧾 Send the receipt as a <b>photo</b> in this chat.\n📎 Photo only (not a file or link)."
 	}
 
 	if fa {
-		return "\u200f✅ <b>درخواست شما تایید شد!</b>" +
+		return "\u200f<b>درخواست شما تایید شد! ✅</b>" +
 			replyBlock + cardLine + receiptLine + missingCard
 	}
 	return "✅ <b>Your request has been approved!</b>" +
@@ -680,9 +678,9 @@ func formatAwaitingPaymentMessage(lang string, settings *models.TelegramSettings
 
 func formatRejectedMessage(settings *models.TelegramSettings, adminNote string) string {
 	if isFa(settings) {
-		msg := "❌ <b>درخواست شما توسط ادمین رد شد.</b>"
+		msg := "\u200f<b>درخواست شما توسط ادمین رد شد. ❌</b>"
 		if adminNote != "" {
-			msg += "\n\n📝 <b>دلیل:</b> " + htmlEsc(adminNote)
+			msg += "\n\n\u200f<b>دلیل:</b> " + htmlEsc(adminNote) + " 📝"
 		}
 		return msg
 	}
@@ -700,13 +698,13 @@ func formatNewAccountMessage(settings *models.TelegramSettings, user *models.Ocs
 	}
 	if isFa(settings) {
 		return fmt.Sprintf(
-			"🎉 <b>اکانت VPN شما آماده است!</b>\n\n"+
-				"🌐 <b>سرور:</b> <code>%s</code>\n"+
-				"👤 <b>نام کاربری:</b>\n<pre>%s</pre>\n"+
-				"🔑 <b>رمز عبور:</b>\n<pre>%s</pre>\n"+
-				"📅 <b>اعتبار تا:</b> %s\n"+
-				"💾 <b>حجم:</b> %d GB\n\n"+
-				"⚠️ رمز عبور را در جای امنی ذخیره کنید.",
+			"\u200f<b>اکانت VPN شما آماده است! 🎉</b>\n\n"+
+				"\u200f<b>سرور:</b> <code>%s</code> 🌐\n"+
+				"\u200f<b>نام کاربری:</b> 👤\n<pre>%s</pre>\n"+
+				"\u200f<b>رمز عبور:</b> 🔑\n<pre>%s</pre>\n"+
+				"\u200f<b>اعتبار تا:</b> %s 📅\n"+
+				"\u200f<b>حجم:</b> %d GB 💾\n\n"+
+				"\u200fرمز عبور را در جای امنی ذخیره کنید. ⚠️",
 			htmlEsc(host), htmlEsc(user.Username), htmlEsc(plainPassword),
 			expireAt.Format("2006-01-02"), user.TrafficSize,
 		)
@@ -727,10 +725,10 @@ func formatNewAccountMessage(settings *models.TelegramSettings, user *models.Ocs
 func formatRenewalMessage(settings *models.TelegramSettings, user *models.OcservUser, newExpire time.Time) string {
 	if isFa(settings) {
 		return fmt.Sprintf(
-			"✅ <b>اکانت شما با موفقیت تمدید شد!</b>\n\n"+
-				"👤 <b>نام کاربری:</b> <code>%s</code>\n"+
-				"📅 <b>تاریخ انقضای جدید:</b> %s\n"+
-				"💾 <b>حجم جدید:</b> %d GB",
+			"\u200f<b>اکانت شما با موفقیت تمدید شد! ✅</b>\n\n"+
+				"\u200f<b>نام کاربری:</b> <code>%s</code> 👤\n"+
+				"\u200f<b>تاریخ انقضای جدید:</b> %s 📅\n"+
+				"\u200f<b>حجم جدید:</b> %d GB 💾",
 			htmlEsc(user.Username), newExpire.Format("2006-01-02"), user.TrafficSize,
 		)
 	}
