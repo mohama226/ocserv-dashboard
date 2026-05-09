@@ -147,7 +147,7 @@ func (s *StatService) getUserSessionLog(cleanLine string) *models.OcservUserSess
 }
 
 func (s *StatService) getDisconnectStat(cleanLine string) (*UserStats, error) {
-	reTxRx := regexp.MustCompile(`main\[([^\]]+)\].*user disconnected.*(?:rx|in):\s*(\d+),\s*(?:tx|out):\s*(\d+)`)
+	reTxRx := regexp.MustCompile(`main\[([^\]]+)\].*rx:\s*(\d+),\s*tx:\s*(\d+)`)
 	matchRxTx := reTxRx.FindStringSubmatch(cleanLine)
 	if len(matchRxTx) <= 3 {
 		return nil, nil
