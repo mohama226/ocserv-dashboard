@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 	"github.com/mmtaee/ocserv-dashboard/common/models"
 	"github.com/mmtaee/ocserv-dashboard/common/ocserv/occtl"
@@ -490,8 +491,9 @@ func (o *OcservUserRepository) RestoreExpired(ctx context.Context, uid string, e
 			return err
 		}
 
-		if _, err := o.commonOcservUserRepo.UnLock(u.Username); err != nil {
-			return err
+		unlockOutput, err := o.commonOcservUserRepo.UnLock(u.Username)
+		if err != nil && !isAlreadyUnlockedOcpasswdError(unlockOutput, err) {
+			return fmt.Errorf("failed to unlock ocserv user %q: %s: %w", u.Username, strings.TrimSpace(unlockOutput), err)
 		}
 
 		if err := tx.
@@ -508,6 +510,15 @@ func (o *OcservUserRepository) RestoreExpired(ctx context.Context, uid string, e
 
 		return nil
 	})
+}
+
+func isAlreadyUnlockedOcpasswdError(output string, err error) bool {
+	text := strings.ToLower(strings.TrimSpace(output + " " + err.Error()))
+
+	return strings.Contains(text, "not locked") ||
+		strings.Contains(text, "not disabled") ||
+		strings.Contains(text, "already unlocked") ||
+		strings.Contains(text, "already enabled")
 }
 
 func (o *OcservUserRepository) UserSessionLogs(

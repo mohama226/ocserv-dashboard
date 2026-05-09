@@ -170,13 +170,14 @@ const unlock = (uid: string) => {
         });
 };
 
-const activateUser = (expireAt: string) => {
-    expireAt = formatDate(expireAt);
+const activateUser = (expireAt: string | null) => {
+    const formattedExpireAt = formatDate(expireAt);
+
     api.ocservUsersUidActivatePost({
         ...getAuthorization(),
         uid: activateUserUID.value,
         request: {
-            expire_at: expireAt
+            expire_at: formattedExpireAt || undefined
         }
     })
         .then(() => {
@@ -184,13 +185,15 @@ const activateUser = (expireAt: string) => {
             if (index > -1) {
                 users.value[index].is_locked = false;
                 users.value[index].deactivated_at = undefined;
-                users.value[index].expire_at = expireAt;
+                users.value[index].expire_at = formattedExpireAt;
                 users.value[index].is_online = false;
+                users.value[index].rx = 0;
+                users.value[index].tx = 0;
             }
+
             getUserStats();
-        })
-        .finally(() => {
             cancelActivateUser();
+
             snackbar.show({
                 id: 1,
                 message: t('USER_ACTIVATE_SUCCESSFULLY_SNACK'),
