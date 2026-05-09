@@ -34,8 +34,8 @@ type OcservUserRepository struct {
 }
 
 type OcservUserCRUD interface {
-	Users(ctx context.Context, pagination *request.Pagination, owner string, q string, filters string) ([]models.OcservUser, int64, error)
-	UsersByUsername(ctx context.Context, pagination *request.Pagination, owner string, usernames []string, q string) ([]models.OcservUser, int64, error)
+	Users(ctx context.Context, pagination *request.Pagination, owner string, q string, filters string, group string) ([]models.OcservUser, int64, error)
+	UsersByUsername(ctx context.Context, pagination *request.Pagination, owner string, usernames []string, q string, group string) ([]models.OcservUser, int64, error)
 	Create(ctx context.Context, user *models.OcservUser) (*models.OcservUser, error)
 	GetByUID(ctx context.Context, uid string) (*models.OcservUser, error)
 	GetByUsername(ctx context.Context, username string) (*models.OcservUser, error)
@@ -87,6 +87,7 @@ func (o *OcservUserRepository) Users(
 	owner string,
 	q string,
 	filter string,
+	group string,
 ) (
 	[]models.OcservUser, int64, error,
 ) {
@@ -98,6 +99,9 @@ func (o *OcservUserRepository) Users(
 		}
 		if len(q) >= 2 {
 			db = db.Where("LOWER(username) LIKE ?", "%"+strings.ToLower(q)+"%")
+		}
+		if group != "" {
+			db = db.Where(`"group" = ?`, group)
 		}
 
 		switch filter {
@@ -135,6 +139,7 @@ func (o *OcservUserRepository) UsersByUsername(
 	owner string,
 	usernames []string,
 	q string,
+	group string,
 ) ([]models.OcservUser, int64, error) {
 	applyFilters := func(db *gorm.DB) *gorm.DB {
 		if owner != "" {
@@ -143,6 +148,10 @@ func (o *OcservUserRepository) UsersByUsername(
 
 		if len(q) >= 2 {
 			db = db.Where("LOWER(username) LIKE ?", "%"+strings.ToLower(q)+"%")
+		}
+
+		if group != "" {
+			db = db.Where(`"group" = ?`, group)
 		}
 
 		return db

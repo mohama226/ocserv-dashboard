@@ -1923,6 +1923,10 @@ paths:
         in: query
         name: filter
         type: string
+      - description: filter ocserv user by group name
+        in: query
+        name: group
+        type: string
       - description: Bearer TOKEN
         in: header
         name: Authorization

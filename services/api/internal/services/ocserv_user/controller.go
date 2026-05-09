@@ -48,6 +48,7 @@ func New() *Controller {
 // @Param 		 sort query string false "Sort order, either ASC or DESC" Enums(ASC, DESC)
 // @Param 		 q query string false "ocserv username q search" minLength(2)
 // @Param 		 filter query string false "filter ocserv user by statues" Enums(online, active, deactivated, locked)
+// @Param 		 group query string false "filter ocserv user by group name"
 // @Param        Authorization header string true "Bearer TOKEN"
 // @Failure      400 {object} request.ErrorResponse
 // @Failure      401 {object} middlewares.Unauthorized
@@ -66,6 +67,7 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 	}
 
 	q := c.QueryParam("q")
+	group := c.QueryParam("group")
 	pagination := ctl.request.Pagination(c)
 
 	filter := c.QueryParam("filter")
@@ -92,6 +94,7 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 			owner,
 			onlineUsers,
 			q,
+			group,
 		)
 		if err != nil {
 			return ctl.request.BadRequest(c, err)
@@ -122,6 +125,7 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 		owner,
 		q,
 		filter,
+		group,
 	)
 	if err != nil {
 		return ctl.request.BadRequest(c, err)

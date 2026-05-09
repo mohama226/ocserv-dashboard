@@ -55,10 +55,11 @@ export const OcservUsersApiAxiosParamCreator = function (configuration?: Configu
          * @param {OcservUsersGetSortEnum} [sort] Sort order, either ASC or DESC
          * @param {string} [q] ocserv username q search
          * @param {OcservUsersGetFilterEnum} [filter] filter ocserv user by statues
+         * @param {string} [group] filter ocserv user by group name
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ocservUsersGet: async (authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, q?: string, filter?: OcservUsersGetFilterEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        ocservUsersGet: async (authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, q?: string, filter?: OcservUsersGetFilterEnum, group?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'authorization' is not null or undefined
             assertParamExists('ocservUsersGet', 'authorization', authorization)
             const localVarPath = `/ocserv/users`;
@@ -95,6 +96,10 @@ export const OcservUsersApiAxiosParamCreator = function (configuration?: Configu
 
             if (filter !== undefined) {
                 localVarQueryParameter['filter'] = filter;
+            }
+
+            if (group !== undefined) {
+                localVarQueryParameter['group'] = group;
             }
 
 
@@ -585,11 +590,12 @@ export const OcservUsersApiFp = function(configuration?: Configuration) {
          * @param {OcservUsersGetSortEnum} [sort] Sort order, either ASC or DESC
          * @param {string} [q] ocserv username q search
          * @param {OcservUsersGetFilterEnum} [filter] filter ocserv user by statues
+         * @param {string} [group] filter ocserv user by group name
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ocservUsersGet(authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, q?: string, filter?: OcservUsersGetFilterEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OcservUserOcservUsersResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersGet(authorization, page, size, order, sort, q, filter, options);
+        async ocservUsersGet(authorization: string, page?: number, size?: number, order?: string, sort?: OcservUsersGetSortEnum, q?: string, filter?: OcservUsersGetFilterEnum, group?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OcservUserOcservUsersResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersGet(authorization, page, size, order, sort, q, filter, group, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -762,7 +768,7 @@ export const OcservUsersApiFactory = function (configuration?: Configuration, ba
          * @throws {RequiredError}
          */
         ocservUsersGet(requestParameters: OcservUsersApiOcservUsersGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<OcservUserOcservUsersResponse> {
-            return localVarFp.ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.q, requestParameters.filter, options).then((request) => request(axios, basePath));
+            return localVarFp.ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.q, requestParameters.filter, requestParameters.group, options).then((request) => request(axios, basePath));
         },
         /**
          * Ocserv User creation
@@ -921,6 +927,13 @@ export interface OcservUsersApiOcservUsersGetRequest {
      * @memberof OcservUsersApiOcservUsersGet
      */
     readonly filter?: OcservUsersGetFilterEnum
+
+    /**
+     * filter ocserv user by group name
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersGet
+     */
+    readonly group?: string
 }
 
 /**
@@ -1219,7 +1232,7 @@ export class OcservUsersApi extends BaseAPI {
      * @memberof OcservUsersApi
      */
     public ocservUsersGet(requestParameters: OcservUsersApiOcservUsersGetRequest, options?: RawAxiosRequestConfig) {
-        return OcservUsersApiFp(this.configuration).ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.q, requestParameters.filter, options).then((request) => request(this.axios, this.basePath));
+        return OcservUsersApiFp(this.configuration).ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.q, requestParameters.filter, requestParameters.group, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
