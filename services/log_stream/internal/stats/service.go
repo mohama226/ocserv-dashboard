@@ -147,22 +147,31 @@ func (s *StatService) getUserSessionLog(cleanLine string) *models.OcservUserSess
 }
 
 func (s *StatService) getDisconnectStat(cleanLine string) (*UserStats, error) {
-	reTxRx := regexp.MustCompile(`main\[(.*?)\].*rx:\s*(\d+),\s*tx:\s*(\d+)`)
+	reTxRx := regexp.MustCompile(`main\[([^\]]+)\].*user disconnected.*(?:rx|in):\s*(\d+),\s*(?:tx|out):\s*(\d+)`)
 	matchRxTx := reTxRx.FindStringSubmatch(cleanLine)
-	if len(matchRxTx) > 3 {
-		rx, _ := strconv.Atoi(matchRxTx[2])
-		tx, _ := strconv.Atoi(matchRxTx[3])
-		// exclude rx/tx 0 from log
-		if rx > 0 || tx > 0 {
-			rxTxStats := &UserStats{
-				Username: matchRxTx[1],
-				RX:       rx,
-				TX:       tx,
-			}
-			return rxTxStats, nil
-		}
+	if len(matchRxTx) <= 3 {
+		return nil, nil
 	}
-	return nil, nil
+
+	rx, err := strconv.Atoi(matchRxTx[2])
+	if err != nil {
+		return nil, err
+	}
+	tx, err := strconv.Atoi(matchRxTx[3])
+	if err != nil {
+		return nil, err
+	}
+
+	// exclude rx/tx 0 from log
+	if rx == 0 && tx == 0 {
+		return nil, nil
+	}
+
+	return &UserStats{
+		Username: matchRxTx[1],
+		RX:       rx,
+		TX:       tx,
+	}, nil
 }
 
 func (s *StatService) saveRxTx(ctx context.Context, u *UserStats) error {

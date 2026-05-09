@@ -11,6 +11,7 @@ import (
 var Migrations = []*gormigrate.Migration{
 	migrations.Migration001,
 	migrations.Migration002,
+	migrations.Migration003,
 }
 
 func Migrate() {
