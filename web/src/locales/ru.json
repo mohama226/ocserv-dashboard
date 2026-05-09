@@ -368,5 +368,5 @@
   "TELEGRAM_REPLY_TO_USER": "Reply to customer (Telegram)",
   "TELEGRAM_REPLY_TO_USER_HINT": "shown to the user in Telegram together with payment instructions",
   "TELEGRAM_SUPPORT_USERNAME": "Support Telegram Username",
-  "TELEGRAM_SUPPORT_USERNAME_HINT": "Telegram username (no @, e.g. masniper) shown to bot users as the support contact"
+  "TELEGRAM_SUPPORT_USERNAME_HINT": "Telegram username without leading at-sign (e.g. masniper) shown to bot users as the support contact"
 }
