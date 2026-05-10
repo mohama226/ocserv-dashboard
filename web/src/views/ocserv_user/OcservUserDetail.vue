@@ -12,7 +12,13 @@ import { router } from '@/router';
 import UiParentCard from '@/components/shared/UiParentCard.vue';
 import UiChildCard from '@/components/shared/UiChildCard.vue';
 import TelegramLinkedAccounts from '@/components/ocserv_user/TelegramLinkedAccounts.vue';
-import { formatDateWithRelative, trafficTypesTransformer } from '@/utils/convertors';
+import {
+    bytesToTrafficSize,
+    formatDate,
+    formatDateTimeWithRelative,
+    formatDateWithRelative,
+    trafficTypesTransformer
+} from '@/utils/convertors';
 import { useConfigStore } from '@/stores/config';
 
 const props = defineProps<{ uid: string }>();
@@ -235,7 +241,7 @@ onMounted(() => {
                                             {{
                                                 result.traffic_size &&
                                                 result.traffic_type !== ModelsOcservUserTrafficTypeEnum.FREE
-                                                    ? result.traffic_size + ' GB'
+                                                    ? bytesToTrafficSize(result.traffic_size)
                                                     : t('FREE')
                                             }}
                                         </span>
