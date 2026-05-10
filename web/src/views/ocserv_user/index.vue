@@ -441,7 +441,8 @@ onMounted(() => {
                                 <th class="text-left">{{ t('BANDWIDTHS') }}</th>
                                 <th class="text-left">{{ t('DATES') }}</th>
                                 <th class="text-left">{{ t('STATUS') }}</th>
-                                <th class="text-left">{{ t('ACTION') }}</th>
+                                <th class="text-left">{{ t('CERTIFICATE') }}</th>
+				<th class="text-left">{{ t('ACTION') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -565,6 +566,14 @@ onMounted(() => {
                                         </span>
                                     </div>
                                 </td>
+				<td>
+				    <span
+				        :class="item.certificate_enabled ? 'text-success' : 'text-warning'"
+					class="text-capitalize"
+				    >
+				    	{{ item.certificate_enabled ? t('ENABLED') : t('DISABLED') }}
+				    </span>
+				</td>
                                 <td>
                                     <v-menu>
                                         <template v-slot:activator="{ props }">

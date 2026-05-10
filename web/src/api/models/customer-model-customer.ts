@@ -39,6 +39,18 @@ export interface CustomerModelCustomer {
      */
     'is_locked': boolean;
     /**
+     *
+     * @type {boolean}
+     * @memberof CustomerModelCustomer
+     */
+    'certificate_enabled'?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof CustomerModelCustomer
+     */
+    'certificate_available'?: boolean;
+    /**
      * 
      * @type {string}
      * @memberof CustomerModelCustomer

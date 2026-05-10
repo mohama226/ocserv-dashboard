@@ -678,6 +678,59 @@ func (ctl *Controller) ActivateExpiredOcservUsers(c echo.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
+// CreateCertificate creates certificate files for an existing ocserv user.
+//
+// @Summary      Create certificate for ocserv user
+// @Description  Create certificate for an existing ocserv user using the currently stored password
+// @Tags         Ocserv(Users)
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer TOKEN"
+// @Param 		 uid path string true "Ocserv User UID"
+// @Failure      400 {object} request.ErrorResponse
+// @Failure      401 {object} middlewares.Unauthorized
+// @Success      200 {object} nil
+// @Router       /ocserv/users/{uid}/certificate [post]
+func (ctl *Controller) CreateCertificate(c echo.Context) error {
+	userID := c.Param("uid")
+	if userID == "" {
+		return ctl.request.BadRequest(c, errors.New("user id is required"))
+	}
+
+	if err := ctl.ocservUserRepo.CreateCertificate(c.Request().Context(), userID); err != nil {
+		return ctl.request.BadRequest(c, err)
+	}
+
+	return c.JSON(http.StatusOK, nil)
+}
+
+// DownloadCertificate downloads the user's PKCS#12 certificate bundle.
+//
+// @Summary      Download ocserv user certificate
+// @Description  Download the user's .p12 certificate bundle
+// @Tags         Ocserv(Users)
+// @Produce      application/x-pkcs12
+// @Param        Authorization header string true "Bearer TOKEN"
+// @Param 		 uid path string true "Ocserv User UID"
+// @Failure      400 {object} request.ErrorResponse
+// @Failure      401 {object} middlewares.Unauthorized
+// @Success      200 {file} file "user.p12"
+// @Router       /ocserv/users/{uid}/certificate [get]
+func (ctl *Controller) DownloadCertificate(c echo.Context) error {
+	userID := c.Param("uid")
+	if userID == "" {
+		return ctl.request.BadRequest(c, errors.New("user id is required"))
+	}
+
+	username, path, err := ctl.ocservUserRepo.CertificatePath(c.Request().Context(), userID)
+	if err != nil {
+		return ctl.request.BadRequest(c, err)
+	}
+
+	c.Response().Header().Set(echo.HeaderContentType, "application/x-pkcs12")
+	return c.Attachment(path, username+".p12")
+}
+
 // OcservUserSessionLogs 	     Ocserv User session logs
 //
 // @Summary      Ocserv User session logs

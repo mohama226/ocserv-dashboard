@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import apiClient from '@/plugins/axios';
 import { useI18n } from 'vue-i18n';
 import { onMounted, ref } from 'vue';
 import {
@@ -24,6 +25,8 @@ const props = defineProps<{ uid: string }>();
 const { t } = useI18n();
 const result = ref<ModelsOcservUser>({
     created_at: '',
+    certificate_enabled: false,
+    certificate_available: false,
     group: '',
     is_locked: false,
     is_online: false,
@@ -69,6 +72,36 @@ const getUser = () => {
     });
 };
 
+const authHeaders = () => ({
+    Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`
+});
+
+const createCertificate = () => {
+    apiClient
+        .post(`/ocserv/users/${props.uid}/certificate`, {}, { headers: authHeaders() })
+        .then(() => {
+            getUser();
+        });
+};
+
+const downloadCertificate = () => {
+    apiClient
+        .get(`/ocserv/users/${props.uid}/certificate`, {
+            headers: authHeaders(),
+            responseType: 'blob'
+        })
+        .then((res) => {
+            const url = window.URL.createObjectURL(new Blob([res.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${result.value.username}.p12`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        });
+};
+
 onMounted(() => {
     getUser();
 });
@@ -88,6 +121,26 @@ onMounted(() => {
                     </v-tooltip>
                 </template>
                 <template #action>
+		    <v-btn
+		        v-if="!result.certificate_enabled && !result.deactivated_at"
+			class="me-lg-5"
+			color="success"
+			size="small"
+			variant="flat"
+			@click="createCertificate"
+			>
+			{{ t('CREATE_CERTIFICATE') }}
+		    </v-btn>
+		    <v-btn
+		        v-if="result.certificate_available"
+			class="me-lg-5"
+			color="info"
+			size="small"
+			variant="outlined"
+			@click="downloadCertificate"
+		    >
+		        {{ t('DOWNLOAD_CERTIFICATE') }}
+		    </v-btn>
                     <v-btn
                         class="me-lg-5"
                         color="grey"
@@ -138,6 +191,18 @@ onMounted(() => {
                                         <span class="font-medium text-gray-600 text-capitalize">{{ t('GROUP') }}:</span>
                                         <span class="ms-1 text-primary">{{ result.group }}</span>
                                     </v-col>
+
+				    <v-col cols="12" md="4">
+					<span class="font-medium text-gray-600 text-capitalize">
+					    {{ t('CERTIFICATE') }}:
+					</span>
+					<span
+					    :class="result.certificate_enabled ? 'text-success' : 'text-warning'"
+					    class="ms-1 text-capitalize"
+					>
+					    {{ result.certificate_enabled ? t('ENABLED') : t('DISABLED') }}
+					</span>
+				    </v-col>
 
                                     <v-col cols="12" md="4">
                                         <span class="font-medium text-gray-600 text-capitalize">

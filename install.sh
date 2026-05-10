@@ -547,8 +547,8 @@ setup_systemd() {
             die "⚠️ Ocserv config not found (/etc/ocserv/ocserv.conf)."
         else
             # Check if auth line exists
-            if ! grep -q '^auth\s*=\s*"plain\[passwd=/etc/ocserv/ocpasswd\]"' /etc/ocserv/ocserv.conf; then
-                die "⚠️ Ocserv auth config missing (auth=plain[passwd])."
+            if ! grep -q '^enable-auth\s*=\s*"plain\[passwd=/etc/ocserv/ocpasswd\]"' /etc/ocserv/ocserv.conf; then
+                die "⚠️ Ocserv auth config missing (enable-auth=plain[passwd])."
             else
                 ok "✅ Ocserv is installed and properly configured."
             fi

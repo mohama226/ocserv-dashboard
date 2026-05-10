@@ -36,6 +36,18 @@ export interface ModelsOcservUser {
      */
     'created_at': string;
     /**
+     *
+     * @type {boolean}
+     * @memberof ModelsOcservUser
+     */
+    'certificate_enabled'?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof ModelsOcservUser
+     */
+    'certificate_available'?: boolean;
+    /**
      * 
      * @type {string}
      * @memberof ModelsOcservUser

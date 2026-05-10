@@ -53,26 +53,36 @@ type OcservUserConfig struct {
 	RestrictToPorts *string `json:"restrict-to-ports"`
 }
 
+type OcservUserCertificateBackup struct {
+	Status    string `json:"status"` // active or suspended
+	KeyPEM    string `json:"key_pem,omitempty"`
+	CertPEM   string `json:"cert_pem,omitempty"`
+	P12Base64 string `json:"p12_base64,omitempty"`
+}
+
 type OcservUser struct {
-	ID            uint              `json:"-" gorm:"primaryKey;autoIncrement" `
-	UID           string            `json:"uid" gorm:"gorm:type:char(26);not null;uniqueIndex" validate:"required"`
-	Owner         string            `json:"owner" gorm:"type:varchar(16);default:''" validate:"required"`
-	Group         string            `json:"group" gorm:"type:varchar(16);default:'defaults'" validate:"required"`
-	Username      string            `json:"username" gorm:"type:varchar(255);not null;uniqueIndex" validate:"required"`
+	ID                   uint                         `json:"-" gorm:"primaryKey;autoIncrement" `
+	UID                  string                       `json:"uid" gorm:"gorm:type:char(26);not null;uniqueIndex" validate:"required"`
+	Owner                string                       `json:"owner" gorm:"type:varchar(16);default:''" validate:"required"`
+	Group                string                       `json:"group" gorm:"type:varchar(16);default:'defaults'" validate:"required"`
+	Username             string                       `json:"username" gorm:"type:varchar(16);not null;uniqueIndex" validate:"required"`
 	// Length matches migration 007 (ocserv_users.password column); do not widen without a new migration.
-	Password      string            `json:"password" gorm:"type:varchar(255);not null" validate:"required"`
-	IsLocked      bool              `json:"is_locked" gorm:"default(false)" validate:"required"`
-	CreatedAt     time.Time         `json:"created_at" gorm:"autoCreateTime" validate:"required"`
-	UpdatedAt     time.Time         `json:"updated_at" gorm:"autoUpdateTime" validate:"omitempty"`
-	ExpireAt      *time.Time        `json:"expire_at" gorm:"type:date" validate:"omitempty"`
-	DeactivatedAt *time.Time        `json:"deactivated_at" gorm:"type:date" validate:"omitempty"`
-	TrafficType   string            `json:"traffic_type" gorm:"type:varchar(32);not null;default:1" enums:"Free,MonthlyTransmit,MonthlyReceive,MonthlyRxTx,TotallyTransmit,TotallyReceive,TotallyRxTx" validate:"required"`
-	TrafficSize   int               `json:"traffic_size" gorm:"not null" validate:"required"` // in GiB  >> x * 1024 ** 3
-	Rx            int               `json:"rx" gorm:"not null;default:0" validate:"required"` // Receive in bytes
-	Tx            int               `json:"tx" gorm:"not null;default:0" validate:"required"` // Transmit in bytes
-	Description   string            `json:"description" gorm:"type:text" validate:"omitempty"`
-	IsOnline      bool              `json:"is_online" gorm:"-:migration;->" validate:"required"`
-	Config        *OcservUserConfig `json:"config" gorm:"type:text"`
+	Password             string                       `json:"password" gorm:"type:varchar(16);not null" validate:"required"`
+	IsLocked             bool                         `json:"is_locked" gorm:"default(false)" validate:"required"`
+	CreatedAt            time.Time                    `json:"created_at" gorm:"autoCreateTime" validate:"required"`
+	UpdatedAt            time.Time                    `json:"updated_at" gorm:"autoUpdateTime" validate:"omitempty"`
+	ExpireAt             *time.Time                   `json:"expire_at" gorm:"type:date" validate:"omitempty"`
+	DeactivatedAt        *time.Time                   `json:"deactivated_at" gorm:"type:date" validate:"omitempty"`
+	TrafficType          string                       `json:"traffic_type" gorm:"type:varchar(32);not null;default:1" enums:"Free,MonthlyTransmit,MonthlyReceive,MonthlyRxTx,TotallyTransmit,TotallyReceive,TotallyRxTx" validate:"required"`
+	TrafficSize          int                          `json:"traffic_size" gorm:"not null" validate:"required"` // in GiB  >> x * 1024 ** 3
+	Rx                   int                          `json:"rx" gorm:"not null;default:0" validate:"required"` // Receive in bytes
+	Tx                   int                          `json:"tx" gorm:"not null;default:0" validate:"required"` // Transmit in bytes
+	Description          string                       `json:"description" gorm:"type:text" validate:"omitempty"`
+	IsOnline             bool                         `json:"is_online" gorm:"-:migration;->" validate:"required"`
+	Config               *OcservUserConfig            `json:"config" gorm:"type:text"`
+	CertificateEnabled   bool                         `json:"certificate_enabled" gorm:"-"`
+	CertificateAvailable bool                         `json:"certificate_available" gorm:"-"`
+	Certificate          *OcservUserCertificateBackup `json:"certificate,omitempty" gorm:"-"`
 }
 
 type OcservUserTrafficStatistics struct {
