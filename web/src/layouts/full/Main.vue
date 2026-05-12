@@ -12,7 +12,7 @@ import LanguageDD from '@/layouts/full/vertical-header/LanguageDD.vue';
 import { useServerStore } from '@/stores/config';
 import { useI18n } from 'vue-i18n';
 
-const {t} = useI18n()
+const { t } = useI18n();
 
 const sidebarMenu = getSidebarItems();
 
@@ -35,7 +35,9 @@ watch(mdAndDown, (val) => {
 <template>
     <v-navigation-drawer v-model="sDrawer" :width="300" app class="leftSidebar" elevation="0" left>
         <div class="py-3 bg-primary text-h5">
-            <span class="mx-5">Ocserv Dashboard <span style="font-size: 14px;color:#453737;" >({{ release.Current }})</span></span>
+            <span class="mx-5"
+                >Ocserv Dashboard <span style="font-size: 14px; color: #453737">({{ release.Current }})</span></span
+            >
             <v-btn icon size="small" variant="text" @click="sDrawer = !sDrawer">
                 <v-icon size="25" end>mdi-chevron-left</v-icon>
             </v-btn>

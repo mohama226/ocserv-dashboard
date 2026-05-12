@@ -9,9 +9,6 @@ const { t } = useI18n();
 
 const serverStore = useServerStore();
 const release = computed(() => serverStore.getDashboardRelease);
-
-
-
 </script>
 
 <template>
