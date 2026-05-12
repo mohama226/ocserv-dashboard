@@ -69,3 +69,8 @@ type SetupSystemResponse struct {
 	System models.System `json:"system" validate:"required"`
 	Token  string        `json:"token" validate:"required"`
 }
+
+type DashboardRelease struct {
+	Current string `json:"current" validate:"required"`
+	Latest  string `json:"latest" validate:"required"`
+}

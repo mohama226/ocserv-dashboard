@@ -2262,6 +2262,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/system/release": {
+            "get": {
+                "description": "Get Dashboard current and latest release",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System"
+                ],
+                "summary": "Get Dashboard the current and latest release",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/system.DashboardRelease"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/system/setup": {
             "post": {
                 "description": "Setup user and system config",
@@ -4312,6 +4341,21 @@ const docTemplate = `{
                     "minLength": 4
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "system.DashboardRelease": {
+            "type": "object",
+            "required": [
+                "current",
+                "latest"
+            ],
+            "properties": {
+                "current": {
+                    "type": "string"
+                },
+                "latest": {
                     "type": "string"
                 }
             }

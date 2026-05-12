@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/labstack/echo/v4"
 	"github.com/mmtaee/ocserv-dashboard/api/internal/models"
@@ -10,8 +11,11 @@ import (
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/crypto"
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/routing/middlewares"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 	"gorm.io/gorm"
+	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -32,6 +36,51 @@ func New() *Controller {
 		captchaVerifier: captcha.NewGoogleVerifier(),
 		cryptoRepo:      crypto.NewCustomPassword(),
 	}
+}
+
+// DashboardRelease
+// @Summary      Get Dashboard the current and latest release
+// @Description  Get Dashboard current and latest release
+// @Tags         System
+// @Accept       json
+// @Produce      json
+// @Failure      400 {object} request.ErrorResponse
+// @Success      200  {object} DashboardRelease
+// @Router       /system/release [get]
+func (ctl *Controller) DashboardRelease(c echo.Context) error {
+	current := os.Getenv("CURRENT_RELEASE")
+
+	resp, err := http.Get("https://api.github.com/repos/mmtaee/ocserv-dashboard/releases/latest")
+	if err != nil {
+		return ctl.request.BadRequest(c, errors.New("failed to fetch latest release"))
+	}
+
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			logger.Error("error on close io.ReadCloser: %v", err)
+		}
+	}(resp.Body)
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ctl.request.BadRequest(c, errors.New("failed to read latest release"))
+	}
+
+	var gh struct {
+		TagName string `json:"tag_name"`
+	}
+
+	if err = json.Unmarshal(body, &gh); err != nil {
+		return ctl.request.BadRequest(c, errors.New("failed to parse latest release"))
+	}
+
+	latest := strings.TrimSpace(gh.TagName)
+
+	return c.JSON(http.StatusOK, DashboardRelease{
+		Current: current,
+		Latest:  latest,
+	})
 }
 
 // SetupSystem
@@ -94,7 +143,7 @@ func (ctl *Controller) SetupSystem(c echo.Context) error {
 	)
 }
 
-// SystemInit
+// SystemInit    Get panel System init Config
 // @Summary      Get panel System init Config
 // @Description  Get panel System init Config
 // @Tags         System
@@ -116,7 +165,7 @@ func (ctl *Controller) SystemInit(c echo.Context) error {
 	})
 }
 
-// System
+// System        Get panel System Config
 // @Summary      Get panel System Config
 // @Description  Get panel System Config
 // @Tags         System

@@ -971,6 +971,16 @@ definitions:
     - password
     - username
     type: object
+  system.DashboardRelease:
+    properties:
+      current:
+        type: string
+      latest:
+        type: string
+    required:
+    - current
+    - latest
+    type: object
   system.GetSystemInitResponse:
     properties:
       google_captcha_site_key:
@@ -2623,6 +2633,25 @@ paths:
           schema:
             $ref: '#/definitions/request.ErrorResponse'
       summary: Get panel System init Config
+      tags:
+      - System
+  /system/release:
+    get:
+      consumes:
+      - application/json
+      description: Get Dashboard current and latest release
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/system.DashboardRelease'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+      summary: Get Dashboard the current and latest release
       tags:
       - System
   /system/setup:
