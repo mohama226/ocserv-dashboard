@@ -7,6 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/mmtaee/ocserv-dashboard/common/models"
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
+	"github.com/mmtaee/ocserv-dashboard/telegram_bot/internal/bot/cbdata"
 	"github.com/mmtaee/ocserv-dashboard/telegram_bot/internal/bot/handlers"
 )
 
@@ -117,12 +118,12 @@ func (r *Router) handleCallback(ctx context.Context, cq *tgbotapi.CallbackQuery)
 	lang := r.hub.LanguageFor(ctx, chatID)
 
 	switch {
-	case data == cbMainMenu:
+	case data == cbdata.MainMenu:
 		r.mgr.Sessions().Reset(chatID)
-		// "User view" for admins: cbMainMenu always renders the user menu.
+		// "User view" for admins: MainMenu always renders the user menu.
 		r.hub.SendUserMenu(ctx, chatID, lang, srcMsgID)
 
-	case data == cbAdminMenu:
+	case data == cbdata.AdminMenu:
 		r.mgr.Sessions().Reset(chatID)
 		if !r.hub.IsAdmin(ctx, chatID) {
 			r.hub.SendUserMenu(ctx, chatID, lang, srcMsgID)
@@ -130,61 +131,61 @@ func (r *Router) handleCallback(ctx context.Context, cq *tgbotapi.CallbackQuery)
 			r.hub.SendAdminMenu(ctx, chatID, lang, srcMsgID)
 		}
 
-	case data == cbAdminPending:
+	case data == cbdata.AdminPending:
 		if r.hub.IsAdmin(ctx, chatID) {
 			r.hub.ShowAdminPending(ctx, chatID, lang, srcMsgID)
 		}
 
-	case data == cbAdminReceipts:
+	case data == cbdata.AdminReceipts:
 		if r.hub.IsAdmin(ctx, chatID) {
 			r.hub.ShowAdminReceipts(ctx, chatID, lang, srcMsgID)
 		}
 
-	case data == cbAdminStats:
+	case data == cbdata.AdminStats:
 		if r.hub.IsAdmin(ctx, chatID) {
 			r.hub.ShowAdminStats(ctx, chatID, lang, srcMsgID)
 		}
 
-	case data == cbAddAccount:
+	case data == cbdata.AddAccount:
 		r.hub.StartAddAccount(ctx, chatID, srcMsgID)
 
-	case data == cbMyAccounts:
+	case data == cbdata.MyAccounts:
 		r.hub.SendMyAccounts(ctx, chatID, lang, srcMsgID)
 
-	case data == cbNewOrder:
+	case data == cbdata.NewOrder:
 		r.hub.StartNewOrder(ctx, chatID, srcMsgID)
 
-	case data == cbHelp:
+	case data == cbdata.Help:
 		r.hub.ShowHelp(ctx, chatID, lang, srcMsgID)
 
-	case data == cbLanguage:
+	case data == cbdata.Language:
 		r.hub.ShowLanguageMenu(ctx, chatID, lang, srcMsgID)
 
-	case data == cbLangEN:
+	case data == cbdata.LangEN:
 		r.hub.SetLanguage(ctx, chatID, models.TelegramLanguageEN, srcMsgID)
 		toast = "✓ Language updated"
 
-	case data == cbLangFA:
+	case data == cbdata.LangFA:
 		r.hub.SetLanguage(ctx, chatID, models.TelegramLanguageFA, srcMsgID)
 		toast = "✓ زبان تغییر کرد"
 
-	case strings.HasPrefix(data, cbAccountDetail):
-		r.hub.ShowAccountDetail(ctx, chatID, parseUintSuffix(data, cbAccountDetail), srcMsgID)
+	case strings.HasPrefix(data, cbdata.AccountDetail):
+		r.hub.ShowAccountDetail(ctx, chatID, parseUintSuffix(data, cbdata.AccountDetail), srcMsgID)
 
-	case strings.HasPrefix(data, cbAccountUsage):
-		r.hub.SendAccountUsage(ctx, chatID, parseUintSuffix(data, cbAccountUsage), lang, srcMsgID)
+	case strings.HasPrefix(data, cbdata.AccountUsage):
+		r.hub.SendAccountUsage(ctx, chatID, parseUintSuffix(data, cbdata.AccountUsage), lang, srcMsgID)
 
-	case strings.HasPrefix(data, cbAccountRenew):
-		r.hub.StartRenewForAccount(ctx, chatID, parseUintSuffix(data, cbAccountRenew), srcMsgID)
+	case strings.HasPrefix(data, cbdata.AccountRenew):
+		r.hub.StartRenewForAccount(ctx, chatID, parseUintSuffix(data, cbdata.AccountRenew), srcMsgID)
 
-	case strings.HasPrefix(data, cbAccountRemove):
-		r.hub.RemoveAccount(ctx, chatID, parseUintSuffix(data, cbAccountRemove), srcMsgID)
+	case strings.HasPrefix(data, cbdata.AccountRemove):
+		r.hub.RemoveAccount(ctx, chatID, parseUintSuffix(data, cbdata.AccountRemove), srcMsgID)
 
-	case strings.HasPrefix(data, cbPickPackageNew):
-		r.hub.PickedPackageNew(ctx, chatID, parseUintSuffix(data, cbPickPackageNew), srcMsgID)
+	case strings.HasPrefix(data, cbdata.PickPackageNew):
+		r.hub.PickedPackageNew(ctx, chatID, parseUintSuffix(data, cbdata.PickPackageNew), srcMsgID)
 
-	case strings.HasPrefix(data, cbPickPackageRenew):
-		r.hub.PickedPackageRenew(ctx, chatID, parseUintSuffix(data, cbPickPackageRenew), srcMsgID)
+	case strings.HasPrefix(data, cbdata.PickPackageRenew):
+		r.hub.PickedPackageRenew(ctx, chatID, parseUintSuffix(data, cbdata.PickPackageRenew), srcMsgID)
 
 	default:
 		logger.Warn("telegram_bot: unknown callback data: %s", data)

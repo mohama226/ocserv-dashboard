@@ -146,6 +146,22 @@ func (r *Repository) OcservUserByID(ctx context.Context, id uint) (*models.Ocser
 	return &user, nil
 }
 
+// OcservUsersByIDs loads all matching users in one query. Missing IDs are omitted from the map.
+func (r *Repository) OcservUsersByIDs(ctx context.Context, ids []uint) (map[uint]*models.OcservUser, error) {
+	if len(ids) == 0 {
+		return map[uint]*models.OcservUser{}, nil
+	}
+	var users []models.OcservUser
+	if err := r.db.WithContext(ctx).Where("id IN ?", ids).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	out := make(map[uint]*models.OcservUser, len(users))
+	for i := range users {
+		out[users[i].ID] = &users[i]
+	}
+	return out, nil
+}
+
 func (r *Repository) OcservUserByUsername(ctx context.Context, username string) (*models.OcservUser, error) {
 	var user models.OcservUser
 	err := r.db.WithContext(ctx).Where("username = ?", username).First(&user).Error

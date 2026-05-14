@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	checkInterval     = 30 * time.Minute
-	notifyCooldown    = 24 * time.Hour
-	bytesPerMegabyte  = 1024 * 1024
-	bytesPerGigabyte  = 1024 * 1024 * 1024
+	checkInterval    = 30 * time.Minute
+	notifyCooldown   = 24 * time.Hour
+	bytesPerMegabyte = 1024 * 1024
+	bytesPerGigabyte = 1024 * 1024 * 1024
 )
 
 // Sender is implemented by anything capable of delivering a chat message.
@@ -29,10 +29,10 @@ type Notifier struct {
 	repo   *repository.Repository
 }
 
-func New(sender Sender) *Notifier {
+func New(sender Sender, repo *repository.Repository) *Notifier {
 	return &Notifier{
 		sender: sender,
-		repo:   repository.New(),
+		repo:   repo,
 	}
 }
 

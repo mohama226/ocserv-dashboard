@@ -16,6 +16,7 @@ import (
 	"github.com/mmtaee/ocserv-dashboard/common/models"
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 	"github.com/mmtaee/ocserv-dashboard/telegram_bot/internal/auth"
+	"github.com/mmtaee/ocserv-dashboard/telegram_bot/internal/bot/cbdata"
 	"github.com/mmtaee/ocserv-dashboard/telegram_bot/internal/i18n"
 	"github.com/mmtaee/ocserv-dashboard/telegram_bot/internal/repository"
 	"github.com/mmtaee/ocserv-dashboard/telegram_bot/internal/session"
@@ -29,31 +30,6 @@ const parseModeHTML = "HTML"
 func htmlEscape(s string) string {
 	return html.EscapeString(s)
 }
-
-const (
-	cbMainMenu         = "menu:main"
-	cbAddAccount       = "menu:add"
-	cbMyAccounts       = "menu:list"
-	cbNewOrder         = "menu:order"
-	cbHelp             = "menu:help"
-	cbLanguage         = "menu:lang"
-	cbLangEN           = "lang:en"
-	cbLangFA           = "lang:fa"
-	cbAccountDetail    = "acc:detail:"
-	cbAccountUsage     = "acc:usage:"
-	cbAccountRenew     = "acc:renew:"
-	cbAccountRemove    = "acc:remove:"
-	cbPickPackageNew   = "pkgn:"
-	cbPickPackageRenew = "pkgr:"
-
-	// Admin-only callbacks. Must mirror the values in the bot package's
-	// callbacks.go since the router (in the bot package) dispatches by raw
-	// string match.
-	cbAdminMenu     = "adm:menu"
-	cbAdminPending  = "adm:pending"
-	cbAdminReceipts = "adm:receipts"
-	cbAdminStats    = "adm:stats"
-)
 
 type Deps struct {
 	API        *tgbotapi.BotAPI
@@ -200,12 +176,12 @@ func (h *Hub) respond(chatID int64, srcMsgID int, text string, markup *tgbotapi.
 func adminMenuKeyboard(lang, panelURL string) tgbotapi.InlineKeyboardMarkup {
 	rows := [][]tgbotapi.InlineKeyboardButton{
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAdminPending), cbAdminPending),
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAdminReceipts), cbAdminReceipts),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAdminPending), cbdata.AdminPending),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAdminReceipts), cbdata.AdminReceipts),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAdminStats), cbAdminStats),
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAdminUserView), cbMainMenu),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAdminStats), cbdata.AdminStats),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAdminUserView), cbdata.MainMenu),
 		),
 	}
 	if panelURL != "" {
@@ -214,7 +190,7 @@ func adminMenuKeyboard(lang, panelURL string) tgbotapi.InlineKeyboardMarkup {
 		))
 	}
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnLanguage), cbLanguage),
+		tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnLanguage), cbdata.Language),
 	))
 	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
@@ -222,15 +198,15 @@ func adminMenuKeyboard(lang, panelURL string) tgbotapi.InlineKeyboardMarkup {
 func mainMenuKeyboard(lang string) tgbotapi.InlineKeyboardMarkup {
 	return tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAddAccount), cbAddAccount),
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnMyAccounts), cbMyAccounts),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAddAccount), cbdata.AddAccount),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnMyAccounts), cbdata.MyAccounts),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnNewOrder), cbNewOrder),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnNewOrder), cbdata.NewOrder),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnLanguage), cbLanguage),
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnHelp), cbHelp),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnLanguage), cbdata.Language),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnHelp), cbdata.Help),
 		),
 	)
 }
@@ -240,18 +216,18 @@ func mainMenuKeyboard(lang string) tgbotapi.InlineKeyboardMarkup {
 func adminUserViewKeyboard(lang string) tgbotapi.InlineKeyboardMarkup {
 	return tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAddAccount), cbAddAccount),
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnMyAccounts), cbMyAccounts),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAddAccount), cbdata.AddAccount),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnMyAccounts), cbdata.MyAccounts),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnNewOrder), cbNewOrder),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnNewOrder), cbdata.NewOrder),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnLanguage), cbLanguage),
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnHelp), cbHelp),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnLanguage), cbdata.Language),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnHelp), cbdata.Help),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAdminBack), cbAdminMenu),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnAdminBack), cbdata.AdminMenu),
 		),
 	)
 }
@@ -259,11 +235,11 @@ func adminUserViewKeyboard(lang string) tgbotapi.InlineKeyboardMarkup {
 func languageKeyboard(lang string) tgbotapi.InlineKeyboardMarkup {
 	return tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("English", cbLangEN),
-			tgbotapi.NewInlineKeyboardButtonData("فارسی", cbLangFA),
+			tgbotapi.NewInlineKeyboardButtonData("English", cbdata.LangEN),
+			tgbotapi.NewInlineKeyboardButtonData("فارسی", cbdata.LangFA),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbMainMenu),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbdata.MainMenu),
 		),
 	)
 }
@@ -271,7 +247,7 @@ func languageKeyboard(lang string) tgbotapi.InlineKeyboardMarkup {
 func backToMenuKeyboard(lang string) tgbotapi.InlineKeyboardMarkup {
 	return tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbMainMenu),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbdata.MainMenu),
 		),
 	)
 }
@@ -280,14 +256,14 @@ func accountDetailKeyboard(accountID uint, lang string) tgbotapi.InlineKeyboardM
 	idStr := strconv.FormatUint(uint64(accountID), 10)
 	return tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnUsage), cbAccountUsage+idStr),
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnRenew), cbAccountRenew+idStr),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnUsage), cbdata.AccountUsage+idStr),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnRenew), cbdata.AccountRenew+idStr),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnRemove), cbAccountRemove+idStr),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnRemove), cbdata.AccountRemove+idStr),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbMyAccounts),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbdata.MyAccounts),
 		),
 	)
 }
@@ -304,7 +280,7 @@ func packageKeyboard(packages []models.TelegramPackage, prefix, lang string) tgb
 		))
 	}
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbMainMenu),
+		tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbdata.MainMenu),
 	))
 	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
@@ -421,7 +397,7 @@ func (h *Hub) ShowAdminStats(ctx context.Context, chatID int64, lang string, src
 func backToAdminKeyboard(lang, panel string) *tgbotapi.InlineKeyboardMarkup {
 	rows := [][]tgbotapi.InlineKeyboardButton{
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbAdminMenu),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbdata.AdminMenu),
 		),
 	}
 	if panel != "" {
@@ -506,7 +482,7 @@ func (h *Hub) ShowHelp(ctx context.Context, chatID int64, lang string, srcMsgID 
 			tgbotapi.NewInlineKeyboardButtonURL(label, link),
 		)
 		row2 := tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbMainMenu),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbdata.MainMenu),
 		)
 		kb := tgbotapi.NewInlineKeyboardMarkup(row1, row2)
 		h.respond(chatID, srcMsgID, text, &kb)
@@ -595,7 +571,7 @@ func (h *Hub) HandleStateful(ctx context.Context, m *tgbotapi.Message) bool {
 		sess.BufferDesired = text
 		sess.State = session.WaitingPackageForNew
 		h.deps.Sessions.Set(chatID, sess)
-		h.sendPackages(ctx, chatID, lang, cbPickPackageNew, 0)
+		h.sendPackages(ctx, chatID, lang, cbdata.PickPackageNew, 0)
 		return true
 
 	case session.WaitingNoteForNew:
@@ -679,21 +655,38 @@ func (h *Hub) SendMyAccounts(ctx context.Context, chatID int64, lang string, src
 		return
 	}
 
+	ids := make([]uint, len(accounts))
+	for i, a := range accounts {
+		ids[i] = a.OcservUserID
+	}
+	usersByID, err := h.deps.Repo.OcservUsersByIDs(ctx, ids)
+	if err != nil {
+		logger.Warn("telegram_bot: OcservUsersByIDs: %v", err)
+		usersByID = make(map[uint]*models.OcservUser)
+		for _, a := range accounts {
+			u, e := h.deps.Repo.OcservUserByID(ctx, a.OcservUserID)
+			if e != nil {
+				continue
+			}
+			usersByID[a.OcservUserID] = u
+		}
+	}
+
 	rows := make([][]tgbotapi.InlineKeyboardButton, 0, len(accounts)+1)
 	for _, a := range accounts {
-		user, err := h.deps.Repo.OcservUserByID(ctx, a.OcservUserID)
-		if err != nil {
+		user := usersByID[a.OcservUserID]
+		if user == nil {
 			continue
 		}
 		// Inline keyboard button labels are plain text — no HTML escaping
 		// required, but we strip control characters defensively.
 		label := "• " + strings.ReplaceAll(user.Username, "\n", " ")
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(label, cbAccountDetail+strconv.FormatUint(uint64(a.ID), 10)),
+			tgbotapi.NewInlineKeyboardButtonData(label, cbdata.AccountDetail+strconv.FormatUint(uint64(a.ID), 10)),
 		))
 	}
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbMainMenu),
+		tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbdata.MainMenu),
 	))
 	kb := tgbotapi.NewInlineKeyboardMarkup(rows...)
 	h.respond(chatID, srcMsgID, i18n.T(lang, i18n.BtnMyAccounts), &kb)
@@ -752,7 +745,7 @@ func (h *Hub) SendAccountUsage(ctx context.Context, chatID int64, accountID uint
 	idStr := strconv.FormatUint(uint64(accountID), 10)
 	kb := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbAccountDetail+idStr),
+			tgbotapi.NewInlineKeyboardButtonData(i18n.T(lang, i18n.BtnBack), cbdata.AccountDetail+idStr),
 		),
 	)
 	h.respond(chatID, srcMsgID, msg, &kb)
@@ -810,7 +803,7 @@ func (h *Hub) StartRenewForAccount(ctx context.Context, chatID int64, accountID 
 		State:          session.WaitingPackageForRenew,
 		BufferTargetID: account.OcservUserID,
 	})
-	h.sendPackages(ctx, chatID, lang, cbPickPackageRenew, srcMsgID)
+	h.sendPackages(ctx, chatID, lang, cbdata.PickPackageRenew, srcMsgID)
 }
 
 func (h *Hub) sendPackages(ctx context.Context, chatID int64, lang, prefix string, srcMsgID int) {

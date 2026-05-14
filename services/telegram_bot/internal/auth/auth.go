@@ -9,10 +9,8 @@ import (
 )
 
 var (
-	ErrUserNotFound  = errors.New("ocserv user not found")
-	ErrInvalidCreds  = errors.New("invalid credentials")
-	ErrUserLocked    = errors.New("user is locked")
-	ErrUserInactive  = errors.New("user is deactivated")
+	ErrUserNotFound = errors.New("ocserv user not found")
+	ErrInvalidCreds = errors.New("invalid credentials")
 )
 
 type Verifier struct {

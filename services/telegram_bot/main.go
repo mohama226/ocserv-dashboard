@@ -45,7 +45,7 @@ func main() {
 	manager := bot.NewManager(dir)
 	go manager.Run(ctx)
 
-	notif := notifier.New(manager)
+	notif := notifier.New(manager, manager.Repo())
 	go notif.Run(ctx)
 
 	sigChan := make(chan os.Signal, 1)
