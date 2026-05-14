@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 	"github.com/mmtaee/ocserv-dashboard/common/models"
@@ -43,6 +44,7 @@ type TelegramRequestRepo interface {
 	UpdateRequestStatus(ctx context.Context, id uint, status string, adminNote *string) (*models.TelegramRequest, error)
 	SetAwaitingPaymentMessageID(ctx context.Context, requestID uint, messageID int64) error
 	ClearAwaitingPaymentMessageID(ctx context.Context, requestID uint) error
+	DeleteRequest(ctx context.Context, id uint) error
 	MarkDelivered(ctx context.Context, id uint, ocservUserID *uint) error
 }
 
@@ -244,6 +246,24 @@ func (r *TelegramRepository) ClearAwaitingPaymentMessageID(ctx context.Context, 
 		Model(&models.TelegramRequest{}).
 		Where("id = ?", requestID).
 		Updates(map[string]interface{}{"awaiting_payment_message_id": nil}).Error
+}
+
+// DeleteRequest removes a finished request row. Active pipeline statuses cannot be deleted.
+func (r *TelegramRepository) DeleteRequest(ctx context.Context, id uint) error {
+	var req models.TelegramRequest
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&req).Error; err != nil {
+		return err
+	}
+	switch req.Status {
+	case models.TelegramRequestStatusPending,
+		models.TelegramRequestStatusAwaitingPayment,
+		models.TelegramRequestStatusPaymentUploaded:
+		return fmt.Errorf("cannot delete an active request (status=%s)", req.Status)
+	}
+	if req.ReceiptFilePath != "" {
+		_ = os.Remove(req.ReceiptFilePath)
+	}
+	return r.db.WithContext(ctx).Where("id = ?", id).Delete(&models.TelegramRequest{}).Error
 }
 
 func (r *TelegramRepository) MarkDelivered(ctx context.Context, id uint, ocservUserID *uint) error {

@@ -156,6 +156,7 @@ export const TelegramAPI = {
             payload,
             auth()
         ),
+    deleteRequest: (id: number) => api.delete(`/telegram/requests/${id}`, auth()),
 
     // Linked accounts
     accountsForUser: (ocservUserUid: string) =>

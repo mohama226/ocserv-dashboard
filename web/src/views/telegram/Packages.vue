@@ -110,7 +110,13 @@ onMounted(load);
         <v-col cols="12">
             <UiParentCard :title="t('TELEGRAM_PACKAGES')">
                 <template #action>
-                    <v-btn color="primary" density="compact" variant="flat" @click="openCreate">
+                    <v-btn
+                        class="me-lg-5"
+                        color="grey"
+                        size="small"
+                        variant="outlined"
+                        @click="openCreate"
+                    >
                         {{ t('CREATE') }}
                     </v-btn>
                 </template>

@@ -283,6 +283,17 @@ func (ctl *Controller) GetReceipt(c echo.Context) error {
 	return c.File(req.ReceiptFilePath)
 }
 
+func (ctl *Controller) DeleteRequest(c echo.Context) error {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		return ctl.request.BadRequest(c, err)
+	}
+	if err := ctl.repo.DeleteRequest(c.Request().Context(), uint(id)); err != nil {
+		return ctl.request.BadRequest(c, err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 func (ctl *Controller) Approve(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {

@@ -30,6 +30,7 @@ func Routes(e *echo.Group) {
 	g.POST("/requests/:id/approve", ctl.Approve, middlewares.AdminPermission())
 	g.POST("/requests/:id/reject", ctl.Reject, middlewares.AdminPermission())
 	g.POST("/requests/:id/confirm-payment", ctl.ConfirmPayment, middlewares.AdminPermission())
+	g.DELETE("/requests/:id", ctl.DeleteRequest, middlewares.AdminPermission())
 
 	// Linked accounts
 	g.GET("/accounts", ctl.AccountsForOcservUser)

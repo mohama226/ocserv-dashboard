@@ -169,6 +169,29 @@ const findPackageTitle = (id?: number): string => {
     return p ? p.title : `#${id}`;
 };
 
+const displayContact = (r: TelegramRequestModel): string => {
+    const u = (r.telegram_username || '').trim();
+    if (u) return `@${u}`;
+    return String(r.chat_id);
+};
+
+const removeRequest = async (r: TelegramRequestModel) => {
+    if (!confirm(t('CONFIRM_DELETE'))) return;
+    loading.value = true;
+    try {
+        await TelegramAPI.deleteRequest(r.id);
+        snackbar.show({ id: 1, message: t('TELEGRAM_REQUEST_DELETED'), color: 'success', timeout: 3000 });
+        await load();
+    } catch {
+        snackbar.show({ id: 1, message: t('TELEGRAM_REQUEST_DELETE_FAILED'), color: 'error', timeout: 5000 });
+    } finally {
+        loading.value = false;
+    }
+};
+
+const isRequestDeletable = (r: TelegramRequestModel) =>
+    !['pending', 'awaiting_payment', 'payment_uploaded'].includes(r.status);
+
 watch(tab, () => {
     page.value = 1;
     load();
@@ -199,7 +222,7 @@ onBeforeUnmount(() => {
                     <thead>
                         <tr class="text-capitalize bg-lightprimary">
                             <th>#</th>
-                            <th>{{ t('CHAT_ID') }}</th>
+                            <th>{{ t('TELEGRAM_REQUEST_CONTACT') }}</th>
                             <th>{{ t('TYPE') }}</th>
                             <th>{{ t('PACKAGE') }}</th>
                             <th>{{ t('STATUS') }}</th>
@@ -210,7 +233,7 @@ onBeforeUnmount(() => {
                     <tbody>
                         <tr v-for="r in items" :key="r.id">
                             <td>{{ r.id }}</td>
-                            <td>{{ r.chat_id }}</td>
+                            <td>{{ displayContact(r) }}</td>
                             <td>{{ r.type }}</td>
                             <td>{{ findPackageTitle(r.package_id) }}</td>
                             <td>
@@ -221,6 +244,15 @@ onBeforeUnmount(() => {
                                 <v-btn size="small" variant="text" @click="openDetails(r)">
                                     {{ t('VIEW') }}
                                 </v-btn>
+                                <v-btn
+                                    v-if="tab === 'history' && isRequestDeletable(r)"
+                                    icon="mdi-delete"
+                                    size="small"
+                                    variant="text"
+                                    color="error"
+                                    :title="t('DELETE')"
+                                    @click="removeRequest(r)"
+                                />
                             </td>
                         </tr>
                         <tr v-if="!items.length">
