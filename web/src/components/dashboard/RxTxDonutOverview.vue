@@ -13,17 +13,22 @@ const theme = useTheme();
 const { t } = useI18n();
 
 const chartOptions = computed(() => {
+    const colors = theme.current.value.colors as Record<string, string>;
+    const isDark = theme.global.current.value.dark;
+    const foreColor = colors.textSecondary ?? colors['on-surface-variant'] ?? '#64748B';
+    const emptySlice = colors.surface ?? colors.background ?? (isDark ? '#1E293B' : '#FFFFFF');
+
     return {
         labels: [t('TOTAL_TX'), t('TOTAL_RX')],
         chart: {
             type: 'donut',
             fontFamily: `inherit`,
-            foreColor: '#a1aab2',
+            foreColor,
             toolbar: {
                 show: false
             }
         },
-        colors: [theme.current.value.colors.primary, theme.current.value.colors.lightprimary, '#F9F9FD'],
+        colors: [colors.primary, colors.lightprimary, emptySlice],
         plotOptions: {
             pie: {
                 startAngle: 0,
@@ -44,7 +49,7 @@ const chartOptions = computed(() => {
         legend: {
             show: false
         },
-        tooltip: { theme: 'light', fillSeriesColor: false }
+        tooltip: { theme: isDark ? 'dark' : 'light', fillSeriesColor: false }
     };
 });
 const txPercentage = computed(() => {
@@ -70,25 +75,25 @@ const chart = computed(() => [+props.totalBandwidths?.tx.toFixed(6) || 0, +props
                         <h6 class="text-h6 text-capitalize text-body-1">
                             {{ t('TOTAL') }} TX:
                             <br />
-                            <span class="text-muted"> {{ numberToFixer(props.totalBandwidths?.tx, 6) }} GB </span>
+                            <span class="text-medium-emphasis"> {{ numberToFixer(props.totalBandwidths?.tx, 6) }} GB </span>
                         </h6>
                         <h6 class="text-h6 text-capitalize text-body-1">
                             {{ t('TOTAL') }} RX:
                             <br />
-                            <span class="text-muted text-body-1">
+                            <span class="text-medium-emphasis text-body-1">
                                 {{ numberToFixer(props.totalBandwidths?.rx, 6) }} GB
                             </span>
                         </h6>
                         <h6 class="text-h6 text-capitalize text-body-1 mt-5">
                             {{ t('AVERAGE') }} (TX):
-                            <span class="text-muted text-body-1"> {{ txPercentage }}% </span>
+                            <span class="text-medium-emphasis text-body-1"> {{ txPercentage }}% </span>
                         </h6>
                         <div class="d-flex align-center mt-sm-10 mt-8">
-                            <h6 class="text-subtitle-1 text-muted">
+                            <h6 class="text-subtitle-1 text-medium-emphasis">
                                 <v-icon class="mr-1" color="primary" icon="mdi mdi-checkbox-blank-circle" size="10" />
                                 TX
                             </h6>
-                            <h6 class="text-subtitle-1 text-muted pl-5">
+                            <h6 class="text-subtitle-1 text-medium-emphasis pl-5">
                                 <v-icon
                                     class="mr-1"
                                     color="lightprimary"
