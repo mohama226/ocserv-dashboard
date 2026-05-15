@@ -1,0 +1,18 @@
+version: 2
+
+# =====================================
+# Paths excluded from scanning
+# (build artifacts, dependencies, i18n files)
+# =====================================
+paths-ignore:
+  - "web/src/locales/**"
+
+  # Optional common sensitive / noise files
+  - ".env"
+  - ".env.*"
+
+# =====================================
+# Ignore specific false-positive matches
+# (ONLY use when you are sure it's safe)
+# =====================================
+matches-ignore: []
