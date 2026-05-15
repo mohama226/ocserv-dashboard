@@ -5,11 +5,29 @@ version: 2
 # (build artifacts, dependencies, i18n files)
 # =====================================
 paths-ignore:
+  # Web dashboard i18n
   - "web/src/locales/**"
+
+  # Telegram bot i18n
+  - "services/telegram_bot/internal/i18n/locales/**"
+
+  # API i18n
+  - "services/api/internal/services/telegram/i18n/**"
 
   # Optional common sensitive / noise files
   - ".env"
   - ".env.*"
+  - "env.sample"
+  - "web/.env"
+  - "web/.env.*"
+  - "web/env.sample"
+  - "node_modules/**"
+  - "web/node_modules/**"
+  - "dist/**"
+  - "web/dist/**"
+  - "build/**"
+  - ".idea/**"
+  - ".vscode/**"
 
 # =====================================
 # Ignore specific false-positive matches
