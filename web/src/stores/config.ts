@@ -51,7 +51,8 @@ export const useServerStore = defineStore('server', {
 export const useConfigStore = defineStore('config', {
     state: (): ConfigState => ({
         setup: false,
-        googleCaptchaSiteKey: ''
+        googleCaptchaSiteKey: '',
+        telegramBotEnabled: false,
     }),
 
     actions: {
@@ -60,6 +61,7 @@ export const useConfigStore = defineStore('config', {
             await api.systemInitGet().then((res) => {
                 if (res.data) {
                     this.googleCaptchaSiteKey = res.data.google_captcha_site_key || '';
+                    this.telegramBotEnabled = res.data.telegram_bot_enabled || false;
                     this.setup = true;
                 }
             });
@@ -76,7 +78,8 @@ export const useConfigStore = defineStore('config', {
         config(state): ConfigState {
             return {
                 setup: state.setup,
-                googleCaptchaSiteKey: state.googleCaptchaSiteKey
+                googleCaptchaSiteKey: state.googleCaptchaSiteKey,
+                telegramBotEnabled: state.telegramBotEnabled
             };
         }
     }

@@ -3,8 +3,11 @@ import { useI18n } from 'vue-i18n';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { HomeApi, type HomeDockerService, type HomeServerStatusResponse } from '@/api';
 import { getAuthorization } from '@/utils/request';
+import { useConfigStore } from '@/stores/config';
 
 const { t } = useI18n();
+
+const configStore = useConfigStore();
 
 const api = new HomeApi();
 
@@ -369,6 +372,72 @@ onUnmounted(() => {
                                         <span class="me-1">{{ dockerUsage.user_expiry?.cpu?.used_units }}</span>
                                         /
                                         <span class="ms-1">{{ dockerUsage.user_expiry?.cpu?.total }} </span>
+                                        {{ t('UNITS') }}
+                                    </div>
+                                </v-col>
+                            </v-row>
+                        </v-col>
+
+                        <!-- RAM USAGE -->
+                        <v-col cols="12" lg="4" sm="6">
+                            <v-row class="text-center">
+                                <v-col cols="12">
+                                    <v-progress-circular
+                                        :model-value="dockerUsage.user_expiry?.ram?.used_percent"
+                                        :size="100"
+                                        :width="12"
+                                        bg-color="grey100"
+                                        color="primary"
+                                        reveal
+                                        rounded
+                                    >
+                                        <v-avatar color="surface-light" size="70">
+                                            {{ dockerUsage.user_expiry?.ram?.used_percent }}%
+                                        </v-avatar>
+                                    </v-progress-circular>
+                                </v-col>
+                                <v-col cols="12">
+                                    <div class="text-subtitle-2 text-capitalize">{{ t('RAM_USAGE') }}</div>
+                                    <div class="text-subtitle-2" dir="LTR">
+                                        <span class="me-1">{{ dockerUsage.user_expiry?.ram?.used }}</span>
+                                        /
+                                        <span class="ms-1">{{ dockerUsage.user_expiry?.ram?.total }} </span>
+                                        GB
+                                    </div>
+                                </v-col>
+                            </v-row>
+                        </v-col>
+                    </v-row>
+                </v-col>
+
+                <!-- TELEGRAM BOT CONTAINER -->
+                <v-col cols="12" lg="4" class="mb-lg-4" v-if="configStore.telegramBotEnabled">
+                    <v-card-subtitle class="text-h5 text-center"> Telegram Bot </v-card-subtitle>
+                    <v-row align="center" justify="center">
+                        <!-- CPU USAGE -->
+                        <v-col cols="12" lg="4" sm="6">
+                            <v-row class="text-center">
+                                <v-col cols="12">
+                                    <v-progress-circular
+                                        :model-value="dockerUsage.telegram_bot?.cpu?.avg_percent"
+                                        :size="100"
+                                        :width="12"
+                                        bg-color="grey100"
+                                        color="primary"
+                                        reveal
+                                        rounded
+                                    >
+                                        <v-avatar color="surface-light" size="70">
+                                            {{ dockerUsage.telegram_bot?.cpu?.avg_percent }}%
+                                        </v-avatar>
+                                    </v-progress-circular>
+                                </v-col>
+                                <v-col cols="12">
+                                    <div class="text-subtitle-2 text-capitalize">{{ t('CPU_USAGE') }}</div>
+                                    <div class="text-subtitle-2" dir="LTR">
+                                        <span class="me-1">{{ dockerUsage.telegram_bot?.cpu?.used_units }}</span>
+                                        /
+                                        <span class="ms-1">{{ dockerUsage.telegram_bot?.cpu?.total }} </span>
                                         {{ t('UNITS') }}
                                     </div>
                                 </v-col>

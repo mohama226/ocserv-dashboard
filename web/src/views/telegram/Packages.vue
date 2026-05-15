@@ -204,7 +204,7 @@ onMounted(load);
                             <v-text-field
                                 v-model.number="editing.traffic_size_gb"
                                 type="number"
-                                :label="t('TRAFFIC_SIZE_GB')"
+                                :label="`${t('TRAFFIC_SIZE')} (GB)`"
                                 variant="outlined"
                                 density="comfortable"
                             />

@@ -25,9 +25,9 @@ const tokenLabel = computed(() =>
 
 <template>
     <v-card elevation="10">
-        <v-card-item>
+        <v-card-item class="text-capitalize">
             <div class="d-flex flex-wrap align-center justify-space-between gap-2">
-                <v-card-title class="text-h6 text-capitalize">
+                <v-card-title class="text-h5 text-capitalize">
                     {{ t('TELEGRAM_DASHBOARD_STATUS') }}
                 </v-card-title>
                 <div class="d-flex flex-wrap align-center gap-2">

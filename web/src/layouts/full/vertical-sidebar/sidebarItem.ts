@@ -1,5 +1,6 @@
 import { useI18n } from 'vue-i18n';
 import { useProfileStore } from '@/stores/profile';
+import { useConfigStore } from '@/stores/config';
 
 export interface Menu {
     header?: string;
@@ -21,6 +22,7 @@ export interface Menu {
 export function getSidebarItems(): Menu[] {
     const { t } = useI18n();
     const profileStore = useProfileStore();
+    const configStore = useConfigStore();
 
     let defaultSidebarItems: Menu[] = [
         { header: t('HOME') },
@@ -32,6 +34,7 @@ export function getSidebarItems(): Menu[] {
         { header: 'OCSERV' }
     ];
 
+    // Admin-only OCSERV tools
     if (profileStore.isAdmin) {
         if (import.meta.env.VITE_SYSTEMD == 'true') {
             defaultSidebarItems.push({
@@ -48,7 +51,7 @@ export function getSidebarItems(): Menu[] {
         });
     }
 
-    // These two always visible
+    // Always visible
     defaultSidebarItems.push(
         {
             title: t('GROUPS'),
@@ -62,6 +65,7 @@ export function getSidebarItems(): Menu[] {
         }
     );
 
+    // Admin-only management tools
     if (profileStore.isAdmin) {
         defaultSidebarItems.push(
             {
@@ -71,14 +75,13 @@ export function getSidebarItems(): Menu[] {
             },
             {
                 title: t('SYNC'),
-                // icon: 'mdi-account-convert-outline',
                 icon: 'mdi-file-sync-outline',
                 to: '/ocserv/management/ocserv/sync'
             }
         );
     }
 
-    // Admin-only extra sections
+    // Statistics section
     if (profileStore.isAdmin) {
         defaultSidebarItems.push(
             { header: t('STATISTICS') },
@@ -96,13 +99,25 @@ export function getSidebarItems(): Menu[] {
                 title: t('SESSION_LOGS'),
                 icon: 'mdi-timeline-text-outline',
                 to: '/session_logs'
-            },
+            }
+        );
+    }
+
+    // Logs section
+    if (profileStore.isAdmin) {
+        defaultSidebarItems.push(
             { header: t('LOGS') },
             {
                 title: t('SERVER'),
                 icon: 'mdi-server-network',
                 to: '/logs/server'
-            },
+            }
+        );
+    }
+
+    // Staffs section
+    if (profileStore.isAdmin) {
+        defaultSidebarItems.push(
             { header: t('STAFFS') },
             {
                 title: t('STAFFS'),
@@ -113,7 +128,13 @@ export function getSidebarItems(): Menu[] {
                 title: t('ACTIVITIES'),
                 icon: 'mdi-history',
                 to: '/staffs/activities'
-            },
+            }
+        );
+    }
+
+    // Telegram section (only if enabled)
+    if (profileStore.isAdmin && configStore.telegramBotEnabled == true) {
+        defaultSidebarItems.push(
             { header: t('TELEGRAM') },
             {
                 title: t('TELEGRAM_REQUESTS'),
@@ -129,7 +150,13 @@ export function getSidebarItems(): Menu[] {
                 title: t('TELEGRAM_SETTINGS'),
                 icon: 'mdi-robot',
                 to: '/telegram/settings'
-            },
+            }
+        );
+    }
+
+    // System section
+    if (profileStore.isAdmin) {
+        defaultSidebarItems.push(
             { header: t('SYSTEM') },
             {
                 title: t('SETTINGS'),
