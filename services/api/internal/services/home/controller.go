@@ -150,6 +150,11 @@ func (ctl *Controller) Home(c echo.Context) error {
 
 	// telegram settings snapshot (no external API calls)
 	g.Go(func() error {
+		if os.Getenv("TELEGRAM_BOT_ENABLED") != "true" {
+			telegramSnap = nil
+			return nil
+		}
+
 		s, err := ctl.telegramRepo.Settings(ctx)
 		if err != nil {
 			return nil

@@ -2,7 +2,6 @@ package routing
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 	backupRoutes "github.com/mmtaee/ocserv-dashboard/api/internal/services/backup"
 	customerRoutes "github.com/mmtaee/ocserv-dashboard/api/internal/services/customer"
 	homeRoutes "github.com/mmtaee/ocserv-dashboard/api/internal/services/home"
@@ -13,6 +12,9 @@ import (
 	systemRoutes "github.com/mmtaee/ocserv-dashboard/api/internal/services/system"
 	systemdRoutes "github.com/mmtaee/ocserv-dashboard/api/internal/services/systemd"
 	telegramRoutes "github.com/mmtaee/ocserv-dashboard/api/internal/services/telegram"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/config"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
+	"os"
 )
 
 func Register(e *echo.Echo) {
@@ -36,10 +38,12 @@ func Register(e *echo.Echo) {
 	// systemd
 	systemdRoutes.Routes(group)
 
-	// telegram
-	telegramRoutes.InitI18n()
-	if err := telegramRoutes.EnsureReceiptDir(); err != nil {
-		logger.Warn("telegram receipts directory: %v", err)
+	if os.Getenv("TELEGRAM_BOT_ENABLED") == "true" || config.Get().Debug {
+		// telegram
+		telegramRoutes.InitI18n()
+		if err := telegramRoutes.EnsureReceiptDir(); err != nil {
+			logger.Warn("telegram receipts directory: %v", err)
+		}
+		telegramRoutes.Routes(group)
 	}
-	telegramRoutes.Routes(group)
 }

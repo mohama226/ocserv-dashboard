@@ -203,8 +203,10 @@ func (ctl *Controller) SystemInit(c echo.Context) error {
 		}
 		return ctl.request.BadRequest(c, err)
 	}
+
 	return c.JSON(http.StatusOK, GetSystemInitResponse{
 		GoogleCaptchaSiteKey: cfg.GoogleCaptchaSiteKey,
+		TelegramBotEnabled:   os.Getenv("TELEGRAM_BOT_ENABLED") == "true",
 	})
 }
 
@@ -220,7 +222,7 @@ func (ctl *Controller) SystemInit(c echo.Context) error {
 // @Success      200  {object}  GetSystemResponse
 // @Router       /system [get]
 func (ctl *Controller) System(c echo.Context) error {
-	config, err := ctl.systemRepo.System(c.Request().Context())
+	cfg, err := ctl.systemRepo.System(c.Request().Context())
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.JSON(http.StatusOK, nil)
@@ -228,10 +230,10 @@ func (ctl *Controller) System(c echo.Context) error {
 		return ctl.request.BadRequest(c, err)
 	}
 	return c.JSON(http.StatusOK, GetSystemResponse{
-		GoogleCaptchaSiteKey:    config.GoogleCaptchaSiteKey,
-		GoogleCaptchaSecretKey:  config.GoogleCaptchaSecretKey,
-		AutoDeleteInactiveUsers: config.AutoDeleteInactiveUsers,
-		KeepInactiveUserDays:    config.KeepInactiveUserDays,
+		GoogleCaptchaSiteKey:    cfg.GoogleCaptchaSiteKey,
+		GoogleCaptchaSecretKey:  cfg.GoogleCaptchaSecretKey,
+		AutoDeleteInactiveUsers: cfg.AutoDeleteInactiveUsers,
+		KeepInactiveUserDays:    cfg.KeepInactiveUserDays,
 	})
 }
 
