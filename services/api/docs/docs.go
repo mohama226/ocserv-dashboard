@@ -3281,6 +3281,9 @@ const docTemplate = `{
                 "postgres": {
                     "$ref": "#/definitions/home.DockerStats"
                 },
+                "telegram_bot": {
+                    "$ref": "#/definitions/home.DockerStats"
+                },
                 "user_expiry": {
                     "$ref": "#/definitions/home.DockerStats"
                 },
@@ -3375,6 +3378,14 @@ const docTemplate = `{
                         "$ref": "#/definitions/models.DailyTraffic"
                     }
                 },
+                "telegram_service": {
+                    "description": "TelegramService is a lightweight snapshot for the admin dashboard (no outbound Telegram calls).",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/home.TelegramServiceStatus"
+                        }
+                    ]
+                },
                 "top_bandwidth_user": {
                     "$ref": "#/definitions/repository.TopBandwidthUsers"
                 },
@@ -3453,6 +3464,20 @@ const docTemplate = `{
                 },
                 "used_percent": {
                     "type": "number"
+                }
+            }
+        },
+        "home.TelegramServiceStatus": {
+            "type": "object",
+            "properties": {
+                "bot_username": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "has_bot_token": {
+                    "type": "boolean"
                 }
             }
         },
@@ -3716,6 +3741,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "description": "Length matches migration 007 (ocserv_users.password column); do not widen without a new migration.",
                     "type": "string"
                 },
                 "rx": {
@@ -4411,6 +4437,9 @@ const docTemplate = `{
             "properties": {
                 "google_captcha_site_key": {
                     "type": "string"
+                },
+                "telegram_bot_enabled": {
+                    "type": "boolean"
                 }
             }
         },

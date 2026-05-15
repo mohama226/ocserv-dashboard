@@ -170,6 +170,8 @@ definitions:
         $ref: '#/definitions/home.DockerStats'
       postgres:
         $ref: '#/definitions/home.DockerStats'
+      telegram_bot:
+        $ref: '#/definitions/home.DockerStats'
       user_expiry:
         $ref: '#/definitions/home.DockerStats'
       web:
@@ -238,6 +240,11 @@ definitions:
         items:
           $ref: '#/definitions/models.DailyTraffic'
         type: array
+      telegram_service:
+        allOf:
+        - $ref: '#/definitions/home.TelegramServiceStatus'
+        description: TelegramService is a lightweight snapshot for the admin dashboard
+          (no outbound Telegram calls).
       top_bandwidth_user:
         $ref: '#/definitions/repository.TopBandwidthUsers'
       total_bandwidth:
@@ -289,6 +296,15 @@ definitions:
         type: number
       used_percent:
         type: number
+    type: object
+  home.TelegramServiceStatus:
+    properties:
+      bot_username:
+        type: string
+      enabled:
+        type: boolean
+      has_bot_token:
+        type: boolean
     type: object
   middlewares.PermissionDenied:
     properties:
@@ -477,6 +493,8 @@ definitions:
       owner:
         type: string
       password:
+        description: Length matches migration 007 (ocserv_users.password column);
+          do not widen without a new migration.
         type: string
       rx:
         description: Receive in bytes
@@ -985,6 +1003,8 @@ definitions:
     properties:
       google_captcha_site_key:
         type: string
+      telegram_bot_enabled:
+        type: boolean
     type: object
   system.GetSystemResponse:
     properties:
