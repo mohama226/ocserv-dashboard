@@ -108,7 +108,7 @@ const save = () => {
                                     item-value="value"
                                     variant="outlined"
                                     @update:modelValue="
-                                        (v) =>
+                                        (v: string | null | undefined) =>
                                             v == ModelsOcservUserTrafficTypeEnum.FREE ? (config.traffic_size = 0) : false
                                     "
                                 />

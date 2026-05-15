@@ -2,6 +2,7 @@
 import {
     HomeApi,
     type HomeGetHomeUser,
+    type HomeTelegramServiceStatus,
     type ModelsDailyTraffic,
     type ModelsIPBanPoints,
     type RepositoryTopBandwidthUsers,
@@ -19,12 +20,14 @@ import RxTxDonutOverview from '@/components/dashboard/RxTxDonutOverview.vue';
 import RxTxChartOverview from '@/components/dashboard/RxTxChartOverview.vue';
 import UiParentCard from '@/components/shared/UiParentCard.vue';
 import SystemStats from '@/components/dashboard/SystemStats.vue';
+import TelegramStatusOverview from '@/components/dashboard/TelegramStatusOverview.vue';
 
 const trafficData = ref<ModelsDailyTraffic[]>([]);
 const users = ref<HomeGetHomeUser>({});
 const ipBanPoints = ref<ModelsIPBanPoints[]>([]);
 const topUsers = ref<RepositoryTopBandwidthUsers>({});
 const totalBandwidths = ref<RepositoryTotalBandwidths>({ rx: 0, tx: 0 });
+const telegramService = ref<HomeTelegramServiceStatus>({});
 
 onMounted(() => {
     const api = new HomeApi();
@@ -34,6 +37,7 @@ onMounted(() => {
         ipBanPoints.value = res.data?.ip_bans || [];
         topUsers.value = res.data?.top_bandwidth_user || {};
         totalBandwidths.value = res.data?.total_bandwidth || { rx: 0, tx: 0 };
+        telegramService.value = res.data?.telegram_service || {};
     });
 });
 </script>
@@ -43,6 +47,14 @@ onMounted(() => {
         <v-col cols="12">
             <UiParentCard>
                 <v-row>
+                    <v-col cols="12" lg="12">
+                        <TelegramStatusOverview
+                            :enabled="telegramService.enabled"
+                            :has-bot-token="telegramService.has_bot_token"
+                            :bot-username="telegramService.bot_username"
+                        />
+                    </v-col>
+
                     <!-- System Stats Usage overview -->
                     <v-col cols="12" lg="12">
                         <SystemStats />

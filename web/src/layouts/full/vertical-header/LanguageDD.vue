@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { languages } from '@/plugins/i18n';
+import { applyLocaleDirection, languages } from '@/plugins/i18n';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -10,6 +10,7 @@ function changeLanguage(lang: string) {
     currentLang.value = lang;
     localStorage.setItem('language', currentLang.value);
     locale.value = lang;
+    applyLocaleDirection(lang);
     window.location.reload();
 }
 </script>

@@ -43,6 +43,7 @@ services:
       - /sys:/host/sys:ro
       - /opt/ocserv_dashboard/docker_volumes/db:/usr/local/bin/db  # deprecated (sqlite)
       - /opt/ocserv_dashboard/docker_volumes/ocserv:/etc/ocserv
+      - /opt/ocserv_dashboard/docker_volumes/telegram_receipts:/opt/ocserv_dashboard/uploads/receipts
     ports:
       - ${OCSERV_PORT:-443}:443/tcp
       - ${OCSERV_PORT:-443}:443/udp
@@ -86,6 +87,25 @@ services:
     container_name: user_expiry
     volumes:
       - /opt/ocserv_dashboard/docker_volumes/cron_journal:/app/cron_journal # journal of user expiry .txt file
+    env_file:
+      - ./.env
+    networks:
+      - shared-app
+    depends_on:
+      ocserv:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  telegram_bot:
+    image: "ocserv_users_management:telegram_bot_${LATEST_RELEASE}"
+    build:
+      context: .
+      dockerfile: Dockerfile-Telegram-Bot
+    container_name: telegram_bot
+    volumes:
+      - /opt/ocserv_dashboard/docker_volumes/telegram_receipts:/opt/ocserv_dashboard/uploads/receipts
     env_file:
       - ./.env
     networks:

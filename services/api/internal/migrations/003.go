@@ -23,6 +23,19 @@ var Migration003 = &gormigrate.Migration{
 			return err
 		}
 
+		// Old FK pointed oc_user_id at users(id); some rows reference IDs that are not ocserv_users.
+		res := tx.Exec(`
+			DELETE FROM ocserv_user_traffic_statistics t
+			WHERE t.oc_user_id IS NULL
+			   OR NOT EXISTS (SELECT 1 FROM ocserv_users u WHERE u.id = t.oc_user_id);
+		`)
+		if res.Error != nil {
+			return res.Error
+		}
+		if res.RowsAffected > 0 {
+			logger.Info("migration 003 removed %d orphaned ocserv_user_traffic_statistics rows before new FK", res.RowsAffected)
+		}
+
 		if err := tx.Exec(`
 			ALTER TABLE ocserv_user_traffic_statistics
 			ADD CONSTRAINT fk_traffic_ocserv_user

@@ -11,6 +11,7 @@
 .v-switch .v-label,
 .v-checkbox .v-label {
     opacity: 1;
+    color: rgb(var(--v-theme-on-surface));
 }
 .v-label {
     opacity: 1;

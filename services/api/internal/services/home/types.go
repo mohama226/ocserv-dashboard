@@ -67,7 +67,16 @@ type GetHomeResponse struct {
 	IPBans           *[]models.IPBanPoints        `json:"ip_bans" validate:"omitempty"`
 	TopBandwidthUser repository.TopBandwidthUsers `json:"top_bandwidth_user" validate:"omitempty"`
 	TotalBandwidth   repository.TotalBandwidths   `json:"total_bandwidth" validate:"omitempty"`
+	// TelegramService is a lightweight snapshot for the admin dashboard (no outbound Telegram calls).
+	TelegramService *TelegramServiceStatus `json:"telegram_service,omitempty" validate:"omitempty"`
 	//IRoutes    *[]models.Iroute       `json:"iroutes" validate:"omitempty"` // has bug on version 1.2.4
+}
+
+// TelegramServiceStatus summarizes Telegram integration for the home screen.
+type TelegramServiceStatus struct {
+	Enabled     bool   `json:"enabled"`
+	HasBotToken bool   `json:"has_bot_token"`
+	BotUsername string `json:"bot_username,omitempty"`
 }
 
 type CPU struct {

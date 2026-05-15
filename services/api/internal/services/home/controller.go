@@ -29,6 +29,7 @@ type Controller struct {
 	occtlRepo      repository.OcctlRepositoryInterface
 	ocservUserRepo repository.OcservUserRepositoryInterface
 	reportRepo     repository.ReportRepositoryInterface
+	telegramRepo   repository.TelegramRepositoryInterface
 }
 
 func New() *Controller {
@@ -37,6 +38,7 @@ func New() *Controller {
 		occtlRepo:      repository.NewOcctlRepository(),
 		ocservUserRepo: repository.NewtOcservUserRepository(),
 		reportRepo:     repository.NewtReportRepository(),
+		telegramRepo:   repository.NewTelegramRepository(),
 	}
 }
 
@@ -63,6 +65,7 @@ func (ctl *Controller) Home(c echo.Context) error {
 		ipBans           *[]models.IPBanPoints
 		topBandwidthUser repository.TopBandwidthUsers
 		totalBandwidth   repository.TotalBandwidths
+		telegramSnap     *TelegramServiceStatus
 
 		mu sync.Mutex
 	)
@@ -145,6 +148,22 @@ func (ctl *Controller) Home(c echo.Context) error {
 		return nil
 	})
 
+	// telegram settings snapshot (no external API calls)
+	g.Go(func() error {
+		s, err := ctl.telegramRepo.Settings(ctx)
+		if err != nil {
+			return nil
+		}
+		mu.Lock()
+		telegramSnap = &TelegramServiceStatus{
+			Enabled:     s.Enabled,
+			HasBotToken: strings.TrimSpace(s.BotToken) != "",
+			BotUsername: strings.TrimSpace(s.BotUsername),
+		}
+		mu.Unlock()
+		return nil
+	})
+
 	// -----------------------------
 	// WAIT ALL (IMPORTANT)
 	if err := g.Wait(); err != nil {
@@ -161,6 +180,7 @@ func (ctl *Controller) Home(c echo.Context) error {
 		},
 		TopBandwidthUser: topBandwidthUser,
 		TotalBandwidth:   totalBandwidth,
+		TelegramService:  telegramSnap,
 	}
 
 	return c.JSON(http.StatusOK, resp)

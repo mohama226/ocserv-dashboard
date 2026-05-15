@@ -1,0 +1,7 @@
+# Reduce false positives on GitGuardian PR checks (sample env + i18n UI labels).
+version: 2
+
+secret:
+  ignored_paths:
+    - ".env.sample"
+    - "web/src/locales/*.json"

@@ -6,6 +6,7 @@ import { onMounted, reactive, ref } from 'vue';
 import {
     type ModelsOcservUser,
     ModelsOcservUserTrafficTypeEnum,
+    OcservGroupsApi,
     OcservUsersApi,
     type OcservUsersGetFilterEnum,
     ReportApi,
@@ -63,6 +64,20 @@ const userStats = ref<ReportOcservUserReportResponse>({
 });
 
 const filter = ref<OcservUsersGetFilterEnum>();
+const group = ref<string | null>(null);
+const groups = ref<string[]>([]);
+const groupsApi = new OcservGroupsApi();
+
+const getGroups = () => {
+    groupsApi
+        .ocservGroupsLookupGet({ ...getAuthorization() })
+        .then((res) => {
+            groups.value = (res.data ?? []).filter(Boolean);
+        })
+        .catch(() => {
+            groups.value = [];
+        });
+};
 
 const getUsers = () => {
     loading.value = true;
@@ -70,7 +85,8 @@ const getUsers = () => {
         ...getAuthorization(),
         ...meta,
         q: q.value,
-        filter: filter.value
+        filter: filter.value,
+        group: group.value || undefined
     })
         .then((res) => {
             users.value = res.data.result ?? [];
@@ -256,7 +272,7 @@ const search = (clear: boolean = false) => {
         q.value = '';
     }
 
-    if (q.value.length > 1 || clear || filter.value) {
+    if (q.value.length > 1 || clear || filter.value || group.value) {
         if (q.value.length < 2) {
             q.value = '';
         }
@@ -267,6 +283,7 @@ const search = (clear: boolean = false) => {
 const reload = () => {
     q.value = '';
     filter.value = undefined;
+    group.value = null;
     getUsers();
 };
 
@@ -283,6 +300,7 @@ const getUserStats = () => {
 
 onMounted(() => {
     getUserStats();
+    getGroups();
 });
 </script>
 
@@ -382,6 +400,20 @@ onMounted(() => {
                                 </v-radio-group>
                             </v-col>
 
+                            <v-col cols="12" md="2" sm="4">
+                                <v-select
+                                    v-model="group"
+                                    :items="groups"
+                                    :label="t('GROUP')"
+                                    :placeholder="t('GROUP_FILTER_ALL')"
+                                    clearable
+                                    color="primary"
+                                    density="compact"
+                                    hide-details
+                                    variant="outlined"
+                                />
+                            </v-col>
+
                             <v-col class="ma-0 pa-0" cols="12" md="auto">
                                 <v-btn color="info" size="small" @click="search(false)">
                                     <v-icon start>mdi-magnify</v-icon>
@@ -440,7 +472,7 @@ onMounted(() => {
                                         RX:
                                         <span
                                             v-if="item.traffic_type != ModelsOcservUserTrafficTypeEnum.FREE"
-                                            class="text-muted text-subtitle-2"
+                                            class="text-medium-emphasis text-subtitle-2"
                                         >
                                             ({{ t('CURRENT') }})
                                         </span>
@@ -457,7 +489,7 @@ onMounted(() => {
                                         TX:
                                         <span
                                             v-if="item.traffic_type != ModelsOcservUserTrafficTypeEnum.FREE"
-                                            class="text-muted text-subtitle-2"
+                                            class="text-medium-emphasis text-subtitle-2"
                                         >
                                             ({{ t('CURRENT') }})
                                         </span>
@@ -658,12 +690,12 @@ onMounted(() => {
 
 <style scoped>
 tbody tr:nth-child(even) td {
-    background-color: #f5f5f5;
+    background-color: rgba(var(--v-theme-on-surface), 0.04);
 }
 
 @media (min-width: 992px) {
     tbody tr:nth-child(even) td {
-        background-color: #f5f5f5;
+        background-color: rgba(var(--v-theme-on-surface), 0.04);
     }
 
     tbody tr:nth-child(even) td:first-child {

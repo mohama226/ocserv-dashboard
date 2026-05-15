@@ -27,6 +27,19 @@ languages.forEach((lang) => {
 
 const userLang = localStorage.getItem('language') || 'en';
 
+const RTL_LOCALES = new Set(['fa', 'ar']);
+
+export const isRTL = (code: string) => RTL_LOCALES.has(code);
+
+export const applyLocaleDirection = (code: string) => {
+    if (typeof document === 'undefined') return;
+    const dir = isRTL(code) ? 'rtl' : 'ltr';
+    document.documentElement.setAttribute('dir', dir);
+    document.documentElement.setAttribute('lang', code);
+};
+
+applyLocaleDirection(userLang);
+
 export default createI18n<[MessageSchema], string>({
     legacy: false,
     locale: userLang,

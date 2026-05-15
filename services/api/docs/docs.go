@@ -1165,6 +1165,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "filter ocserv user by group name",
+                        "name": "group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "Bearer TOKEN",
                         "name": "Authorization",
                         "in": "header",

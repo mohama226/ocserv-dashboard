@@ -76,7 +76,7 @@ onMounted(() => {
                 <UiChildCard class="px-3">
                     <div class="space-y-4">
                         <!-- General info -->
-                        <div class="bg-white shadow rounded-lg p-4">
+                        <div class="bg-surface shadow rounded-lg p-4">
                             <h2 class="text-lg font-semibold mb-3 text-capitalize">{{ t('DETAILS') }}</h2>
                             <div class="grid grid-cols-2 gap-4 mx-5">
                                 <v-row align="center" justify="start">

@@ -24,7 +24,13 @@ onMounted(() => {
 </script>
 
 <template>
-    <v-overlay v-model="loader.isLoading" class="d-flex align-center justify-center" persistent>
+    <v-overlay
+        v-model="loader.isLoading"
+        class="d-flex align-center justify-center"
+        scrim="background"
+        opacity="0.85"
+        persistent
+    >
         <div class="loader">
             <img :src="logoUrl" alt="Logo" class="logo" />
             <p class="loading-text">
@@ -55,7 +61,7 @@ onMounted(() => {
 }
 
 .loading-text {
-    color: black;
+    color: rgb(var(--v-theme-on-background));
     font-size: 0.9rem;
     font-weight: 500;
     display: inline-flex;
@@ -73,6 +79,6 @@ onMounted(() => {
 .loading-text span.active {
     transform: translateY(-6px);
     opacity: 1;
-    color: black;
+    color: rgb(var(--v-theme-primary));
 }
 </style>

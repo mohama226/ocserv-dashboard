@@ -18,7 +18,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <div class="bg-white shadow rounded-lg p-4">
+    <div class="bg-surface shadow rounded-lg p-4">
         <h2 class="text-lg font-semibold my-4 text-capitalize">{{ t('CONFIGURATION') }}</h2>
 
         <v-row class="mx-3">

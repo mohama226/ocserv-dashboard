@@ -30,7 +30,16 @@ import type { RepositoryTopBandwidthUsers } from './repository-top-bandwidth-use
 import type { RepositoryTotalBandwidths } from './repository-total-bandwidths';
 
 /**
- * 
+ * Snapshot of Telegram integration for the home dashboard (from GET /home).
+ */
+export interface HomeTelegramServiceStatus {
+    enabled?: boolean;
+    has_bot_token?: boolean;
+    bot_username?: string;
+}
+
+/**
+ *
  * @export
  * @interface HomeGetHomeResponse
  */
@@ -65,5 +74,9 @@ export interface HomeGetHomeResponse {
      * @memberof HomeGetHomeResponse
      */
     'users'?: HomeGetHomeUser;
+    /**
+     * Telegram bot/settings snapshot (no live Telegram API probe).
+     */
+    'telegram_service'?: HomeTelegramServiceStatus;
 }
 

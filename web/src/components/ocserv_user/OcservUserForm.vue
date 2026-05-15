@@ -213,7 +213,8 @@ watch(
                     item-value="value"
                     variant="outlined"
                     @update:modelValue="
-                        (v) => (v == ModelsOcservUserTrafficTypeEnum.FREE ? (createData.traffic_size = 0) : false)
+                        (v: string | null | undefined) =>
+                            v == ModelsOcservUserTrafficTypeEnum.FREE ? (createData.traffic_size = 0) : false
                     "
                 />
             </v-col>

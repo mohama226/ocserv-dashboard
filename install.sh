@@ -80,16 +80,18 @@ choose_deployment() {
     print_message highlight "   [1] Docker"
     print_message highlight "   [2] Systemd Full (Ocserv + Dashboard)"
     print_message highlight "   [3] Systemd Dashboard (Standalone Setup/Upgrade)"
-    print_message highlight "   [4] Uninstall"
+    print_message highlight "   [4] Update (pull + rebuild backend & frontend, restart services)"
+    print_message highlight "   [5] Uninstall"
 
-    read -rp "Choose deployment method [1-4] (default = 1): " choice
+    read -rp "Choose deployment method [1-5] (default = 1): " choice
     choice=${choice:-1}
 
     case "$choice" in
         1) DEPLOY_METHOD="docker" ;;
         2) DEPLOY_METHOD="systemd" ;;
         3) DEPLOY_METHOD="standalone" ;;
-        4) DEPLOY_METHOD="uninstall" ;;
+        4) DEPLOY_METHOD="update" ;;
+        5) DEPLOY_METHOD="uninstall" ;;
         *)
             print_message warn "Invalid choice, defaulting to Docker."
             DEPLOY_METHOD="docker"
@@ -605,6 +607,22 @@ setup_systemd() {
                 ok "✅ Ocserv is installed and properly configured."
             fi
         fi
+
+        # Ensure required ocserv directories and default group config exist.
+        # The dashboard backend reads /etc/ocserv/defaults/group.conf at runtime;
+        # missing files raise "no such file or directory" errors in the panel.
+        sudo mkdir -p /etc/ocserv/defaults /etc/ocserv/groups /etc/ocserv/users
+        if [[ ! -f /etc/ocserv/defaults/group.conf ]]; then
+            sudo touch /etc/ocserv/defaults/group.conf
+            sudo chmod 644 /etc/ocserv/defaults/group.conf
+            ok "✅ Created default group config: /etc/ocserv/defaults/group.conf"
+        fi
+
+        # Ensure telegram receipt uploads directory exists.
+        # The telegram_bot service stores user-submitted payment receipts here.
+        sudo mkdir -p /opt/ocserv_dashboard/uploads/receipts
+        sudo chmod 750 /opt/ocserv_dashboard/uploads/receipts
+        ok "✅ Ensured telegram receipts directory: /opt/ocserv_dashboard/uploads/receipts"
     fi
 
     if ! command -v psql &> /dev/null || ! psql --version | grep -q "17"; then
@@ -659,6 +677,7 @@ deploy() {
         docker) setup_docker ;;
         systemd) setup_systemd true ;;
         standalone) setup_systemd false ;;
+        update) ./scripts/update.sh ;;
     esac
 }
 
@@ -745,6 +764,14 @@ main() {
     if [[ "$DEPLOY_METHOD" == "uninstall" ]]; then
         print_message info "⚠️ Uninstall mode selected. Removing deployed components..."
         uninstall
+        exit 0
+    fi
+
+    # Update mode: delegate to the dedicated in-place upgrade script and exit.
+    # It pulls latest source, rebuilds backend + frontend and restarts services.
+    if [[ "$DEPLOY_METHOD" == "update" ]]; then
+        print_message info "♻️ Update mode selected."
+        ./scripts/update.sh
         exit 0
     fi
 

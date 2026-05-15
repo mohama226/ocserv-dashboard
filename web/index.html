@@ -14,8 +14,41 @@
         <title>Ocserv Dashboard</title>
 
         <style id="preloader-style">
+            :root {
+                --preloader-bg: #f8fafc;
+                --preloader-fg: #0f172a;
+                --preloader-accent: #0ea5a4;
+            }
+
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --preloader-bg: #0f172a;
+                    --preloader-fg: #e2e8f0;
+                    --preloader-accent: #22d3ee;
+                }
+            }
+
+            html[data-theme='OceanLight'] {
+                --preloader-bg: #f8fafc;
+                --preloader-fg: #0f172a;
+                --preloader-accent: #0ea5a4;
+            }
+
+            html[data-theme='OceanDark'] {
+                --preloader-bg: #0f172a;
+                --preloader-fg: #e2e8f0;
+                --preloader-accent: #22d3ee;
+            }
+
+            html,
+            body {
+                margin: 0;
+                background-color: var(--preloader-bg);
+            }
+
             #preloader {
                 margin: 0;
+                background-color: var(--preloader-bg);
             }
 
             #preloader .loader-container {
@@ -47,7 +80,7 @@
 
             #preloader .loader-text {
                 font-size: 16px;
-                color: black;
+                color: var(--preloader-fg);
                 margin-top: 10px;
                 display: inline-flex;
                 gap: 2px;
@@ -63,9 +96,32 @@
 
             #preloader .loader-text span.active {
                 transform: translateY(-8px);
-                color: #1a73e8;
+                color: var(--preloader-accent);
             }
         </style>
+        <script>
+            (function () {
+                try {
+                    var stored = localStorage.getItem('theme');
+                    if (stored !== 'OceanLight' && stored !== 'OceanDark') {
+                        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        stored = prefersDark ? 'OceanDark' : 'OceanLight';
+                    }
+                    document.documentElement.setAttribute('data-theme', stored);
+                } catch (e) {
+                    document.documentElement.setAttribute('data-theme', 'OceanLight');
+                }
+
+                try {
+                    var lang = localStorage.getItem('language') || 'en';
+                    var rtl = lang === 'fa' || lang === 'ar';
+                    document.documentElement.setAttribute('lang', lang);
+                    document.documentElement.setAttribute('dir', rtl ? 'rtl' : 'ltr');
+                } catch (e) {
+                    /* ignore */
+                }
+            })();
+        </script>
     </head>
 
     <body>

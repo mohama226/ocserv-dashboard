@@ -42,7 +42,7 @@ const { t } = useI18n();
 
             <div class="space-y-4 mt-8 px-1">
                 <!-- General info -->
-                <div class="bg-white shadow rounded-lg p-4">
+                <div class="bg-surface shadow rounded-lg p-4">
                     <h4 class="text-lg font-semibold my-4">{{ t('DETAILS') }}</h4>
 
                     <div class="grid grid-cols-2 gap-4 mx-5">
