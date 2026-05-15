@@ -366,6 +366,10 @@ func (ctl *Controller) ContainerUsageStats(c echo.Context) error {
 		"ocserv-postgres": true,
 	}
 
+	if os.Getenv("TELEGRAM_BOT_ENABLED") == "true" {
+		target["telegram_bot"] = true
+	}
+
 	results := make(chan DockerStats, len(containers))
 
 	g, gctx := errgroup.WithContext(ctx)
@@ -460,6 +464,8 @@ func (ctl *Controller) ContainerUsageStats(c echo.Context) error {
 			service.LogStream = r
 		case "user_expiry":
 			service.UserExpiry = r
+		case "telegram_bot":
+			service.TelegramBot = r
 		case "web":
 			service.Web = r
 		}
