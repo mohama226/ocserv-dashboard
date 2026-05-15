@@ -52,7 +52,7 @@ export const useConfigStore = defineStore('config', {
     state: (): ConfigState => ({
         setup: false,
         googleCaptchaSiteKey: '',
-        telegramBotEnabled: false,
+        telegramBotEnabled: false
     }),
 
     actions: {

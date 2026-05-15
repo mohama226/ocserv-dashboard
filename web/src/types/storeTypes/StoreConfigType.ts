@@ -1,7 +1,7 @@
 export interface ConfigState {
     setup: boolean;
     googleCaptchaSiteKey: string;
-    telegramBotEnabled: boolean
+    telegramBotEnabled: boolean;
 }
 
 export interface Release {

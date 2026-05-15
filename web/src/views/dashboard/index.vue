@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import {
     HomeApi,
-    type HomeGetHomeUser, type HomeTelegramServiceStatus,
+    type HomeGetHomeUser,
+    type HomeTelegramServiceStatus,
     type ModelsDailyTraffic,
     type ModelsIPBanPoints,
     type RepositoryTopBandwidthUsers,
@@ -49,9 +50,8 @@ onMounted(() => {
         <v-col cols="12">
             <UiParentCard>
                 <v-row>
-                    <v-col cols="12" lg="12">
+                    <v-col cols="12" lg="12" v-if="configStore.telegramBotEnabled">
                         <TelegramStatusOverview
-                            v-if="configStore.telegramBotEnabled"
                             :enabled="telegramService.enabled"
                             :has-bot-token="telegramService.has_bot_token"
                             :bot-username="telegramService.bot_username"

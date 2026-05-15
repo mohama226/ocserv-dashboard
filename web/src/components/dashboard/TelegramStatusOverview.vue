@@ -18,9 +18,7 @@ const statusColor = computed(() => {
 
 const statusLabel = computed(() => (props.enabled ? t('TELEGRAM_STATUS_ENABLED') : t('TELEGRAM_STATUS_DISABLED')));
 
-const tokenLabel = computed(() =>
-    props.hasBotToken ? t('TELEGRAM_BOT_TOKEN_SET') : t('TELEGRAM_BOT_TOKEN_MISSING')
-);
+const tokenLabel = computed(() => (props.hasBotToken ? t('TELEGRAM_BOT_TOKEN_SET') : t('TELEGRAM_BOT_TOKEN_MISSING')));
 </script>
 
 <template>
