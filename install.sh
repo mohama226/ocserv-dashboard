@@ -811,8 +811,8 @@ main() {
     fi
 
     if ! get_current_version; then
-        echo "Failed to get versions"
-        exit 1
+        echo "Failed to get latest version"
+#        exit 1
     fi
 
     echo "Current Dashboard Release: $CURRENT_RELEASE"
@@ -821,7 +821,8 @@ main() {
     # Compare versions
     if [ -z "$CURRENT_RELEASE" ] || [ -z "$LATEST_RELEASE" ]; then
         echo "ERROR: Missing version information"
-        exit 1
+        echo "WARNING: Deploying current version"
+#        exit 1
     fi
 
     if [ "$CURRENT_RELEASE" != "$LATEST_RELEASE" ]; then
