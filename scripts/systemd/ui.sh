@@ -32,46 +32,7 @@ source ./scripts/lib.sh
 
 log "Starting frontend deployment..."
 
-# ==========================================
-# Function: ensure_node
-# Description:
-#   Ensures Node.js v23.x or higher exists.
-#   Installs Node.js via NodeSource if missing or outdated.
-#   Installs npm if missing.
-#   Installs Yarn globally.
-# ==========================================
-ensure_node() {
-  log "Checking Node.js..."
-  REQUIRED_NODE_MAJOR="20"
 
-  if command -v node >/dev/null 2>&1; then
-      CURRENT_NODE_VERSION=$(node -v | sed 's/^v//')
-  else
-      CURRENT_NODE_VERSION=""
-  fi
-
-  CURRENT_NODE_MAJOR="${CURRENT_NODE_VERSION%%.*}"
-
-  if [[ -z "$CURRENT_NODE_VERSION" || "$CURRENT_NODE_MAJOR" -lt "$REQUIRED_NODE_MAJOR" ]]; then
-      warn "Node.js missing or outdated (current: ${CURRENT_NODE_VERSION:-none}). Installing Node.js ${REQUIRED_NODE_MAJOR}.x..."
-      curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-      sudo apt-get install -y nodejs
-      CURRENT_NODE_VERSION=$(node -v | sed 's/^v//')
-      ok "Node.js installed: v$CURRENT_NODE_VERSION"
-  else
-      ok "Node.js is already installed: v$CURRENT_NODE_VERSION"
-  fi
-
-  if ! command -v npm >/dev/null 2>&1; then
-      warn "npm not found. Installing..."
-      sudo apt-get install -y npm
-  fi
-
-  sudo npm install -g yarn
-  ok "Yarn installed"
-}
-
-ensure_node
 
 # ==========================================
 # Function: build_frontend
