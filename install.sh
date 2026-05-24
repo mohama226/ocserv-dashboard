@@ -136,80 +136,6 @@ check_docker() {
         exit 1
     fi
 }
-
-# ===============================
-# Function: check_systemd_os
-# Description:
-#   Validate that the host OS is supported for systemd deployment.
-#   Supported OS: Ubuntu 20.04/22.04/24.04, Debian 11/12/13
-# ===============================
-check_systemd_os() {
-    if [[ -f /etc/os-release ]]; then
-        . /etc/os-release
-        OS_NAME=$ID
-        OS_VERSION="${VERSION_ID//\"/}"
-    else
-        die "Cannot detect OS. /etc/os-release not found."
-    fi
-
-    if [[ "$OS_NAME" == "ubuntu" ]]; then
-        [[ "$OS_VERSION" =~ ^(20.04|22.04|24.04)$ ]] || \
-            die "Unsupported Ubuntu version: $OS_VERSION"
-    elif [[ "$OS_NAME" == "debian" ]]; then
-        [[ "$OS_VERSION" =~ ^(11|12|13)$ ]] || \
-            die "Unsupported Debian version: $OS_VERSION"
-    else
-        die "Unsupported OS: $OS_NAME $OS_VERSION"
-    fi
-
-    print_message success "✅ OS supported for systemd deployment: $OS_NAME $OS_VERSION"
-}
-
-# ===============================
-# Function: check_go_version
-# Description:
-#   Verify that Go is installed and meets minimum version requirement.
-# Parameters:
-#   $1 - minimum Go version (default: 1.25)
-# ===============================
-check_go_version() {
-    local go_mod_file="services/api/go.mod"
-
-    if [[ ! -f "$go_mod_file" ]]; then
-        die "❌ go.mod not found at $go_mod_file"
-    fi
-
-    # Extract Go version from the go.mod file (e.g., "1.25")
-    local required_version
-    required_version=$(grep '^go ' "$go_mod_file" | awk '{print $2}')
-    [[ -n "$required_version" ]] || die "❌ Could not read Go version from $go_mod_file"
-
-    # Normalize required_version to include patch if missing
-    if [[ ! "$required_version" =~ \.[0-9]+$ ]]; then
-        required_version="${required_version}.0"
-    fi
-
-    if ! command -v go >/dev/null 2>&1; then
-        die "Go is not installed. Install from: https://go.dev/doc/install"
-    fi
-
-    # Get current Go version (e.g., 1.25.5)
-    local current_version
-    current_version=$(go version | awk '{print $3}' | sed 's/^go//')
-
-    # Ensure current_version includes patch number for comparison
-    if [[ ! "$current_version" =~ \.[0-9]+$ ]]; then
-        current_version="${current_version}.0"
-    fi
-
-    # Compare versions
-    if dpkg --compare-versions "$current_version" "lt" "$required_version"; then
-        die "Go version $current_version < required $required_version. Upgrade at https://go.dev/doc/install"
-    fi
-
-    print_message success "✅ Go version $current_version meets requirement (≥ $required_version)"
-}
-
 # ===============================
 # Function: get_ip
 # Description:
@@ -431,7 +357,18 @@ get_envs(){
     else
         POSTGRES_PASSWORD="$(generate_secret)"
     fi
-    print_message highlight "✅ JWT_SECRET set (length: ${#JWT_SECRET})"
+    print_message highlight "✅ PostgreSQL password set (length: ${#POSTGRES_PASSWORD})"
+    printf "\n"
+
+    # Telegram Bot enabled
+    read -rp "Do you want to enable Telegram Bot? [y/N]: " telegram_bot_enabled
+    telegram_bot_enabled=${telegram_bot_enabled:-N}
+    if [[ "$telegram_bot_enabled" =~ ^[Yy]$ ]]; then
+        TELEGRAM_BOT_ENABLED=true
+    else
+        TELEGRAM_BOT_ENABLED=false
+    fi
+    print_message highlight "✅ Telegram Bot: ${TELEGRAM_BOT_ENABLED}"
     printf "\n"
 }
 
@@ -468,27 +405,28 @@ get_site_lang() {
 set_environment() {
     print_message info "Creating environment file at $ENV_FILE ..."
     cat > "$ENV_FILE" <<EOL
-HOST="${HOST}"
-SECRET_KEY="${SECRET_KEY}"
-JWT_SECRET="${JWT_SECRET}"
-LANGUAGES="${LANGUAGES}"
-ALLOW_ORIGINS="https://${HOST}:3443"
-SSL_CN="${SSL_CN}"
-SSL_ORG="${SSL_ORG}"
-SSL_C="${SSL_C}"
-SSL_ST="${SSL_ST}"
-SSL_L="${SSL_L}"
-SSL_EXPIRE="${SSL_EXPIRE}"
-OC_NET="${OC_NET}"
-OCSERV_PORT="${OCSERV_PORT}"
-OCSERV_DNS="${OCSERV_DNS}"
-OCSERV_BANNER="${OCSERV_BANNER}"
-OCSERV_PRE_LOGIN_BANNER="${OCSERV_PRE_LOGIN_BANNER}"
-POSTGRES_HOST="${POSTGRES_HOST}"
-POSTGRES_PORT="${POSTGRES_PORT}"
-POSTGRES_DB="${POSTGRES_DB}"
-POSTGRES_USER="${POSTGRES_USER}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
+HOST=${HOST}
+SECRET_KEY=${SECRET_KEY}
+JWT_SECRET=${JWT_SECRET}
+LANGUAGES=${LANGUAGES}
+ALLOW_ORIGINS=https://${HOST}:3443
+SSL_CN=${SSL_CN}
+SSL_ORG=${SSL_ORG}
+SSL_C=${SSL_C}
+SSL_ST=${SSL_ST}
+SSL_L=${SSL_L}
+SSL_EXPIRE=${SSL_EXPIRE}
+OC_NET=${OC_NET}
+OCSERV_PORT=${OCSERV_PORT}
+OCSERV_DNS=${OCSERV_DNS}
+OCSERV_BANNER=${OCSERV_BANNER}
+OCSERV_PRE_LOGIN_BANNER=${OCSERV_PRE_LOGIN_BANNER}
+POSTGRES_HOST=${POSTGRES_HOST}
+POSTGRES_PORT=${POSTGRES_PORT}
+POSTGRES_DB=${POSTGRES_DB}
+POSTGRES_USER=${POSTGRES_USER}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+TELEGRAM_BOT_ENABLED=${TELEGRAM_BOT_ENABLED}
 
 EOL
     print_message success "✅ Environment file created successfully in $ENV_FILE."
@@ -576,10 +514,18 @@ setup_docker() {
     sed -i 's/^POSTGRES_HOST=.*/POSTGRES_HOST=ocserv-postgres/' "${ENV_FILE}"
 
     print_message warn "🛠 Docker Compose Shutting Down..."
-    sudo docker compose down
+    if [[ "${TELEGRAM_BOT_ENABLED:-false}" == "true" ]]; then
+        sudo docker compose -f docker-compose.yml -f docker-compose-telegram.yml down
+    else
+        sudo docker compose down
+    fi
 
     print_message info "🛠 Starting Docker Compose..."
-    sudo docker compose up --build -d
+    if [[ "${TELEGRAM_BOT_ENABLED:-false}" == "true" ]]; then
+        sudo docker compose -f docker-compose.yml -f docker-compose-telegram.yml up --build -d
+    else
+        sudo docker compose up --build -d
+    fi
     print_message success "✅ Docker Compose deployment completed!"
 }
 
@@ -629,13 +575,13 @@ setup_systemd() {
         echo "PostgreSQL 17 is not installed"
         export POSTGRES_DB POSTGRES_HOST POSTGRES_PORT POSTGRES_USER POSTGRES_PASSWORD
 
-        ./scripts/systemd_postgres.sh
+        ./scripts/systemd/postgres.sh
         ok "✅ PostgreSQL is installed and properly configured."
     fi
 
     # Deploy backend and UI systemd services
-    ./scripts/systemd_backend.sh
-    ./scripts/systemd_ui.sh
+    ./scripts/systemd/backend.sh
+    ./scripts/systemd/ui.sh
 
     # Deploy VPN (ocserv) only if full setup requested
     if [[ "$full_setup" == true ]]; then
@@ -643,7 +589,7 @@ setup_systemd() {
           get_interface
 
           export OCSERV_PORT SSL_CN SSL_ORG SSL_EXPIRE OCSERV_DNS ETH OCSERV_BANNER OCSERV_PRE_LOGIN_BANNER
-          ./scripts/systemd_ocserv.sh
+          ./scripts/systemd/ocserv.sh
     fi
 }
 
@@ -695,16 +641,11 @@ deploy() {
 get_current_version() {
     local VERSION_FILE=".release"
 
-    # Validate version format
-    is_valid_version() {
-        [[ "$1" =~ ^v[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]
-    }
-
     # =========================
-    # Read current version
+    # 1. Read existing file FIRST
     # =========================
     if [ -f "$VERSION_FILE" ]; then
-        CURRENT_RELEASE=$(tr -d '[:space:]' < "$VERSION_FILE")
+        CURRENT_RELEASE=$(grep '^current=' "$VERSION_FILE" | cut -d= -f2 | tr -d '[:space:]')
 
         if ! is_valid_version "$CURRENT_RELEASE"; then
             echo "Invalid version in $VERSION_FILE" >&2
@@ -713,25 +654,31 @@ get_current_version() {
     fi
 
     # =========================
-    # Get latest from GitHub
+    # 2. Fetch latest from GitHub
     # =========================
-    LATEST_RELEASE=$(
-        curl -fsSL https://api.github.com/repos/mmtaee/ocserv-dashboard/releases/latest \
-        | grep '"tag_name":' \
-        | sed -E 's/.*"([^"]+)".*/\1/'
-    )
-
-    if ! is_valid_version "$LATEST_RELEASE"; then
-        echo "Failed to get valid latest release" >&2
-        return 1
-    fi
+    LATEST_RELEASE=$(get_latest_release_tag)
 
     # =========================
-    # Default current if missing
+    # 3. Fallback if current missing/invalid
     # =========================
     if [ -z "$CURRENT_RELEASE" ]; then
         CURRENT_RELEASE="$LATEST_RELEASE"
-        echo "$CURRENT_RELEASE" > "$VERSION_FILE"
+    fi
+
+    # =========================
+    # 4. Persist BOTH values
+    # =========================
+    printf "current=%s\nlatest=%s\n" \
+        "$CURRENT_RELEASE" \
+        "$LATEST_RELEASE" > "$VERSION_FILE"
+
+    # =========================
+    # 5. Optional comparison logic
+    # =========================
+    if [ "$CURRENT_RELEASE" != "$LATEST_RELEASE" ]; then
+        echo "Update available: $CURRENT_RELEASE → $LATEST_RELEASE"
+    else
+        echo "Already up to date ($CURRENT_RELEASE)"
     fi
 
     return 0
@@ -782,8 +729,7 @@ main() {
     if [[ "$DEPLOY_METHOD" == "docker" ]]; then
         check_docker
     else
-        check_systemd_os
-        check_go_version
+      ./scripts/systemd/pre_requirements.sh
     fi
 
     # Load existing environment file or run interactive setup
@@ -804,8 +750,8 @@ main() {
     fi
 
     if ! get_current_version; then
-        echo "Failed to get versions"
-        exit 1
+        echo "Failed to get latest version"
+#        exit 1
     fi
 
     echo "Current Dashboard Release: $CURRENT_RELEASE"
@@ -814,12 +760,24 @@ main() {
     # Compare versions
     if [ -z "$CURRENT_RELEASE" ] || [ -z "$LATEST_RELEASE" ]; then
         echo "ERROR: Missing version information"
-        exit 1
+        echo "WARNING: Deploying current version"
+#        exit 1
     fi
 
     if [ "$CURRENT_RELEASE" != "$LATEST_RELEASE" ]; then
-        echo "ERROR: Dashboard update required"
-        exit 1
+        print_message warn "⚠️ Current version ($CURRENT_RELEASE) is not the latest ($LATEST_RELEASE)!"
+        read -rp "Do you want to update to the latest version? [Y/n]: " update_choice
+        update_choice=${update_choice:-Y}
+        if [[ "$update_choice" =~ ^[Yy]$ ]]; then
+            print_message info "🔄 Updating to $LATEST_RELEASE..."
+            git fetch --tags --quiet
+            git checkout "$LATEST_RELEASE"
+            CURRENT_RELEASE="$LATEST_RELEASE"
+            echo "$CURRENT_RELEASE" > .release
+            print_message success "✅ Updated to $CURRENT_RELEASE"
+        else
+            print_message info "⏭️ Continuing with current version ($CURRENT_RELEASE)"
+        fi
     fi
 
     # Save version into .env file

@@ -36,15 +36,7 @@ watch(mdAndDown, (val) => {
 </script>
 
 <template>
-    <v-navigation-drawer
-        v-model="sDrawer"
-        :width="280"
-        app
-        class="leftSidebar"
-        color="surface"
-        elevation="0"
-        left
-    >
+    <v-navigation-drawer v-model="sDrawer" :width="280" app class="leftSidebar" color="surface" elevation="0" left>
         <div class="sidebar-brand d-flex align-center px-5 py-4">
             <v-img :src="logoUrl" alt="logo" class="me-3" max-width="36" />
             <div class="d-flex flex-column">
@@ -54,14 +46,7 @@ watch(mdAndDown, (val) => {
                 </span>
             </div>
             <v-spacer />
-            <v-btn
-                v-if="mdAndDown"
-                aria-label="close menu"
-                icon
-                size="small"
-                variant="text"
-                @click="sDrawer = false"
-            >
+            <v-btn v-if="mdAndDown" aria-label="close menu" icon size="small" variant="text" @click="sDrawer = false">
                 <v-icon size="22">mdi-close</v-icon>
             </v-btn>
         </div>
@@ -80,21 +65,8 @@ watch(mdAndDown, (val) => {
         </perfect-scrollbar>
     </v-navigation-drawer>
 
-    <v-app-bar
-        class="top-header"
-        color="surface"
-        elevation="1"
-        flat
-        height="64"
-    >
-        <v-btn
-            aria-label="toggle menu"
-            class="ms-2"
-            icon
-            size="small"
-            variant="text"
-            @click="sDrawer = !sDrawer"
-        >
+    <v-app-bar class="top-header" color="surface" elevation="1" flat height="64">
+        <v-btn aria-label="toggle menu" class="ms-2" icon size="small" variant="text" @click="sDrawer = !sDrawer">
             <v-icon size="24">mdi-menu</v-icon>
         </v-btn>
 

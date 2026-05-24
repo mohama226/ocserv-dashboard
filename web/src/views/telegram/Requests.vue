@@ -2,11 +2,7 @@
 import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import {
-    TelegramAPI,
-    type TelegramRequestModel,
-    type TelegramPackage
-} from '@/api/telegram';
+import { TelegramAPI, type TelegramRequestModel, type TelegramPackage } from '@/api/telegram';
 import { OcservGroupsApi, OcservUsersGetSortEnum } from '@/api';
 import { getAuthorization } from '@/utils/request';
 import { useSnackbarStore } from '@/stores/snackbar';
@@ -298,15 +294,19 @@ onBeforeUnmount(() => {
 
         <v-dialog v-model="detailDialog" max-width="800" @update:modelValue="(v) => !v && closeDetails()">
             <v-card v-if="selected">
-                <v-card-title>
-                    {{ t('TELEGRAM_REQUEST_DETAILS') }} #{{ selected.id }}
-                </v-card-title>
+                <v-card-title> {{ t('TELEGRAM_REQUEST_DETAILS') }} #{{ selected.id }} </v-card-title>
                 <v-card-text>
                     <v-row>
                         <v-col cols="12" md="6">
-                            <div><strong>{{ t('TYPE') }}:</strong> {{ selected.type }}</div>
-                            <div><strong>{{ t('STATUS') }}:</strong> {{ selected.status }}</div>
-                            <div><strong>{{ t('CHAT_ID') }}:</strong> {{ selected.chat_id }}</div>
+                            <div>
+                                <strong>{{ t('TYPE') }}:</strong> {{ selected.type }}
+                            </div>
+                            <div>
+                                <strong>{{ t('STATUS') }}:</strong> {{ selected.status }}
+                            </div>
+                            <div>
+                                <strong>{{ t('CHAT_ID') }}:</strong> {{ selected.chat_id }}
+                            </div>
                             <div v-if="selected.telegram_username">
                                 <strong>{{ t('TELEGRAM_USERNAME') }}:</strong> @{{ selected.telegram_username }}
                             </div>
@@ -430,12 +430,7 @@ onBeforeUnmount(() => {
                 <v-card-actions class="px-4 pb-4">
                     <v-btn variant="text" @click="closeDetails">{{ t('CLOSE') }}</v-btn>
                     <v-spacer />
-                    <v-btn
-                        v-if="selected.status === 'pending'"
-                        color="primary"
-                        :loading="loading"
-                        @click="approve"
-                    >
+                    <v-btn v-if="selected.status === 'pending'" color="primary" :loading="loading" @click="approve">
                         {{ t('APPROVE') }}
                     </v-btn>
                     <v-btn

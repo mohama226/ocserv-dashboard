@@ -110,13 +110,7 @@ onMounted(load);
         <v-col cols="12">
             <UiParentCard :title="t('TELEGRAM_PACKAGES')">
                 <template #action>
-                    <v-btn
-                        class="me-lg-5"
-                        color="grey"
-                        size="small"
-                        variant="outlined"
-                        @click="openCreate"
-                    >
+                    <v-btn class="me-lg-5" color="grey" size="small" variant="outlined" @click="openCreate">
                         {{ t('CREATE') }}
                     </v-btn>
                 </template>
@@ -144,21 +138,12 @@ onMounted(load);
                                 <td>{{ pkg.traffic_type }}</td>
                                 <td>{{ pkg.price_text || '—' }}</td>
                                 <td>
-                                    <v-chip
-                                        :color="pkg.is_active ? 'success' : 'grey'"
-                                        size="small"
-                                        variant="flat"
-                                    >
+                                    <v-chip :color="pkg.is_active ? 'success' : 'grey'" size="small" variant="flat">
                                         {{ pkg.is_active ? t('ACTIVE') : t('INACTIVE') }}
                                     </v-chip>
                                 </td>
                                 <td>
-                                    <v-btn
-                                        icon="mdi-pencil"
-                                        size="small"
-                                        variant="text"
-                                        @click="openEdit(pkg)"
-                                    />
+                                    <v-btn icon="mdi-pencil" size="small" variant="text" @click="openEdit(pkg)" />
                                     <v-btn
                                         icon="mdi-delete"
                                         size="small"
@@ -184,12 +169,7 @@ onMounted(load);
                     {{ isNew ? t('TELEGRAM_PACKAGE_CREATE') : t('TELEGRAM_PACKAGE_UPDATE') }}
                 </v-card-title>
                 <v-card-text>
-                    <v-text-field
-                        v-model="editing.title"
-                        :label="t('TITLE')"
-                        variant="outlined"
-                        density="comfortable"
-                    />
+                    <v-text-field v-model="editing.title" :label="t('TITLE')" variant="outlined" density="comfortable" />
                     <v-row>
                         <v-col cols="12" md="6">
                             <v-text-field
@@ -204,7 +184,7 @@ onMounted(load);
                             <v-text-field
                                 v-model.number="editing.traffic_size_gb"
                                 type="number"
-                                :label="t('TRAFFIC_SIZE_GB')"
+                                :label="`${t('TRAFFIC_SIZE')} (GB)`"
                                 variant="outlined"
                                 density="comfortable"
                             />
@@ -223,12 +203,7 @@ onMounted(load);
                         variant="outlined"
                         density="comfortable"
                     />
-                    <v-switch
-                        v-model="editing.is_active"
-                        :label="t('ACTIVE')"
-                        color="primary"
-                        hide-details
-                    />
+                    <v-switch v-model="editing.is_active" :label="t('ACTIVE')" color="primary" hide-details />
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer />

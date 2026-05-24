@@ -150,6 +150,11 @@ func (ctl *Controller) Home(c echo.Context) error {
 
 	// telegram settings snapshot (no external API calls)
 	g.Go(func() error {
+		if os.Getenv("TELEGRAM_BOT_ENABLED") != "true" {
+			telegramSnap = nil
+			return nil
+		}
+
 		s, err := ctl.telegramRepo.Settings(ctx)
 		if err != nil {
 			return nil
@@ -361,6 +366,10 @@ func (ctl *Controller) ContainerUsageStats(c echo.Context) error {
 		"ocserv-postgres": true,
 	}
 
+	if os.Getenv("TELEGRAM_BOT_ENABLED") == "true" {
+		target["telegram_bot"] = true
+	}
+
 	results := make(chan DockerStats, len(containers))
 
 	g, gctx := errgroup.WithContext(ctx)
@@ -455,6 +464,8 @@ func (ctl *Controller) ContainerUsageStats(c echo.Context) error {
 			service.LogStream = r
 		case "user_expiry":
 			service.UserExpiry = r
+		case "telegram_bot":
+			service.TelegramBot = r
 		case "web":
 			service.Web = r
 		}

@@ -64,8 +64,12 @@ declare -A SERVICES=(
   ["api"]="./services/api"
   ["log_stream"]="./services/log_stream"
   ["user_expiry"]="./services/user_expiry"
-  ["telegram_bot"]="./services/telegram_bot"
 )
+
+# Check if TELEGRAM_BOT_ENABLED is true (from environment)
+if [[ "${TELEGRAM_BOT_ENABLED:-false}" == "true" ]]; then
+  SERVICES["telegram_bot"]="./services/telegram_bot"
+fi
 
 # -----------------------
 # Build Go binaries
@@ -100,7 +104,7 @@ ENV_FILE="${BIN_DIR}/ocserv_dashboard.env"
 if [[ -f ".env" ]]; then
   sudo cp .env "$ENV_FILE"
   log "Copied environment file to $ENV_FILE"
-  echo "SYSTEMD=true" >> "$ENV_FILE"
+  echo "SYSTEMD=true" | sudo tee -a "$ENV_FILE" > /dev/null
 else
   warn ".env file not found, skipping environment copy"
 fi

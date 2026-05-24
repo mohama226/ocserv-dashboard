@@ -21,6 +21,9 @@ import RxTxChartOverview from '@/components/dashboard/RxTxChartOverview.vue';
 import UiParentCard from '@/components/shared/UiParentCard.vue';
 import SystemStats from '@/components/dashboard/SystemStats.vue';
 import TelegramStatusOverview from '@/components/dashboard/TelegramStatusOverview.vue';
+import { useConfigStore } from '@/stores/config';
+
+const configStore = useConfigStore();
 
 const trafficData = ref<ModelsDailyTraffic[]>([]);
 const users = ref<HomeGetHomeUser>({});
@@ -47,7 +50,7 @@ onMounted(() => {
         <v-col cols="12">
             <UiParentCard>
                 <v-row>
-                    <v-col cols="12" lg="12">
+                    <v-col cols="12" lg="12" v-if="configStore.telegramBotEnabled">
                         <TelegramStatusOverview
                             :enabled="telegramService.enabled"
                             :has-bot-token="telegramService.has_bot_token"

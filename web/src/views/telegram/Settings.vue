@@ -212,12 +212,7 @@ onMounted(load);
                             <v-btn type="submit" color="primary" :loading="loading">
                                 {{ t('SAVE') }}
                             </v-btn>
-                            <v-btn
-                                color="secondary"
-                                variant="outlined"
-                                :loading="loading"
-                                @click="sendTest"
-                            >
+                            <v-btn color="secondary" variant="outlined" :loading="loading" @click="sendTest">
                                 {{ t('TELEGRAM_SEND_TEST') }}
                             </v-btn>
                             <v-btn variant="text" :loading="loading" @click="load">

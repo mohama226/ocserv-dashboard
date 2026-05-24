@@ -7,6 +7,7 @@ import (
 
 type GetSystemInitResponse struct {
 	GoogleCaptchaSiteKey string `json:"google_captcha_site_key" validate:"omitempty"`
+	TelegramBotEnabled   bool   `json:"telegram_bot_enabled" validate:"omitempty"`
 }
 
 type GetSystemResponse struct {

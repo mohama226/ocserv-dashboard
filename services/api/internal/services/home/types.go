@@ -110,11 +110,12 @@ type DockerStats struct {
 }
 
 type DockerService struct {
-	Postgres   DockerStats `json:"postgres" validate:"required"`
-	Ocserv     DockerStats `json:"ocserv" validate:"required"`
-	LogStream  DockerStats `json:"log_stream" validate:"required"`
-	UserExpiry DockerStats `json:"user_expiry" validate:"required"`
-	Web        DockerStats `json:"web" validate:"required"`
+	Postgres    DockerStats `json:"postgres" validate:"required"`
+	Ocserv      DockerStats `json:"ocserv" validate:"required"`
+	LogStream   DockerStats `json:"log_stream" validate:"required"`
+	UserExpiry  DockerStats `json:"user_expiry" validate:"required"`
+	TelegramBot DockerStats `json:"telegram_bot" validate:"omitempty"`
+	Web         DockerStats `json:"web" validate:"required"`
 }
 
 type ServerStatusResponse struct {
