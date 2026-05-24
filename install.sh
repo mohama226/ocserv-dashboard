@@ -591,6 +591,12 @@ setup_systemd() {
           export OCSERV_PORT SSL_CN SSL_ORG SSL_EXPIRE OCSERV_DNS ETH OCSERV_BANNER OCSERV_PRE_LOGIN_BANNER
           ./scripts/systemd/ocserv.sh
     fi
+
+    log "Cleaning apt caches..."
+    sudo apt autoremove -y
+    sudo apt autoclean -y
+
+    ok "Cleanup completed."
 }
 
 # ===============================

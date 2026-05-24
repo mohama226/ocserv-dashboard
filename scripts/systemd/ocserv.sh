@@ -365,11 +365,3 @@ fi
 
 ok "Ocserv VPN deployment completed successfully!"
 
-# ==============================================================
-# 7. Cleanup
-# ==============================================================
-log "Cleaning apt caches..."
-sudo apt autoremove -y
-sudo apt autoclean -y
-
-ok "Cleanup completed."
