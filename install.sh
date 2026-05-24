@@ -405,28 +405,28 @@ get_site_lang() {
 set_environment() {
     print_message info "Creating environment file at $ENV_FILE ..."
     cat > "$ENV_FILE" <<EOL
-HOST="${HOST}"
-SECRET_KEY="${SECRET_KEY}"
-JWT_SECRET="${JWT_SECRET}"
-LANGUAGES="${LANGUAGES}"
-ALLOW_ORIGINS="https://${HOST}:3443"
-SSL_CN="${SSL_CN}"
-SSL_ORG="${SSL_ORG}"
-SSL_C="${SSL_C}"
-SSL_ST="${SSL_ST}"
-SSL_L="${SSL_L}"
-SSL_EXPIRE="${SSL_EXPIRE}"
-OC_NET="${OC_NET}"
-OCSERV_PORT="${OCSERV_PORT}"
-OCSERV_DNS="${OCSERV_DNS}"
-OCSERV_BANNER="${OCSERV_BANNER}"
-OCSERV_PRE_LOGIN_BANNER="${OCSERV_PRE_LOGIN_BANNER}"
-POSTGRES_HOST="${POSTGRES_HOST}"
-POSTGRES_PORT="${POSTGRES_PORT}"
-POSTGRES_DB="${POSTGRES_DB}"
-POSTGRES_USER="${POSTGRES_USER}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
-TELEGRAM_BOT_ENABLED="${TELEGRAM_BOT_ENABLED}"
+HOST=${HOST}
+SECRET_KEY=${SECRET_KEY}
+JWT_SECRET=${JWT_SECRET}
+LANGUAGES=${LANGUAGES}
+ALLOW_ORIGINS=https://${HOST}:3443
+SSL_CN=${SSL_CN}
+SSL_ORG=${SSL_ORG}
+SSL_C=${SSL_C}
+SSL_ST=${SSL_ST}
+SSL_L=${SSL_L}
+SSL_EXPIRE=${SSL_EXPIRE}
+OC_NET=${OC_NET}
+OCSERV_PORT=${OCSERV_PORT}
+OCSERV_DNS=${OCSERV_DNS}
+OCSERV_BANNER=${OCSERV_BANNER}
+OCSERV_PRE_LOGIN_BANNER=${OCSERV_PRE_LOGIN_BANNER}
+POSTGRES_HOST=${POSTGRES_HOST}
+POSTGRES_PORT=${POSTGRES_PORT}
+POSTGRES_DB=${POSTGRES_DB}
+POSTGRES_USER=${POSTGRES_USER}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+TELEGRAM_BOT_ENABLED=${TELEGRAM_BOT_ENABLED}
 
 EOL
     print_message success "✅ Environment file created successfully in $ENV_FILE."
@@ -580,7 +580,6 @@ setup_systemd() {
     fi
 
     # Deploy backend and UI systemd services
-    export TELEGRAM_BOT_ENABLED
     ./scripts/systemd/backend.sh
     ./scripts/systemd/ui.sh
 
@@ -643,7 +642,7 @@ get_current_version() {
     local VERSION_FILE=".release"
 
     # =========================
-    # Read current version
+    # 1. Read existing file FIRST
     # =========================
     if [ -f "$VERSION_FILE" ]; then
         CURRENT_RELEASE=$(tr -d '[:space:]' < "$VERSION_FILE")
@@ -655,16 +654,31 @@ get_current_version() {
     fi
 
     # =========================
-    # Get latest from GitHub
+    # 2. Fetch latest from GitHub
     # =========================
     LATEST_RELEASE=$(get_latest_release_tag)
 
     # =========================
-    # Default current if missing
+    # 3. Fallback if current missing/invalid
     # =========================
     if [ -z "$CURRENT_RELEASE" ]; then
         CURRENT_RELEASE="$LATEST_RELEASE"
-        echo "$CURRENT_RELEASE" > "$VERSION_FILE"
+    fi
+
+    # =========================
+    # 4. Persist BOTH values
+    # =========================
+    printf "current=%s\nlatest=%s\n" \
+        "$CURRENT_RELEASE" \
+        "$LATEST_RELEASE" > "$VERSION_FILE"
+
+    # =========================
+    # 5. Optional comparison logic
+    # =========================
+    if [ "$CURRENT_RELEASE" != "$LATEST_RELEASE" ]; then
+        echo "Update available: $CURRENT_RELEASE → $LATEST_RELEASE"
+    else
+        echo "Already up to date ($CURRENT_RELEASE)"
     fi
 
     return 0
