@@ -645,7 +645,7 @@ get_current_version() {
     # 1. Read existing file FIRST
     # =========================
     if [ -f "$VERSION_FILE" ]; then
-        CURRENT_RELEASE=$(tr -d '[:space:]' < "$VERSION_FILE")
+        CURRENT_RELEASE=$(grep '^current=' "$VERSION_FILE" | cut -d= -f2 | tr -d '[:space:]')
 
         if ! is_valid_version "$CURRENT_RELEASE"; then
             echo "Invalid version in $VERSION_FILE" >&2
