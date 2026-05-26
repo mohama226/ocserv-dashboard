@@ -51,9 +51,7 @@ RUN if [ -n "${DEBIAN_MIRROR}" ] || [ -n "${DEBIAN_SECURITY_MIRROR}" ]; then \
 # Install runtime dependencies only
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        ca-certificates \
-        sqlite3 \
-        libsqlite3-dev && \
+        ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -65,7 +63,7 @@ COPY --from=builder --chmod=755 /app/user_expiry /usr/local/bin/user_expiry
 COPY --chmod=755 services/user_expiry/scripts/start.sh /start.sh
 
 # Set up volume for database persistence
-VOLUME ["/usr/local/bin/db", "/usr/local/bin/cron_journal"]
+VOLUME ["/usr/local/bin/cron_journal"]
 
 # Default command
 CMD ["/start.sh"]

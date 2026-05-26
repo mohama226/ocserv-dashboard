@@ -107,7 +107,7 @@ COPY --chmod=755 scripts/docker/ocserv_server.sh /server.sh
 EXPOSE 443/tcp 443/udp 8080 8888
 
 # Volumes
-VOLUME ["/etc/ocserv", "/usr/local/bin/db"]
+VOLUME ["/etc/ocserv"]
 
 # Run entrypoint as root (required for ocserv)
 ENTRYPOINT ["/entrypoint.sh"]
