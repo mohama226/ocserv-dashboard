@@ -25,6 +25,13 @@ Easily manage users, groups, and server configurations while keeping your VPN se
 
 ---
 
+## 📚 Documentation
+
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)**: Complete guide for developers to work on the project
+- **[Telegram Bot Guide](docs/TELEGRAM_BOT.md)**: Instructions for setting up and customizing the Telegram bot
+
+---
+
 ## 🌟 Key Features
 
 ### 1. Ocserv User Management
@@ -73,7 +80,7 @@ Easily manage users, groups, and server configurations while keeping your VPN se
   - Link VPN accounts, check usage/expiry, request renewals, order new accounts, and upload payment receipts
   - Low-quota warnings and multi-language support
 - **Admin dashboard**: Manage settings, packages, requests, and linked accounts
-- **Customization**: Override translations and bot metadata via environment variables (see [docs/telegram_bot.md](docs/telegram_bot.md))
+- **Customization**: Override translations and bot metadata via environment variables (see [docs/TELEGRAM_BOT.md](docs/TELEGRAM_BOT.md))
 
 ---
 
