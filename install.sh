@@ -591,11 +591,13 @@ setup_systemd() {
             die "⚠️ Ocserv config not found (/etc/ocserv/ocserv.conf)."
         else
             # Check if auth line exists
-            if ! grep -q '^auth\s*=\s*"plain\[passwd=/etc/ocserv/ocpasswd\]"' /etc/ocserv/ocserv.conf; then
-                die "⚠️ Ocserv auth config missing (auth=plain[passwd])."
-            else
-                ok "✅ Ocserv is installed and properly configured."
-            fi
+	    if grep -Eq '^\s*auth\s*=\s*"plain\[passwd=/etc/ocserv/ocpasswd\]"' "/etc/ocserv/ocserv.conf" ||
+	       { grep -Eq '^\s*auth\s*=\s*"certificate"' "/etc/ocserv/ocserv.conf" &&
+		 grep -Eq '^\s*enable-auth\s*=\s*"plain\[passwd=/etc/ocserv/ocpasswd\]"' "/etc/ocserv/ocserv.conf"; }; then
+	        ok "✅ Ocserv is installed and properly configured."
+	    else
+		die "⚠ Ocserv auth config missing. Expected plain password auth or certificate auth with password fallback."
+	    fi
         fi
 
         # Ensure required ocserv directories and default group config exist.

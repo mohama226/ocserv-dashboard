@@ -170,13 +170,14 @@ const unlock = (uid: string) => {
         });
 };
 
-const activateUser = (expireAt: string) => {
-    expireAt = formatDate(expireAt);
+const activateUser = (expireAt: string | null) => {
+    const formattedExpireAt = formatDate(expireAt);
+
     api.ocservUsersUidActivatePost({
         ...getAuthorization(),
         uid: activateUserUID.value,
         request: {
-            expire_at: expireAt
+            expire_at: formattedExpireAt || undefined
         }
     })
         .then(() => {
@@ -184,13 +185,15 @@ const activateUser = (expireAt: string) => {
             if (index > -1) {
                 users.value[index].is_locked = false;
                 users.value[index].deactivated_at = undefined;
-                users.value[index].expire_at = expireAt;
+                users.value[index].expire_at = formattedExpireAt;
                 users.value[index].is_online = false;
+                users.value[index].rx = 0;
+                users.value[index].tx = 0;
             }
+
             getUserStats();
-        })
-        .finally(() => {
             cancelActivateUser();
+
             snackbar.show({
                 id: 1,
                 message: t('USER_ACTIVATE_SUCCESSFULLY_SNACK'),
@@ -438,7 +441,8 @@ onMounted(() => {
                                 <th class="text-left">{{ t('BANDWIDTHS') }}</th>
                                 <th class="text-left">{{ t('DATES') }}</th>
                                 <th class="text-left">{{ t('STATUS') }}</th>
-                                <th class="text-left">{{ t('ACTION') }}</th>
+                                <th class="text-left">{{ t('CERTIFICATE') }}</th>
+				<th class="text-left">{{ t('ACTION') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -502,6 +506,23 @@ onMounted(() => {
                                             </template>
                                         </v-tooltip>
                                     </div>
+				    <div>
+					{{ t('TOTAL') }}:
+					<span
+					    v-if="item.traffic_type != ModelsOcservUserTrafficTypeEnum.FREE"
+					    class="text-muted text-subtitle-2"
+					>
+					    ({{ t('CURRENT') }})
+					</span>
+					<br />
+					<v-tooltip :text="`${(item.rx + item.tx).toLocaleString()} bytes`">
+					    <template #activator="{ props }">
+						<span class="text-info" v-bind="props">
+						    {{ bytesToGB(item.rx + item.tx, 4) }} GB
+						</span>
+					    </template>
+					</v-tooltip>
+				    </div>
                                 </td>
                                 <td class="text-capitalize">
                                     <div>
@@ -545,6 +566,14 @@ onMounted(() => {
                                         </span>
                                     </div>
                                 </td>
+				<td>
+				    <span
+				        :class="item.certificate_enabled ? 'text-success' : 'text-warning'"
+					class="text-capitalize"
+				    >
+				    	{{ item.certificate_enabled ? t('ENABLED') : t('DISABLED') }}
+				    </span>
+				</td>
                                 <td>
                                     <v-menu>
                                         <template v-slot:activator="{ props }">

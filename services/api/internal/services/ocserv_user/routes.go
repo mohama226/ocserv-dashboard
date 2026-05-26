@@ -17,6 +17,8 @@ func Routes(e *echo.Group) {
 	g.POST("/:uid/lock", ctl.LockOcservUser)
 	g.POST("/:uid/unlock", ctl.UnLockOcservUser)
 	g.POST("/:uid/activate", ctl.ActivateExpiredOcservUsers)
+	g.POST("/:uid/certificate", ctl.CreateCertificate)
+	g.GET("/:uid/certificate", ctl.DownloadCertificate)
 	g.POST("/:username/disconnect", ctl.DisconnectOcservUser)
 	g.GET("/:uid/session_logs", ctl.OcservUserSessionLogs)
 	g.GET("/:uid/statistics", ctl.OcservUserStatistics)

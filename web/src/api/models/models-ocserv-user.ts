@@ -36,6 +36,18 @@ export interface ModelsOcservUser {
      */
     'created_at': string;
     /**
+     *
+     * @type {boolean}
+     * @memberof ModelsOcservUser
+     */
+    'certificate_enabled'?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof ModelsOcservUser
+     */
+    'certificate_available'?: boolean;
+    /**
      * 
      * @type {string}
      * @memberof ModelsOcservUser
@@ -132,7 +144,9 @@ export const ModelsOcservUserTrafficTypeEnum = {
     MONTHLY_TRANSMIT: 'MonthlyTransmit',
     MONTHLY_RECEIVE: 'MonthlyReceive',
     TOTALLY_TRANSMIT: 'TotallyTransmit',
-    TOTALLY_RECEIVE: 'TotallyReceive'
+    TOTALLY_RECEIVE: 'TotallyReceive',
+    MONTHLY_RX_TX: 'MonthlyRxTx',
+    TOTALLY_RX_TX: 'TotallyRxTx'
 } as const;
 
 export type ModelsOcservUserTrafficTypeEnum = typeof ModelsOcservUserTrafficTypeEnum[keyof typeof ModelsOcservUserTrafficTypeEnum];

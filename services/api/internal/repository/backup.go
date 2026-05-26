@@ -215,6 +215,12 @@ func (b *BackupRepository) OcservUserBackup(ctx context.Context, writer io.Write
 			return err
 		}
 
+		cert, certErr := b.commonOcservUserRepo.CertificateBackup(user.Username)
+		if certErr != nil {
+			return certErr
+		}
+		user.Certificate = cert
+
 		if !first {
 			if _, err = writer.Write([]byte(",")); err != nil {
 				return err
@@ -304,6 +310,13 @@ func (b *BackupRepository) OcservUserRestore(ctx context.Context, owner string, 
 
 				if err = b.commonOcservUserRepo.Create(u.Group, u.Username, u.Password, u.Config); err != nil {
 					return err
+				}
+
+				if u.Certificate != nil {
+					if err = b.commonOcservUserRepo.RestoreCertificateBackup(u.Username, u.Certificate); err != nil {
+						_, _ = b.commonOcservUserRepo.Delete(u.Username)
+						return err
+					}
 				}
 
 				return nil
