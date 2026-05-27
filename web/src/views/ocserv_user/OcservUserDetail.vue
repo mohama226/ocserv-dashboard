@@ -18,10 +18,12 @@ import {
     formatDateWithRelative,
     trafficTypesTransformer
 } from '@/utils/convertors';
+import { useConfigStore } from '@/stores/config';
 
 const props = defineProps<{ uid: string }>();
 
 const { t } = useI18n();
+const configStore = useConfigStore();
 const result = ref<ModelsOcservUser>({
     created_at: '',
     group: '',
@@ -223,7 +225,10 @@ onMounted(() => {
                         </div>
 
                         <!-- Telegram linked accounts -->
-                        <TelegramLinkedAccounts v-if="uid" :uid="uid" />
+                        <TelegramLinkedAccounts
+                            v-if="configStore.telegramBotEnabled && props.uid"
+                            :uid="props.uid"
+                        />
 
                         <!-- Config section -->
                         <div class="bg-surface shadow rounded-lg p-4">
