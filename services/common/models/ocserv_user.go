@@ -4,9 +4,10 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/oklog/ulid/v2"
 	"gorm.io/gorm"
-	"time"
 )
 
 type OcservUserConfig struct {
@@ -65,9 +66,8 @@ type OcservUser struct {
 	UID                  string                       `json:"uid" gorm:"gorm:type:char(26);not null;uniqueIndex" validate:"required"`
 	Owner                string                       `json:"owner" gorm:"type:varchar(16);default:''" validate:"required"`
 	Group                string                       `json:"group" gorm:"type:varchar(16);default:'defaults'" validate:"required"`
-	Username             string                       `json:"username" gorm:"type:varchar(16);not null;uniqueIndex" validate:"required"`
-	// Length matches migration 007 (ocserv_users.password column); do not widen without a new migration.
-	Password             string                       `json:"password" gorm:"type:varchar(16);not null" validate:"required"`
+	Username             string                       `json:"username" gorm:"type:varchar(255);not null;uniqueIndex" validate:"required"`
+	Password             string                       `json:"password" gorm:"type:varchar(255);not null" validate:"required"`
 	IsLocked             bool                         `json:"is_locked" gorm:"default(false)" validate:"required"`
 	CreatedAt            time.Time                    `json:"created_at" gorm:"autoCreateTime" validate:"required"`
 	UpdatedAt            time.Time                    `json:"updated_at" gorm:"autoUpdateTime" validate:"omitempty"`
@@ -79,6 +79,7 @@ type OcservUser struct {
 	Tx                   int                          `json:"tx" gorm:"not null;default:0" validate:"required"` // Transmit in bytes
 	Description          string                       `json:"description" gorm:"type:text" validate:"omitempty"`
 	IsOnline             bool                         `json:"is_online" gorm:"-:migration;->" validate:"required"`
+	OnlineUserSessions   []OnlineUserSession          `json:"online_sessions" gorm:"-" validate:"required"`
 	Config               *OcservUserConfig            `json:"config" gorm:"type:text"`
 	CertificateEnabled   bool                         `json:"certificate_enabled" gorm:"-"`
 	CertificateAvailable bool                         `json:"certificate_available" gorm:"-"`

@@ -3,14 +3,15 @@ package occtl
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/labstack/echo/v4"
 	"github.com/mmtaee/ocserv-dashboard/api/internal/repository"
 	"github.com/mmtaee/ocserv-dashboard/api/internal/services/home"
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 	"github.com/mmtaee/ocserv-dashboard/common/models"
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
-	"net/http"
-	"strings"
 )
 
 type Controller struct {
@@ -87,7 +88,7 @@ func (ctl *Controller) Commands(c echo.Context) error {
 	var results []byte
 
 	actions := map[int]func(string) (interface{}, error){
-		1:  func(_ string) (interface{}, error) { return ctl.occtlRepo.OnlineUsersInfo() },
+		1:  func(_ string) (interface{}, error) { return ctl.occtlRepo.OnlineSessions() },
 		2:  func(val string) (interface{}, error) { return ctl.occtlRepo.ShowUserByUsername(val) },
 		3:  func(val string) (interface{}, error) { return ctl.occtlRepo.ShowUserByID(val) },
 		4:  func(val string) (interface{}, error) { return ctl.occtlRepo.Disconnect(val) },
@@ -100,6 +101,9 @@ func (ctl *Controller) Commands(c echo.Context) error {
 		11: func(_ string) (interface{}, error) { return ctl.occtlRepo.ShowEvent(), nil },
 		12: func(_ string) (interface{}, error) { return ctl.occtlRepo.IRoutes() },
 		13: func(_ string) (interface{}, error) { return ctl.occtlRepo.Reload() },
+		14: func(val string) (interface{}, error) { return ctl.occtlRepo.DisconnectSession(val) },
+		15: func(val string) (interface{}, error) { return ctl.occtlRepo.Terminate(val) },
+		16: func(val string) (interface{}, error) { return ctl.occtlRepo.TerminateSession(val) },
 	}
 
 	var err error

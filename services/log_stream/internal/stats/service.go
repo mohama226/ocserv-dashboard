@@ -3,6 +3,13 @@ package stats
 import (
 	"context"
 	"fmt"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
+	"syscall"
+	"time"
+
 	"github.com/mmtaee/ocserv-dashboard/common/models"
 	occtlDocker "github.com/mmtaee/ocserv-dashboard/common/occtl_docker"
 	"github.com/mmtaee/ocserv-dashboard/common/ocserv/occtl"
@@ -10,12 +17,6 @@ import (
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/database"
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 	"gorm.io/gorm"
-	"os"
-	"regexp"
-	"strconv"
-	"strings"
-	"syscall"
-	"time"
 )
 
 type StatService struct {
@@ -249,12 +250,17 @@ func (s *StatService) saveRxTxDelta(ctx context.Context, stats *UserStats, final
 		return nil
 	}
 
-	return s.saveRxTx(ctx, &UserStats{
-		Username: stats.Username,
-		IP:       stats.IP,
-		RX:       deltaRx,
-		TX:       deltaTx,
-	})
+	var err error
+	if final {
+		err = s.saveRxTx(ctx, &UserStats{
+			Username: stats.Username,
+			IP:       stats.IP,
+			RX:       deltaRx,
+			TX:       deltaTx,
+		})
+	}
+
+	return err
 }
 
 func (s *StatService) saveRxTx(ctx context.Context, u *UserStats) error {

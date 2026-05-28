@@ -16,14 +16,18 @@ type OcctlServerInfo interface {
 }
 
 type OcctlUserManager interface {
-	OnlineUsers() ([]string, error)
-	OnlineUsersInfo() (*[]models.OnlineUserSession, error)
+	OnlineSessions() ([]models.OnlineUserSession, error)
 	ShowUserByUsername(username string) (models.OnlineUserSession, error)
 	ShowUserByID(uid string) (models.OnlineUserSession, error)
 	ShowSessionsAll() (*[]interface{}, error)
 	ShowSessionsValid() (*[]interface{}, error)
 	ShowSessionBySID(sid string) (map[string]interface{}, error)
+
 	Disconnect(username string) (string, error)
+	DisconnectSession(id string) (string, error)
+
+	Terminate(id string) (string, error)
+	TerminateSession(id string) (string, error)
 }
 
 type OcctlSecurityManager interface {
@@ -55,22 +59,22 @@ func (o *OcctlRepository) Status() (interface{}, error) {
 	return status, nil
 }
 
-func (o *OcctlRepository) OnlineUsers() ([]string, error) {
-	users, err := o.commonOcservOcctlRepo.OnlineUsers()
+func (o *OcctlRepository) OnlineSessions() ([]models.OnlineUserSession, error) {
+	users, err := o.commonOcservOcctlRepo.OnlineSessions()
 	if err != nil {
 		return nil, err
 	}
 	return users, nil
 }
 
-func (o *OcctlRepository) OnlineUsersInfo() (*[]models.OnlineUserSession, error) {
-	sessions, err := o.commonOcservOcctlRepo.OnlineSessions()
-	if err != nil {
-		return nil, err
-	}
-
-	return sessions, nil
-}
+//func (o *OcctlRepository) OnlineUsersInfo() (*[]models.OnlineUserSession, error) {
+//	sessions, err := o.commonOcservOcctlRepo.OnlineSessions()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return sessions, nil
+//}
 
 func (o *OcctlRepository) IPBans() (*[]models.IPBanPoints, error) {
 	ipBans, err := o.commonOcservOcctlRepo.ShowIPBans()
@@ -99,6 +103,30 @@ func (o *OcctlRepository) Reload() (string, error) {
 
 func (o *OcctlRepository) Disconnect(username string) (string, error) {
 	result, err := o.commonOcservOcctlRepo.DisconnectUser(username)
+	if err != nil {
+		return "", err
+	}
+	return result, nil
+}
+
+func (o *OcctlRepository) DisconnectSession(id string) (string, error) {
+	result, err := o.commonOcservOcctlRepo.DisconnectSession(id)
+	if err != nil {
+		return "", err
+	}
+	return result, nil
+}
+
+func (o *OcctlRepository) Terminate(username string) (string, error) {
+	result, err := o.commonOcservOcctlRepo.TerminateUser(username)
+	if err != nil {
+		return "", err
+	}
+	return result, nil
+}
+
+func (o *OcctlRepository) TerminateSession(id string) (string, error) {
+	result, err := o.commonOcservOcctlRepo.TerminateSession(id)
 	if err != nil {
 		return "", err
 	}

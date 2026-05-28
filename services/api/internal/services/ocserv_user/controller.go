@@ -4,6 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"slices"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/labstack/echo/v4"
 	"github.com/mmtaee/ocserv-dashboard/api/internal/repository"
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
@@ -12,10 +18,6 @@ import (
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
-	"net/http"
-	"slices"
-	"sync"
-	"time"
 )
 
 type Controller struct {
@@ -35,7 +37,7 @@ func New() *Controller {
 	}
 }
 
-// OcservUsers 	 List of Ocserv Users
+// Users 	 List of Ocserv Users
 //
 // @Summary      List of Ocserv Users
 // @Description  List of Ocserv Users
@@ -54,7 +56,7 @@ func New() *Controller {
 // @Failure      401 {object} middlewares.Unauthorized
 // @Success      200  {object}  OcservUsersResponse
 // @Router       /ocserv/users [get]
-func (ctl *Controller) OcservUsers(c echo.Context) error {
+func (ctl *Controller) Users(c echo.Context) error {
 	owner := ""
 
 	val, ok := c.Get("isAdmin").(bool)
@@ -79,11 +81,33 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
+	onlineUsers, err := ctl.ocservOcctlRepo.OnlineSessions()
+	onlineUsersMap := make(map[string][]models.OnlineUserSession)
+	onlineUsernames := make([]string, 0)
+
+	for _, u := range onlineUsers {
+		if !slices.Contains(onlineUsernames, u.Username) {
+			onlineUsernames = append(onlineUsernames, u.Username)
+		}
+
+		onlineUsersMap[u.Username] = append(onlineUsersMap[u.Username], models.OnlineUserSession{
+			ID:               u.ID,
+			Username:         u.Username,
+			Group:            u.Group,
+			AverageRX:        u.AverageRX,
+			AverageTX:        u.AverageTX,
+			LastConnectedAt:  u.LastConnectedAt,
+			IPv4:             u.IPv4,
+			VHost:            u.VHost,
+			Device:           u.Device,
+			SessionStartedAt: u.SessionStartedAt,
+		})
+	}
+
 	// -------------------------
 	// ONLINE FILTER MODE
 	// -------------------------
 	if filter == "online" {
-		onlineUsers, err := ctl.ocservOcctlRepo.OnlineUsers()
 		if err != nil {
 			return ctl.request.BadRequest(c, err)
 		}
@@ -92,7 +116,7 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 			ctx,
 			pagination,
 			owner,
-			onlineUsers,
+			onlineUsernames,
 			q,
 			group,
 		)
@@ -104,6 +128,7 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 		// or the UI shows "disconnected" (normal-list branch sets this via onlineMap).
 		for i := range users {
 			users[i].IsOnline = true
+			users[i].OnlineUserSessions = onlineUsersMap[users[i].Username]
 		}
 
 		return c.JSON(http.StatusOK, OcservUsersResponse{
@@ -133,19 +158,10 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 
 	// attach online status
 	if len(users) > 0 {
-		onlineUsers, err := ctl.ocservOcctlRepo.OnlineUsers()
-		if err != nil {
-			return ctl.request.BadRequest(c, err)
-		}
-
-		onlineMap := make(map[string]struct{}, len(onlineUsers))
-		for _, u := range onlineUsers {
-			onlineMap[u] = struct{}{}
-		}
-
 		for i := range users {
-			if _, ok := onlineMap[users[i].Username]; ok {
+			if item, ok := onlineUsersMap[users[i].Username]; ok {
 				users[i].IsOnline = true
+				users[i].OnlineUserSessions = item
 			}
 		}
 	}
@@ -160,7 +176,7 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 	})
 }
 
-// OcservUser 	 Ocserv user detail
+// User 	 Ocserv user detail
 //
 // @Summary      Ocserv user detail
 // @Description  Ocserv user detail
@@ -173,7 +189,7 @@ func (ctl *Controller) OcservUsers(c echo.Context) error {
 // @Failure      401 {object} middlewares.Unauthorized
 // @Success      200  {object}  models.OcservUser
 // @Router       /ocserv/users/{uid} [get]
-func (ctl *Controller) OcservUser(c echo.Context) error {
+func (ctl *Controller) User(c echo.Context) error {
 	// TODO: add staff filter to get ocserv user for same owner
 	userUID := c.Param("uid")
 	if userUID == "" {
@@ -187,7 +203,7 @@ func (ctl *Controller) OcservUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, u)
 }
 
-// CreateOcservUser 	     Ocserv User creation
+// Create	     Ocserv User creation
 //
 // @Summary      Ocserv User creation
 // @Description  Ocserv User creation
@@ -200,7 +216,7 @@ func (ctl *Controller) OcservUser(c echo.Context) error {
 // @Failure      401 {object} middlewares.Unauthorized
 // @Success      201  {object} models.OcservUser
 // @Router       /ocserv/users [post]
-func (ctl *Controller) CreateOcservUser(c echo.Context) error {
+func (ctl *Controller) Create(c echo.Context) error {
 	var data CreateOcservUserData
 
 	owner := c.Get("username").(string)
@@ -248,7 +264,7 @@ func (ctl *Controller) CreateOcservUser(c echo.Context) error {
 	return c.JSON(http.StatusCreated, u)
 }
 
-// UpdateOcservUser 	     Ocserv User update
+// Update	     Ocserv User update
 //
 // @Summary      Ocserv User update
 // @Description  Ocserv User update
@@ -262,7 +278,7 @@ func (ctl *Controller) CreateOcservUser(c echo.Context) error {
 // @Failure      401 {object} middlewares.Unauthorized
 // @Success      201  {object} models.OcservUser
 // @Router       /ocserv/users/{uid} [patch]
-func (ctl *Controller) UpdateOcservUser(c echo.Context) error {
+func (ctl *Controller) Update(c echo.Context) error {
 	userID := c.Param("uid")
 	if userID == "" {
 		return ctl.request.BadRequest(c, errors.New("user id is required"))
@@ -320,7 +336,7 @@ func (ctl *Controller) UpdateOcservUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, updatedOcservUser)
 }
 
-// DeleteOcservUser 	     Ocserv User delete
+// Delete 	     Ocserv User delete
 //
 // @Summary      Ocserv User delete
 // @Description  Ocserv User delete
@@ -333,7 +349,7 @@ func (ctl *Controller) UpdateOcservUser(c echo.Context) error {
 // @Failure      401 {object} middlewares.Unauthorized
 // @Success      204  {object} nil
 // @Router       /ocserv/users/{uid} [delete]
-func (ctl *Controller) DeleteOcservUser(c echo.Context) error {
+func (ctl *Controller) Delete(c echo.Context) error {
 	userID := c.Param("uid")
 	if userID == "" {
 		return ctl.request.BadRequest(c, errors.New("user id is required"))
@@ -345,13 +361,13 @@ func (ctl *Controller) DeleteOcservUser(c echo.Context) error {
 	}
 
 	go func() {
-		_, _ = ctl.ocservOcctlRepo.Disconnect(username)
+		_, _ = ctl.ocservOcctlRepo.Terminate(username)
 	}()
 
 	return c.JSON(http.StatusNoContent, nil)
 }
 
-// LockOcservUser 	     Ocserv User locking
+// Lock 	     Ocserv User locking
 //
 // @Summary      Ocserv User locking
 // @Description  Ocserv User locking
@@ -364,7 +380,7 @@ func (ctl *Controller) DeleteOcservUser(c echo.Context) error {
 // @Failure      401 {object} middlewares.Unauthorized
 // @Success      200  {object} nil
 // @Router       /ocserv/users/{uid}/lock [post]
-func (ctl *Controller) LockOcservUser(c echo.Context) error {
+func (ctl *Controller) Lock(c echo.Context) error {
 	userID := c.Param("uid")
 	if userID == "" {
 		return ctl.request.BadRequest(c, errors.New("user id is required"))
@@ -393,7 +409,7 @@ func (ctl *Controller) LockOcservUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
-// UnLockOcservUser 	     Ocserv User unlocking
+// UnLock 	     Ocserv User unlocking
 //
 // @Summary      Ocserv User unlocking
 // @Description  Ocserv User unlocking
@@ -406,7 +422,7 @@ func (ctl *Controller) LockOcservUser(c echo.Context) error {
 // @Failure      401 {object} middlewares.Unauthorized
 // @Success      200  {object} nil
 // @Router       /ocserv/users/{uid}/unlock [post]
-func (ctl *Controller) UnLockOcservUser(c echo.Context) error {
+func (ctl *Controller) UnLock(c echo.Context) error {
 	userID := c.Param("uid")
 	if userID == "" {
 		return ctl.request.BadRequest(c, errors.New("user id is required"))
@@ -419,32 +435,7 @@ func (ctl *Controller) UnLockOcservUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
-// DisconnectOcservUser 	     Ocserv User disconnecting
-//
-// @Summary      Disconnect Ocserv User
-// @Description  Disconnect Ocserv User
-// @Tags         Ocserv(Users)
-// @Accept       json
-// @Produce      json
-// @Param        Authorization header string true "Bearer TOKEN"
-// @Param 		 username path string true "Ocserv User username"
-// @Failure      400 {object} request.ErrorResponse
-// @Failure      401 {object} middlewares.Unauthorized
-// @Success      200  {object} nil
-// @Router       /ocserv/users/{username}/disconnect [post]
-func (ctl *Controller) DisconnectOcservUser(c echo.Context) error {
-	username := c.Param("username")
-	if username == "" {
-		return ctl.request.BadRequest(c, errors.New("user id is required"))
-	}
-	_, err := ctl.ocservOcctlRepo.Disconnect(username)
-	if err != nil {
-		return ctl.request.BadRequest(c, err)
-	}
-	return c.JSON(http.StatusOK, nil)
-}
-
-// OcservUserStatistics 	     Ocserv User Statistics
+// Statistics 	 Ocserv User Statistics
 //
 // @Summary      Ocserv User Statistics
 // @Description  Ocserv User Statistics
@@ -459,7 +450,7 @@ func (ctl *Controller) DisconnectOcservUser(c echo.Context) error {
 // @Failure      401 {object} middlewares.Unauthorized
 // @Success      200  {object} StatisticsResponse
 // @Router       /ocserv/users/{uid}/statistics [get]
-func (ctl *Controller) OcservUserStatistics(c echo.Context) error {
+func (ctl *Controller) Statistics(c echo.Context) error {
 	userID := c.Param("uid")
 	if userID == "" {
 		return ctl.request.BadRequest(c, errors.New("user id is required"))
@@ -634,7 +625,7 @@ func (ctl *Controller) SyncToDB(c echo.Context) error {
 	return c.JSON(http.StatusOK, syncUsernames)
 }
 
-// ActivateExpiredOcservUsers     Restore and activate expired Ocserv User accounts
+// ActivateExpired     Restore and activate expired Ocserv User accounts
 //
 // @Summary      Restore and activate expired Ocserv User accounts
 // @Description  Restore and activate expired Ocserv User accounts
@@ -648,7 +639,7 @@ func (ctl *Controller) SyncToDB(c echo.Context) error {
 // @Failure      401 {object} middlewares.Unauthorized
 // @Success      200 {object} nil
 // @Router       /ocserv/users/{uid}/activate [post]
-func (ctl *Controller) ActivateExpiredOcservUsers(c echo.Context) error {
+func (ctl *Controller) ActivateExpired(c echo.Context) error {
 	userID := c.Param("uid")
 	if userID == "" {
 		return ctl.request.BadRequest(c, errors.New("user id is required"))
@@ -731,7 +722,7 @@ func (ctl *Controller) DownloadCertificate(c echo.Context) error {
 	return c.Attachment(path, username+".p12")
 }
 
-// OcservUserSessionLogs 	     Ocserv User session logs
+// SessionLogs 	 Ocserv User session logs
 //
 // @Summary      Ocserv User session logs
 // @Description  Ocserv User session logs
@@ -750,7 +741,7 @@ func (ctl *Controller) DownloadCertificate(c echo.Context) error {
 // @Failure      401 {object} middlewares.Unauthorized
 // @Success      200  {object} SessionLogsResponse
 // @Router       /ocserv/users/{uid}/session_logs [get]
-func (ctl *Controller) OcservUserSessionLogs(c echo.Context) error {
+func (ctl *Controller) SessionLogs(c echo.Context) error {
 	userID := c.Param("uid")
 	if userID == "" {
 		return ctl.request.BadRequest(c, errors.New("user id is required"))
@@ -803,4 +794,112 @@ func (ctl *Controller) OcservUserSessionLogs(c echo.Context) error {
 		},
 		Result: logs,
 	})
+}
+
+// Disconnect 	     Ocserv User disconnecting all sessions
+//
+// @Summary      Disconnect Ocserv User (All Sessions)
+// @Description  Disconnect Ocserv User (All Sessions)
+// @Tags         Ocserv(Users)
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer TOKEN"
+// @Param 		 username path string true "Ocserv User username"
+// @Failure      400 {object} request.ErrorResponse
+// @Failure      401 {object} middlewares.Unauthorized
+// @Success      200  {object} nil
+// @Router       /ocserv/users/{username}/disconnect [post]
+func (ctl *Controller) Disconnect(c echo.Context) error {
+	username := c.Param("username")
+	if username == "" {
+		return ctl.request.BadRequest(c, errors.New("user id is required"))
+	}
+	_, err := ctl.ocservOcctlRepo.Disconnect(username)
+	if err != nil {
+		if !strings.Contains(err.Error(), "could not disconnect user") {
+			return ctl.request.BadRequest(c, err)
+		}
+	}
+	return c.JSON(http.StatusOK, nil)
+}
+
+// DisconnectSessionById 	     Ocserv User disconnecting session
+//
+// @Summary      Disconnect Ocserv User Session BY ID
+// @Description  Disconnect Ocserv User Session BY ID
+// @Tags         Ocserv(Users)
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer TOKEN"
+// @Param 		 id path string true "Ocserv User Session ID"
+// @Failure      400 {object} request.ErrorResponse
+// @Failure      401 {object} middlewares.Unauthorized
+// @Success      200  {object} nil
+// @Router       /ocserv/users/{id}/disconnect_by_id [post]
+func (ctl *Controller) DisconnectSessionById(c echo.Context) error {
+	id := c.Param("id")
+	if id == "" {
+		return ctl.request.BadRequest(c, errors.New("user id is required"))
+	}
+	_, err := ctl.ocservOcctlRepo.DisconnectSession(id)
+	if err != nil {
+		if !strings.Contains(err.Error(), "could not disconnect user") {
+			return ctl.request.BadRequest(c, err)
+		}
+	}
+	return c.JSON(http.StatusOK, nil)
+}
+
+// Terminate 	     Ocserv User Terminate all sessions
+//
+// @Summary      Terminate Ocserv User (All Sessions)
+// @Description  Terminate Ocserv User (All Sessions)
+// @Tags         Ocserv(Users)
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer TOKEN"
+// @Param 		 username path string true "Ocserv User username"
+// @Failure      400 {object} request.ErrorResponse
+// @Failure      401 {object} middlewares.Unauthorized
+// @Success      200  {object} nil
+// @Router       /ocserv/users/{username}/terminate [post]
+func (ctl *Controller) Terminate(c echo.Context) error {
+	username := c.Param("username")
+	if username == "" {
+		return ctl.request.BadRequest(c, errors.New("user id is required"))
+	}
+	_, err := ctl.ocservOcctlRepo.Terminate(username)
+	if err != nil {
+		if !strings.Contains(err.Error(), "could not terminate user") {
+			return ctl.request.BadRequest(c, err)
+		}
+	}
+	return c.JSON(http.StatusOK, nil)
+}
+
+// TerminateSessionById 	     Ocserv User terminate session
+//
+// @Summary      Terminate Ocserv User Session BY ID
+// @Description  Terminate Ocserv User Session BY ID
+// @Tags         Ocserv(Users)
+// @Accept       json
+// @Produce      json
+// @Param        Authorization header string true "Bearer TOKEN"
+// @Param 		 id path string true "Ocserv User Session ID"
+// @Failure      400 {object} request.ErrorResponse
+// @Failure      401 {object} middlewares.Unauthorized
+// @Success      200  {object} nil
+// @Router       /ocserv/users/{id}/terminate_by_id [post]
+func (ctl *Controller) TerminateSessionById(c echo.Context) error {
+	id := c.Param("id")
+	if id == "" {
+		return ctl.request.BadRequest(c, errors.New("user id is required"))
+	}
+	_, err := ctl.ocservOcctlRepo.TerminateSession(id)
+	if err != nil {
+		if !strings.Contains(err.Error(), "could not terminate user") {
+			return ctl.request.BadRequest(c, err)
+		}
+	}
+	return c.JSON(http.StatusOK, nil)
 }
