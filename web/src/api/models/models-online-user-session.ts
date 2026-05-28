@@ -37,7 +37,31 @@ export interface ModelsOnlineUserSession {
      * @type {string}
      * @memberof ModelsOnlineUserSession
      */
+    'Device': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelsOnlineUserSession
+     */
     'Groupname'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelsOnlineUserSession
+     */
+    'ID': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelsOnlineUserSession
+     */
+    'IPv4': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelsOnlineUserSession
+     */
+    'Session started at': string;
     /**
      * 
      * @type {string}
@@ -49,6 +73,12 @@ export interface ModelsOnlineUserSession {
      * @type {string}
      * @memberof ModelsOnlineUserSession
      */
-    '_Connected at'?: string;
+    '_Last connected at'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelsOnlineUserSession
+     */
+    'vhost': string;
 }
 

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 	"github.com/mmtaee/ocserv-dashboard/common/models"
 	"github.com/mmtaee/ocserv-dashboard/common/ocserv/occtl"
@@ -63,6 +64,9 @@ type OcservUserActions interface {
 	Lock(ctx context.Context, uid string) error
 	UnLock(ctx context.Context, uid string) error
 	RestoreExpired(ctx context.Context, uid string, expireAt *time.Time) error
+	CreateCertificate(ctx context.Context, uid string) error
+	CertificatePath(ctx context.Context, uid string) (string, string, error)
+	CertificatePathByUsername(ctx context.Context, username string) (string, error)
 }
 
 type OcservUserRepositoryInterface interface {
@@ -79,6 +83,12 @@ func NewtOcservUserRepository() *OcservUserRepository {
 		commonOcservUserRepo:  user.NewOcservUser(),
 		commonOcservOcctlRepo: occtl.NewOcservOcctl(),
 	}
+}
+
+func (o *OcservUserRepository) applyCertificateStatus(ocservUser *models.OcservUser) {
+	status := o.commonOcservUserRepo.CertificateStatus(ocservUser.Username)
+	ocservUser.CertificateEnabled = status.Enabled
+	ocservUser.CertificateAvailable = status.Available
 }
 
 func (o *OcservUserRepository) Users(
@@ -128,6 +138,10 @@ func (o *OcservUserRepository) Users(
 	query := applyFilters(txPaginator.Model(&ocservUser))
 	if err := query.Find(&ocservUser).Error; err != nil {
 		return nil, 0, err
+	}
+
+	for i := range ocservUser {
+		o.applyCertificateStatus(&ocservUser[i])
 	}
 
 	return ocservUser, totalRecords, nil
@@ -193,6 +207,11 @@ func (o *OcservUserRepository) Create(ctx context.Context, ocservUser *models.Oc
 		if err := o.commonOcservUserRepo.Create(ocservUser.Group, ocservUser.Username, ocservUser.Password, ocservUser.Config); err != nil {
 			return err
 		}
+
+		if err := o.commonOcservUserRepo.CreateCertificate(ocservUser.Username, ocservUser.Password); err != nil {
+			_, _ = o.commonOcservUserRepo.Delete(ocservUser.Username)
+			return err
+		}
 		return nil
 	})
 	if err != nil {
@@ -204,7 +223,7 @@ func (o *OcservUserRepository) Create(ctx context.Context, ocservUser *models.Oc
 			_, _ = o.commonOcservOcctlRepo.ReloadConfigs()
 		}()
 	}
-
+	o.applyCertificateStatus(ocservUser)
 	return ocservUser, err
 }
 
@@ -214,6 +233,7 @@ func (o *OcservUserRepository) GetByUID(ctx context.Context, uid string) (*model
 	if err != nil {
 		return nil, err
 	}
+	o.applyCertificateStatus(&ocservUser)
 	return &ocservUser, nil
 }
 
@@ -223,6 +243,9 @@ func (o *OcservUserRepository) GetByUsername(ctx context.Context, username strin
 	if err != nil {
 		return nil, err
 	}
+
+	o.applyCertificateStatus(&ocservUser)
+
 	return &ocservUser, nil
 }
 
@@ -490,8 +513,9 @@ func (o *OcservUserRepository) RestoreExpired(ctx context.Context, uid string, e
 			return err
 		}
 
-		if _, err := o.commonOcservUserRepo.UnLock(u.Username); err != nil {
-			return err
+		unlockOutput, err := o.commonOcservUserRepo.UnLock(u.Username)
+		if err != nil && !isAlreadyUnlockedOcpasswdError(unlockOutput, err) {
+			return fmt.Errorf("failed to unlock ocserv user %q: %s: %w", u.Username, strings.TrimSpace(unlockOutput), err)
 		}
 
 		if err := tx.
@@ -508,6 +532,56 @@ func (o *OcservUserRepository) RestoreExpired(ctx context.Context, uid string, e
 
 		return nil
 	})
+}
+
+func (o *OcservUserRepository) CreateCertificate(ctx context.Context, uid string) error {
+	var ocservUser models.OcservUser
+
+	if err := o.db.WithContext(ctx).
+		Where("uid = ?", uid).
+		First(&ocservUser).Error; err != nil {
+		return err
+	}
+
+	return o.commonOcservUserRepo.CreateCertificate(ocservUser.Username, ocservUser.Password)
+}
+
+func (o *OcservUserRepository) CertificatePath(ctx context.Context, uid string) (string, string, error) {
+	var ocservUser models.OcservUser
+
+	if err := o.db.WithContext(ctx).
+		Where("uid = ?", uid).
+		First(&ocservUser).Error; err != nil {
+		return "", "", err
+	}
+
+	path, err := o.commonOcservUserRepo.CertificatePath(ocservUser.Username)
+	if err != nil {
+		return "", "", err
+	}
+
+	return ocservUser.Username, path, nil
+}
+
+func (o *OcservUserRepository) CertificatePathByUsername(ctx context.Context, username string) (string, error) {
+	var ocservUser models.OcservUser
+
+	if err := o.db.WithContext(ctx).
+		Where("username = ?", username).
+		First(&ocservUser).Error; err != nil {
+		return "", err
+	}
+
+	return o.commonOcservUserRepo.CertificatePath(ocservUser.Username)
+}
+
+func isAlreadyUnlockedOcpasswdError(output string, err error) bool {
+	text := strings.ToLower(strings.TrimSpace(output + " " + err.Error()))
+
+	return strings.Contains(text, "not locked") ||
+		strings.Contains(text, "not disabled") ||
+		strings.Contains(text, "already unlocked") ||
+		strings.Contains(text, "already enabled")
 }
 
 func (o *OcservUserRepository) UserSessionLogs(

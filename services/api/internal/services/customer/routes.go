@@ -9,5 +9,6 @@ func Routes(e *echo.Group) {
 	ctl := New()
 	g := e.Group("/customers")
 	g.POST("/summary", ctl.Summary, middlewares.RateLimitMiddleware(2, "m", 5))
+	g.POST("/certificate", ctl.DownloadCertificate, middlewares.RateLimitMiddleware(2, "m", 5))
 	g.POST("/disconnect_sessions", ctl.DisconnectSessions, middlewares.RateLimitMiddleware(1, "m", 2))
 }

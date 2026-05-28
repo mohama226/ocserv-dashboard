@@ -3,13 +3,15 @@ package report
 import (
 	"errors"
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/mmtaee/ocserv-dashboard/api/internal/repository"
-	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/labstack/echo/v4"
+	"github.com/mmtaee/ocserv-dashboard/api/internal/repository"
+	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 )
 
 type Controller struct {
@@ -209,12 +211,19 @@ func (ctl *Controller) OcservUserReport(c echo.Context) error {
 	go func() {
 		defer wg.Done()
 
-		users, err := ctl.ocservOcctlRepo.OnlineUsers()
+		users, err := ctl.ocservOcctlRepo.OnlineSessions()
 		if err != nil {
 			errChan <- fmt.Errorf("failed to get online users: %w", err)
 			return
 		}
-		onlineUsers = users
+		onlineUsernames := make([]string, 0)
+
+		for _, u := range users {
+			if !slices.Contains(onlineUsernames, u.Username) {
+				onlineUsernames = append(onlineUsernames, u.Username)
+			}
+		}
+		onlineUsers = onlineUsernames
 	}()
 
 	go func() {

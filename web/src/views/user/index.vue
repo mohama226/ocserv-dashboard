@@ -218,20 +218,20 @@ const updateMeta = (newMeta: Meta) => {
     <DeleteDialog :show="deleteDialog" :username="staffName" @close="cancelDeleteStaff" @deleteStaff="deleteStaff" />
 </template>
 
-<style scoped>
-tbody tr:nth-child(even) td {
-    background-color: rgba(var(--v-theme-on-surface), 0.04);
-}
+<!--<style scoped>-->
+<!--tbody tr:nth-child(even) td {-->
+<!--    background-color: rgba(var(&#45;&#45;v-theme-on-surface), 0.04);-->
+<!--}-->
 
-@media (min-width: 992px) {
-    tbody tr:nth-child(even) td {
-        background-color: rgba(var(--v-theme-on-surface), 0.04);
-    }
-    tbody tr:nth-child(even) td:first-child {
-        border-radius: 8px 0 0 8px;
-    }
-    tbody tr:nth-child(even) td:last-child {
-        border-radius: 0 8px 8px 0;
-    }
-}
-</style>
+<!--@media (min-width: 992px) {-->
+<!--    tbody tr:nth-child(even) td {-->
+<!--        background-color: rgba(var(&#45;&#45;v-theme-on-surface), 0.04);-->
+<!--    }-->
+<!--    tbody tr:nth-child(even) td:first-child {-->
+<!--        border-radius: 8px 0 0 8px;-->
+<!--    }-->
+<!--    tbody tr:nth-child(even) td:last-child {-->
+<!--        border-radius: 0 8px 8px 0;-->
+<!--    }-->
+<!--}-->
+<!--</style>-->

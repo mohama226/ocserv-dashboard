@@ -11,21 +11,6 @@ DEBUG=${DEBUG:-0}  # Default to 0 if not set
 trap "echo '[INFO] Caught SIGTERM, stopping...'; kill -TERM \$OCSERV_PID \$API_PID \$WEBHOOK_PID 2>/dev/null" SIGTERM SIGINT
 
 # -----------------------------
-# preload sqlite to postgreSQL database
-# -----------------------------
-#DB_DIR="/usr/local/bin/db"
-#DB_FILE="${DB_DIR}/ocserv.db"
-#
-#if [ -f "$DB_FILE" ]; then
-#    if api db-loader; then
-#        mv "${DB_FILE}" \
-#           "${DB_DIR}/loaded_to_postgres_ocserv.db"
-#    else
-#        exit 128
-#    fi
-#fi
-
-# -----------------------------
 # migrating database
 # -----------------------------
 echo "[INFO] Starting migrating database schemas..."

@@ -2,6 +2,11 @@ package home
 
 import (
 	"encoding/json"
+	"math"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
@@ -10,18 +15,15 @@ import (
 	"github.com/mmtaee/ocserv-dashboard/common/models"
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 	"golang.org/x/sync/errgroup"
-	"math"
-	"os"
-	"strings"
-	"time"
 
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
 
-	_ "github.com/docker/docker/api/types"
 	"net/http"
 	"sync"
+
+	_ "github.com/docker/docker/api/types"
 )
 
 type Controller struct {
@@ -60,7 +62,7 @@ func (ctl *Controller) Home(c echo.Context) error {
 
 	var (
 		statistics       *[]models.DailyTraffic
-		onlineUsers      *[]models.OnlineUserSession
+		onlineUsers      []models.OnlineUserSession
 		TotalUser        int64
 		ipBans           *[]models.IPBanPoints
 		topBandwidthUser repository.TopBandwidthUsers
@@ -86,7 +88,7 @@ func (ctl *Controller) Home(c echo.Context) error {
 	// -----------------------------
 	// online users
 	g.Go(func() error {
-		users, err := ctl.occtlRepo.OnlineUsersInfo()
+		users, err := ctl.occtlRepo.OnlineSessions()
 		if err != nil {
 			return err
 		}

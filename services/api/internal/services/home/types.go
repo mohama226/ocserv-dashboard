@@ -57,8 +57,8 @@ type OcservStatusResponse struct {
 }
 
 type GetHomeUser struct {
-	Total  int64                       `json:"total" validate:"omitempty"`
-	Online *[]models.OnlineUserSession `json:"online_users_session" validate:"omitempty"`
+	Total  int64                      `json:"total" validate:"omitempty"`
+	Online []models.OnlineUserSession `json:"online_users_session" validate:"omitempty"`
 }
 
 type GetHomeResponse struct {

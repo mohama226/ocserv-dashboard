@@ -17,6 +17,72 @@ fi
 OCSERV_CONF="/etc/ocserv/ocserv.conf"
 MANAGED_HEADER="# Managed by ocserv-dashboard install.sh"
 
+OCSERV_SSL_DIR="/etc/ocserv/ssl"
+OCSERV_SSL_USERS_DIR="${OCSERV_SSL_DIR}/users"
+OCSERV_SSL_DISABLED_DIR="${OCSERV_SSL_DIR}/disabled"
+OCSERV_CA_CERT="${OCSERV_SSL_DIR}/ca-cert.pem"
+OCSERV_CA_KEY="${OCSERV_SSL_DIR}/ca-key.pem"
+OCSERV_CRL="${OCSERV_SSL_DIR}/crl.pem"
+OCSERV_CRL_TMPL="${OCSERV_SSL_DIR}/crl.tmpl"
+OCSERV_REVOKED_PEM="${OCSERV_SSL_DIR}/revoked.pem"
+OCSERV_SUSPENDED_PEM="${OCSERV_SSL_DIR}/suspended.pem"
+
+ensure_ocserv_client_pki() {
+  echo "Preparing Ocserv certificate authentication PKI..."
+
+  mkdir -p "${OCSERV_SSL_DIR}" "${OCSERV_SSL_USERS_DIR}" "${OCSERV_SSL_DISABLED_DIR}"
+  chmod 700 "${OCSERV_SSL_DIR}" "${OCSERV_SSL_USERS_DIR}" "${OCSERV_SSL_DISABLED_DIR}"
+
+  if [[ ! -f "${OCSERV_CRL_TMPL}" ]]; then
+    tee "${OCSERV_CRL_TMPL}" >/dev/null <<EOT
+crl_next_update = 365
+crl_number = 1
+EOT
+    chmod 600 "${OCSERV_CRL_TMPL}"
+  fi
+
+  touch "${OCSERV_REVOKED_PEM}" "${OCSERV_SUSPENDED_PEM}"
+  chmod 600 "${OCSERV_REVOKED_PEM}" "${OCSERV_SUSPENDED_PEM}"
+
+  if [[ -f "${OCSERV_CA_CERT}" && ! -f "${OCSERV_CA_KEY}" ]] || [[ ! -f "${OCSERV_CA_CERT}" && -f "${OCSERV_CA_KEY}" ]]; then
+    echo "Incomplete Ocserv client CA. Both ${OCSERV_CA_CERT} and ${OCSERV_CA_KEY} must exist."
+    exit 1
+  fi
+
+  if [[ ! -f "${OCSERV_CA_CERT}" ]]; then
+    local ca_tmpl="${OCSERV_SSL_DIR}/ca.tmpl"
+
+    tee "${ca_tmpl}" >/dev/null <<EOT
+cn = "${SSL_CN:-Ocserv Dashboard CA}"
+organization = "${SSL_ORG:-Ocserv Dashboard}"
+serial = 1
+expiration_days = ${SSL_EXPIRE:-3650}
+ca
+signing_key
+cert_signing_key
+crl_signing_key
+EOT
+
+    certtool --generate-privkey --outfile "${OCSERV_CA_KEY}"
+    certtool --generate-self-signed \
+      --load-privkey "${OCSERV_CA_KEY}" \
+      --template "${ca_tmpl}" \
+      --outfile "${OCSERV_CA_CERT}"
+
+    chmod 600 "${OCSERV_CA_KEY}"
+    chmod 644 "${OCSERV_CA_CERT}"
+  fi
+
+  if [[ ! -f "${OCSERV_CRL}" ]]; then
+    certtool --generate-crl \
+      --load-ca-privkey "${OCSERV_CA_KEY}" \
+      --load-ca-certificate "${OCSERV_CA_CERT}" \
+      --template "${OCSERV_CRL_TMPL}" \
+      --outfile "${OCSERV_CRL}"
+    chmod 644 "${OCSERV_CRL}"
+  fi
+}
+
 write_ocserv_conf() {
   echo "Writing Ocserv configuration..."
   cat <<EOT >"$OCSERV_CONF"
@@ -24,7 +90,11 @@ write_ocserv_conf() {
 # Managed by ocserv-dashboard install.sh
 # DO NOT edit or remove this file header
 # ===============================================
-auth="plain[passwd=/etc/ocserv/ocpasswd]"
+auth = "certificate"
+enable-auth = "plain[passwd=/etc/ocserv/ocpasswd]"
+ca-cert = /etc/ocserv/ssl/ca-cert.pem
+crl = /etc/ocserv/ssl/crl.pem
+cert-user-oid = 2.5.4.3
 run-as-user=root
 run-as-group=root
 socket-file=/var/run/ocserv-socket
@@ -72,6 +142,33 @@ OCSERV_BANNER=$(echo "$OCSERV_BANNER" | awk '{printf "%s\\n", $0}' | sed 's/\\n$
 printf 'banner="%s"\n' "$OCSERV_BANNER" >> "$OCSERV_CONF"
 }
 
+ensure_ocserv_certificate_auth_config() {
+  local tmp
+
+  sed -i \
+    -e '/^\s*auth\s*=/d' \
+    -e '/^\s*enable-auth\s*=/d' \
+    -e '/^\s*ca-cert\s*=/d' \
+    -e '/^\s*crl\s*=/d' \
+    -e '/^\s*cert-user-oid\s*=/d' \
+    "$OCSERV_CONF"
+
+  tmp="$(mktemp)"
+  awk 'NR == 6 {
+    print "auth = \"certificate\""
+    print "enable-auth = \"plain[passwd=/etc/ocserv/ocpasswd]\""
+    print "ca-cert = /etc/ocserv/ssl/ca-cert.pem"
+    print "crl = /etc/ocserv/ssl/crl.pem"
+    print "cert-user-oid = 2.5.4.3"
+  }
+  { print }' "$OCSERV_CONF" > "$tmp"
+
+  cp "$tmp" "$OCSERV_CONF"
+  rm -f "$tmp"
+}
+
+ensure_ocserv_client_pki
+
 # ------------------------------------------------
 # Validate existing config
 # ------------------------------------------------
@@ -85,17 +182,17 @@ else
     echo "✅ ocserv.conf already managed, no changes needed"
 fi
 
-mkdir -p /etc/ocserv/defaults /etc/ocserv/groups /etc/ocserv/users/
+ensure_ocserv_certificate_auth_config
 
-sudo mkdir -p /etc/ocserv/defaults /etc/ocserv/groups /etc/ocserv/users
+mkdir -p /etc/ocserv/defaults /etc/ocserv/groups /etc/ocserv/users/
 
 # Ensure parent directory exists
 GROUP_CONF="/etc/ocserv/defaults/group.conf"
-sudo mkdir -p "$(dirname "$GROUP_CONF")"
+mkdir -p "$(dirname "$GROUP_CONF")"
 
 if [[ ! -f "$GROUP_CONF" ]]; then
     echo "📄 Creating default group configuration"
-    sudo touch "${GROUP_CONF}"
+    touch "${GROUP_CONF}"
 else
     echo "✅ Default group configuration already exists"
 fi

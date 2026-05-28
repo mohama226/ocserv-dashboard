@@ -36,7 +36,7 @@ onMounted(load);
 </script>
 
 <template>
-    <div class="bg-surface shadow rounded-lg p-4">
+    <div class="bg-surface shadow rounded-lg p-4 my-10">
         <h2 class="text-lg font-semibold mb-3 text-capitalize d-flex align-center">
             <v-icon class="me-2" color="primary">mdi-robot</v-icon>
             {{ t('TELEGRAM_LINKED_ACCOUNTS') }}

@@ -2,6 +2,14 @@ package stats
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
+	"syscall"
+	"time"
+
 	"github.com/mmtaee/ocserv-dashboard/common/models"
 	occtlDocker "github.com/mmtaee/ocserv-dashboard/common/occtl_docker"
 	"github.com/mmtaee/ocserv-dashboard/common/ocserv/occtl"
@@ -9,12 +17,6 @@ import (
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/database"
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 	"gorm.io/gorm"
-	"os"
-	"regexp"
-	"strconv"
-	"strings"
-	"syscall"
-	"time"
 )
 
 type StatService struct {
@@ -24,13 +26,15 @@ type StatService struct {
 	ocservOcctlRepo occtl.OcservOcctlInterface
 	occtlDockerRepo occtlDocker.OcservOcctlUsersDocker
 	dockerMode      bool
+	sessionStats    map[string]UserStats
 }
 
 func NewStatService(ctx context.Context, stream chan string, dockerMode bool) *StatService {
 	s := &StatService{
-		ctx:        ctx,
-		stream:     stream,
-		dockerMode: dockerMode,
+		ctx:          ctx,
+		stream:       stream,
+		dockerMode:   dockerMode,
+		sessionStats: make(map[string]UserStats),
 	}
 
 	if dockerMode {
@@ -69,18 +73,30 @@ func (s *StatService) CalculateUserStats() {
 				continue
 			}
 
+			if strings.Contains(cleanLine, "sent periodic stats") {
+				stats, err := s.getPeriodicStat(cleanLine)
+				if err != nil {
+					logger.Error("Failed to parse periodic RxTx stats: %v", err)
+				}
+
+				if stats != nil {
+					if err = s.saveRxTxDelta(s.ctx, stats, false); err != nil {
+						logger.Error("Failed to save periodic RxTx stats: %v", err)
+					}
+				}
+			}
+
 			if strings.Contains(cleanLine, "user disconnected") {
 				stats, err := s.getDisconnectStat(cleanLine)
-				if err != nil || stats == nil {
-					continue
-				}
-
-				err = s.saveRxTx(s.ctx, stats)
 				if err != nil {
-					logger.Error("Failed to save RxTx stats: %v", err)
+					logger.Error("Failed to parse disconnect RxTx stats: %v", err)
 				}
 
-				logger.Info("Saved RxTx stats: %v", stats)
+				if stats != nil {
+					if err = s.saveRxTxDelta(s.ctx, stats, true); err != nil {
+						logger.Error("Failed to save disconnect RxTx stats: %v", err)
+					}
+				}
 
 				// replace main word with worker to extract user session log
 				cleanLine = strings.Replace(cleanLine, "main[", "worker[", 1)
@@ -146,32 +162,105 @@ func (s *StatService) getUserSessionLog(cleanLine string) *models.OcservUserSess
 	}
 }
 
-func (s *StatService) getDisconnectStat(cleanLine string) (*UserStats, error) {
-	reTxRx := regexp.MustCompile(`main\[([^\]]+)\].*rx:\s*(\d+),\s*tx:\s*(\d+)`)
+func (s *StatService) getPeriodicStat(cleanLine string) (*UserStats, error) {
+	reTxRx := regexp.MustCompile(`worker\[([^\]]+)\]:\s*(\S+)\s+sent periodic stats\s+\((?:in|rx):\s*(\d+),\s*(?:out|tx):\s*(\d+)\)`)
 	matchRxTx := reTxRx.FindStringSubmatch(cleanLine)
-	if len(matchRxTx) <= 3 {
+	if len(matchRxTx) <= 4 {
 		return nil, nil
 	}
 
-	rx, err := strconv.Atoi(matchRxTx[2])
+	rx, err := strconv.Atoi(matchRxTx[3])
 	if err != nil {
 		return nil, err
 	}
-	tx, err := strconv.Atoi(matchRxTx[3])
+	tx, err := strconv.Atoi(matchRxTx[4])
 	if err != nil {
 		return nil, err
-	}
-
-	// exclude rx/tx 0 from log
-	if rx == 0 && tx == 0 {
-		return nil, nil
 	}
 
 	return &UserStats{
 		Username: matchRxTx[1],
+		IP:       normalizeSessionIP(matchRxTx[2]),
 		RX:       rx,
 		TX:       tx,
 	}, nil
+}
+
+func (s *StatService) getDisconnectStat(cleanLine string) (*UserStats, error) {
+	reTxRx := regexp.MustCompile(`main\[([^\]]+)\].*rx:\s*(\d+),\s*tx:\s*(\d+)`)
+	matchRxTx := reTxRx.FindStringSubmatch(cleanLine)
+	if len(matchRxTx) <= 4 {
+		return nil, nil
+	}
+
+	rx, err := strconv.Atoi(matchRxTx[3])
+	if err != nil {
+		return nil, err
+	}
+	tx, err := strconv.Atoi(matchRxTx[4])
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserStats{
+		Username: matchRxTx[1],
+		IP:       normalizeSessionIP(matchRxTx[2]),
+		RX:       rx,
+		TX:       tx,
+	}, nil
+}
+
+func normalizeSessionIP(endpoint string) string {
+	endpoint = strings.TrimSpace(endpoint)
+	if strings.Count(endpoint, ":") == 1 {
+		parts := strings.Split(endpoint, ":")
+		return parts[0]
+	}
+	return endpoint
+}
+
+func sessionStatsKey(stats *UserStats) string {
+	return fmt.Sprintf("%s|%s", stats.Username, stats.IP)
+}
+
+func (s *StatService) saveRxTxDelta(ctx context.Context, stats *UserStats, final bool) error {
+	key := sessionStatsKey(stats)
+	lastStats, found := s.sessionStats[key]
+
+	deltaRx := stats.RX
+	deltaTx := stats.TX
+	if found {
+		deltaRx = stats.RX - lastStats.RX
+		deltaTx = stats.TX - lastStats.TX
+	}
+
+	// A lower value means ocserv started a new session for the same user/IP.
+	// In that case, the current stat is the first value of the new session.
+	if deltaRx < 0 || deltaTx < 0 {
+		deltaRx = stats.RX
+		deltaTx = stats.TX
+	}
+
+	// Keep the final value too.
+	// ocserv may emit a duplicate periodic stat after the disconnect line.
+	// If we delete the memory on disconnect, that duplicate gets counted again.
+	s.sessionStats[key] = *stats
+
+	if deltaRx == 0 && deltaTx == 0 {
+		return nil
+	}
+
+	var err error
+	if final {
+		err = s.saveRxTx(ctx, &UserStats{
+			Username: stats.Username,
+			IP:       stats.IP,
+			RX:       deltaRx,
+			TX:       deltaTx,
+		})
+	}
+
+	return err
 }
 
 func (s *StatService) saveRxTx(ctx context.Context, u *UserStats) error {
@@ -211,37 +300,60 @@ func (s *StatService) saveRxTx(ctx context.Context, u *UserStats) error {
 		return err
 	}
 
+	shouldLock := false
 	switch ocUser.TrafficType {
 	case models.TotallyTransmit:
-		ocUser.IsLocked = ocUser.Tx >= trafficSizeBytes
+		shouldLock = ocUser.Tx >= trafficSizeBytes
 
 	case models.TotallyReceive:
-		ocUser.IsLocked = ocUser.Rx >= trafficSizeBytes
+		shouldLock = ocUser.Rx >= trafficSizeBytes
+
+	case models.TotallyRxTx:
+		shouldLock = ocUser.Rx+ocUser.Tx >= trafficSizeBytes
 
 	case models.MonthlyTransmit:
-		ocUser.IsLocked = totalMonthStats.TotalTx >= trafficSizeBytes
+		shouldLock = totalMonthStats.TotalTx >= trafficSizeBytes
 
 	case models.MonthlyReceive:
-		ocUser.IsLocked = totalMonthStats.TotalRx >= trafficSizeBytes
+		shouldLock = totalMonthStats.TotalRx >= trafficSizeBytes
+
+	case models.MonthlyRxTx:
+		shouldLock = totalMonthStats.TotalRx+totalMonthStats.TotalTx >= trafficSizeBytes
 
 	case models.Free:
 
 	default:
 		logger.Error("Unknown traffic type: %v", ocUser.TrafficType)
 	}
+	wasLocked := ocUser.IsLocked
+	if shouldLock {
+		ocUser.IsLocked = true
+	}
 
 	now := time.Now()
-	if ocUser.IsLocked {
-		var lockFunc func(username string) (string, error)
+	if shouldLock && !wasLocked {
+		var (
+			disconnectFunc func(username string) (string, error)
+			lockFunc       func(username string) (string, error)
+		)
 		if s.dockerMode {
+			disconnectFunc = s.occtlDockerRepo.DisconnectUser
 			lockFunc = s.occtlDockerRepo.Lock
 		} else {
+			disconnectFunc = s.ocservOcctlRepo.DisconnectUser
 			lockFunc = s.ocservUserRepo.Lock
 		}
+
+		_, err = disconnectFunc(ocUser.Username)
+		if err != nil {
+			logger.Error("Error disconnecting user: %v", err)
+		}
+
 		_, err = lockFunc(ocUser.Username)
 		if err != nil {
 			logger.Error("Error locking user: %v", err)
 		}
+
 		ocUser.DeactivatedAt = &now
 	}
 	err = db.Save(&ocUser).Error

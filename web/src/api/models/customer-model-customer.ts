@@ -22,6 +22,18 @@
 export interface CustomerModelCustomer {
     /**
      * 
+     * @type {boolean}
+     * @memberof CustomerModelCustomer
+     */
+    'certificate_available': boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CustomerModelCustomer
+     */
+    'certificate_enabled': boolean;
+    /**
+     * 
      * @type {string}
      * @memberof CustomerModelCustomer
      */
@@ -80,8 +92,10 @@ export const CustomerModelCustomerTrafficTypeEnum = {
     FREE: 'Free',
     MONTHLY_TRANSMIT: 'MonthlyTransmit',
     MONTHLY_RECEIVE: 'MonthlyReceive',
+    MONTHLY_RX_TX: 'MonthlyRxTx',
     TOTALLY_TRANSMIT: 'TotallyTransmit',
-    TOTALLY_RECEIVE: 'TotallyReceive'
+    TOTALLY_RECEIVE: 'TotallyReceive',
+    TOTALLY_RX_TX: 'TotallyRxTx'
 } as const;
 
 export type CustomerModelCustomerTrafficTypeEnum = typeof CustomerModelCustomerTrafficTypeEnum[keyof typeof CustomerModelCustomerTrafficTypeEnum];

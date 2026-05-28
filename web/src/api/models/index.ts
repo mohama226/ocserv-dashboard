@@ -26,6 +26,7 @@ export * from './models-ocserv-group';
 export * from './models-ocserv-group-config';
 export * from './models-ocserv-info';
 export * from './models-ocserv-user';
+export * from './models-ocserv-user-certificate-backup';
 export * from './models-ocserv-user-config';
 export * from './models-ocserv-user-session-log';
 export * from './models-online-user-session';

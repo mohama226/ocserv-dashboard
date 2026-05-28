@@ -68,7 +68,7 @@ const groupReformat = (group: string | undefined) => {
                         </td>
                         <td>
                             <h6 class="text-body-1 text-muted">
-                                {{ item['_Connected at'] }}
+                                {{ item['_Last connected at'] }}
                             </h6>
                         </td>
                     </tr>

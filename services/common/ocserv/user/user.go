@@ -29,10 +29,22 @@ type OcservUserPasswords interface {
 	Ocpasswd(ctx context.Context) (*[]Ocpasswd, int, error)
 }
 
+type OcservUserCertificateManagement interface {
+	CreateCertificate(username, password string) error
+	SuspendCertificate(username string) error
+	UnsuspendCertificate(username string) error
+	RevokeCertificate(username string) error
+	CertificateStatus(username string) CertificateStatus
+	CertificatePath(username string) (string, error)
+	CertificateBackup(username string) (*models.OcservUserCertificateBackup, error)
+	RestoreCertificateBackup(username string, cert *models.OcservUserCertificateBackup) error
+}
+
 type OcservUserInterface interface {
 	OcservUserManagement
 	OcservUserConfigManagement
 	OcservUserPasswords
+	OcservUserCertificateManagement
 }
 
 func NewOcservUser() *OcservUser {
@@ -84,6 +96,11 @@ func (u *OcservUser) Lock(username string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	if err = u.SuspendCertificate(username); err != nil {
+		return output, err
+	}
+
 	return output, nil
 }
 
@@ -94,12 +111,21 @@ func (u *OcservUser) UnLock(username string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	if err = u.UnsuspendCertificate(username); err != nil {
+		return output, err
+	}
+
 	return output, nil
 }
 
 // Delete removes a user account from ocserv by running ocpasswd with the -d flag.
 // Returns the command output or an error.
 func (u *OcservUser) Delete(username string) (string, error) {
+	if err := u.RevokeCertificate(username); err != nil {
+		return "", err
+	}
+
 	output, err := utils.RunOcpasswd("-d", "-c", utils.OcpasswdPath, username)
 	if err != nil {
 		return "", err

@@ -77,8 +77,10 @@ export const OcservUserUpdateOcservUserDataTrafficTypeEnum = {
     FREE: 'Free',
     MONTHLY_TRANSMIT: 'MonthlyTransmit',
     MONTHLY_RECEIVE: 'MonthlyReceive',
+    MONTHLY_RX_TX: 'MonthlyRxTx',
     TOTALLY_TRANSMIT: 'TotallyTransmit',
-    TOTALLY_RECEIVE: 'TotallyReceive'
+    TOTALLY_RECEIVE: 'TotallyReceive',
+    TOTALLY_RX_TX: 'TotallyRxTx'
 } as const;
 
 export type OcservUserUpdateOcservUserDataTrafficTypeEnum = typeof OcservUserUpdateOcservUserDataTrafficTypeEnum[keyof typeof OcservUserUpdateOcservUserDataTrafficTypeEnum];

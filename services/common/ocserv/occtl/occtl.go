@@ -3,21 +3,24 @@ package occtl
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mmtaee/ocserv-dashboard/common/models"
-	"github.com/mmtaee/ocserv-dashboard/common/pkg/utils"
 	"net"
 	"os/exec"
 	"strings"
+
+	"github.com/mmtaee/ocserv-dashboard/common/models"
+	"github.com/mmtaee/ocserv-dashboard/common/pkg/utils"
 )
 
 type OcservOcctl struct{}
 
 type OcservOcctlUsers interface {
-	OnlineUsers() ([]string, error)
-	OnlineSessions() (*[]models.OnlineUserSession, error)
+	OnlineSessions() ([]models.OnlineUserSession, error)
 	ShowUser(username string) (models.OnlineUserSession, error)
 	ShowUserByID(id string) (models.OnlineUserSession, error)
 	DisconnectUser(username string) (string, error)
+	DisconnectSession(sid string) (string, error)
+	TerminateUser(username string) (string, error)
+	TerminateSession(id string) (string, error)
 }
 
 type OcservOcctlSessions interface {
@@ -52,31 +55,9 @@ func NewOcservOcctl() *OcservOcctl {
 	return &OcservOcctl{}
 }
 
-// OnlineUsers returns a list of currently connected usernames.
-// Executes: occtl -j show users | jq -r '.[].Username'
-func (o *OcservOcctl) OnlineUsers() ([]string, error) {
-	var users []string
-
-	command := "-j show users | jq -r '.[].Username'"
-	cmd := exec.Command("sh", "-c", fmt.Sprintf("%s %s", occtlExec, command))
-	result, err := cmd.Output()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, user := range strings.Split(string(result), "\n") {
-		trimmed := strings.TrimSpace(user)
-		if trimmed != "" {
-			users = append(users, trimmed)
-		}
-	}
-
-	return users, nil
-}
-
 // OnlineSessions returns a list of currently connected user info.
 // Executes: occtl -j show users
-func (o *OcservOcctl) OnlineSessions() (*[]models.OnlineUserSession, error) {
+func (o *OcservOcctl) OnlineSessions() ([]models.OnlineUserSession, error) {
 	command := "-j show users"
 	cmd := exec.Command("sh", "-c", fmt.Sprintf("%s %s", occtlExec, command))
 	result, err := cmd.Output()
@@ -88,13 +69,46 @@ func (o *OcservOcctl) OnlineSessions() (*[]models.OnlineUserSession, error) {
 	if err = json.Unmarshal(result, &sessions); err != nil {
 		return nil, err
 	}
-	return &sessions, nil
+	return sessions, nil
 }
 
-// DisconnectUser disconnects the given user.
+// DisconnectUser Disconnect the specified user.
 // Executes: occtl disconnect user <username>
 func (o *OcservOcctl) DisconnectUser(username string) (string, error) {
 	cmd := exec.Command(occtlExec, "disconnect", "user", username)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// DisconnectSession Disconnect the specified ID.
+// Executes: occtl disconnect id <sid>
+func (o *OcservOcctl) DisconnectSession(id string) (string, error) {
+	cmd := exec.Command(occtlExec, "disconnect", "id", id)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// TerminateUser Disconnect user and invalidate session cookies.
+// Executes: occtl terminate user <username>
+func (o *OcservOcctl) TerminateUser(username string) (string, error) {
+	cmd := exec.Command(occtlExec, "terminate", "user", username)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// TerminateSession Disconnect ID and invalidate session cookies.
+// Executes: occtl terminate id <sid>
+func (o *OcservOcctl) TerminateSession(id string) (string, error) {
+	cmd := exec.Command(occtlExec, "terminate", "id", id)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err

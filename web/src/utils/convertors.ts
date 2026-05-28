@@ -141,10 +141,14 @@ const trafficTypesTransformer = (item: ModelsOcservUserTrafficTypeEnum): string 
             return t('MONTHLY_TRANSMIT');
         case ModelsOcservUserTrafficTypeEnum.MONTHLY_RECEIVE:
             return t('MONTHLY_RECEIVE');
+        case ModelsOcservUserTrafficTypeEnum.MONTHLY_RX_TX:
+            return t('MONTHLY_RX_TX');
         case ModelsOcservUserTrafficTypeEnum.TOTALLY_RECEIVE:
             return t('TOTALLY_RECEIVE');
         case ModelsOcservUserTrafficTypeEnum.TOTALLY_TRANSMIT:
             return t('TOTALLY_TRANSMIT');
+        case ModelsOcservUserTrafficTypeEnum.TOTALLY_RX_TX:
+            return t('TOTALLY_RX_TX');
         default:
             return item;
     }
