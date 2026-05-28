@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import apiClient from '@/plugins/axios';
 import { useI18n } from 'vue-i18n';
 import { onMounted, ref } from 'vue';
 import {
@@ -13,16 +12,13 @@ import { router } from '@/router';
 import UiParentCard from '@/components/shared/UiParentCard.vue';
 import UiChildCard from '@/components/shared/UiChildCard.vue';
 import TelegramLinkedAccounts from '@/components/ocserv_user/TelegramLinkedAccounts.vue';
-import {
-    formatDate,
-    formatDateTimeWithRelative,
-    formatDateWithRelative,
-    trafficTypesTransformer
-} from '@/utils/convertors';
+import { formatDateWithRelative, trafficTypesTransformer } from '@/utils/convertors';
+import { useConfigStore } from '@/stores/config';
 
 const props = defineProps<{ uid: string }>();
 
 const { t } = useI18n();
+const configStore = useConfigStore();
 const result = ref<ModelsOcservUser>({
     created_at: '',
     certificate_enabled: false,
@@ -37,7 +33,8 @@ const result = ref<ModelsOcservUser>({
     traffic_type: ModelsOcservUserTrafficTypeEnum.FREE,
     tx: 0,
     uid: '',
-    username: ''
+    username: '',
+    online_sessions: []
 });
 
 const configArrayKeys = ['route', 'no-route', 'dns', 'split-dns'];
@@ -45,11 +42,13 @@ const resultArrayObj = ref<ModelsOcservUserConfig>({});
 const resultOther = ref<ModelsOcservUserConfig>({});
 const showPassword = ref(false);
 
+const api = new OcservUsersApi();
+
 const getUser = () => {
     if (props.uid == undefined) {
         return;
     }
-    const api = new OcservUsersApi();
+
     api.ocservUsersUidGet({
         ...getAuthorization(),
         uid: props.uid
@@ -72,34 +71,29 @@ const getUser = () => {
     });
 };
 
-const authHeaders = () => ({
-    Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`
-});
-
 const createCertificate = () => {
-    apiClient
-        .post(`/ocserv/users/${props.uid}/certificate`, {}, { headers: authHeaders() })
-        .then(() => {
-            getUser();
-        });
+    api.ocservUsersUidCertificatePost({
+        ...getAuthorization(),
+        uid: props.uid
+    }).then(() => {
+        getUser();
+    });
 };
 
 const downloadCertificate = () => {
-    apiClient
-        .get(`/ocserv/users/${props.uid}/certificate`, {
-            headers: authHeaders(),
-            responseType: 'blob'
-        })
-        .then((res) => {
-            const url = window.URL.createObjectURL(new Blob([res.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${result.value.username}.p12`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-        });
+    api.ocservUsersUidCertificateGet({
+        ...getAuthorization(),
+        uid: props.uid
+    }).then((res) => {
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${result.value.username}.p12`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    });
 };
 
 onMounted(() => {
@@ -121,26 +115,6 @@ onMounted(() => {
                     </v-tooltip>
                 </template>
                 <template #action>
-		    <v-btn
-		        v-if="!result.certificate_enabled && !result.deactivated_at"
-			class="me-lg-5"
-			color="success"
-			size="small"
-			variant="flat"
-			@click="createCertificate"
-			>
-			{{ t('CREATE_CERTIFICATE') }}
-		    </v-btn>
-		    <v-btn
-		        v-if="result.certificate_available"
-			class="me-lg-5"
-			color="info"
-			size="small"
-			variant="outlined"
-			@click="downloadCertificate"
-		    >
-		        {{ t('DOWNLOAD_CERTIFICATE') }}
-		    </v-btn>
                     <v-btn
                         class="me-lg-5"
                         color="grey"
@@ -153,9 +127,49 @@ onMounted(() => {
                 </template>
                 <UiChildCard class="px-3">
                     <div class="space-y-4">
+                        <!-- Certificate -->
+                        <div class="bg-surface shadow rounded-lg p-4 mb-5">
+                            <h2 class="text-lg font-semibold mb-3 text-capitalize">
+                                <v-icon class="me-2" color="primary">mdi-certificate</v-icon>
+                                {{ t('CERTIFICATE') }}
+                            </h2>
+                            <div class="grid grid-cols-2 gap-4 mx-5">
+                                <v-row align="center" justify="end">
+                                    <v-col cols="8">
+                                        <hr style="border: none; border-top: 1px dotted #999" />
+                                    </v-col>
+                                    <v-col cols="12" md="4">
+                                        <v-btn
+                                            v-if="!result.certificate_enabled && !result.deactivated_at"
+                                            class="me-lg-5"
+                                            color="success"
+                                            size="small"
+                                            variant="flat"
+                                            @click="createCertificate"
+                                        >
+                                            {{ t('CREATE_CERTIFICATE') }}
+                                        </v-btn>
+                                        <v-btn
+                                            v-if="result.certificate_available"
+                                            class="me-lg-5"
+                                            color="info"
+                                            size="small"
+                                            variant="outlined"
+                                            @click="downloadCertificate"
+                                        >
+                                            {{ t('DOWNLOAD_CERTIFICATE') }}
+                                        </v-btn>
+                                    </v-col>
+                                </v-row>
+                            </div>
+                        </div>
+
                         <!-- General info -->
                         <div class="bg-surface shadow rounded-lg p-4">
-                            <h2 class="text-lg font-semibold mb-3 text-capitalize">{{ t('DETAILS') }}</h2>
+                            <h2 class="text-lg font-semibold mb-3 text-capitalize">
+                                <v-icon class="me-2" color="primary">mdi-card-account-details</v-icon>
+                                {{ t('DETAILS') }}
+                            </h2>
 
                             <div class="grid grid-cols-2 gap-4 mx-5">
                                 <v-row align="center" justify="start">
@@ -192,17 +206,17 @@ onMounted(() => {
                                         <span class="ms-1 text-primary">{{ result.group }}</span>
                                     </v-col>
 
-				    <v-col cols="12" md="4">
-					<span class="font-medium text-gray-600 text-capitalize">
-					    {{ t('CERTIFICATE') }}:
-					</span>
-					<span
-					    :class="result.certificate_enabled ? 'text-success' : 'text-warning'"
-					    class="ms-1 text-capitalize"
-					>
-					    {{ result.certificate_enabled ? t('ENABLED') : t('DISABLED') }}
-					</span>
-				    </v-col>
+                                    <v-col cols="12" md="4">
+                                        <span class="font-medium text-gray-600 text-capitalize">
+                                            {{ t('CERTIFICATE') }}:
+                                        </span>
+                                        <span
+                                            :class="result.certificate_enabled ? 'text-success' : 'text-warning'"
+                                            class="ms-1 text-capitalize"
+                                        >
+                                            {{ result.certificate_enabled ? t('ENABLED') : t('DISABLED') }}
+                                        </span>
+                                    </v-col>
 
                                     <v-col cols="12" md="4">
                                         <span class="font-medium text-gray-600 text-capitalize">
@@ -288,11 +302,13 @@ onMounted(() => {
                         </div>
 
                         <!-- Telegram linked accounts -->
-                        <TelegramLinkedAccounts v-if="uid" :uid="uid" />
-
+                        <TelegramLinkedAccounts v-if="configStore.telegramBotEnabled && props.uid" :uid="props.uid" />
                         <!-- Config section -->
                         <div class="bg-surface shadow rounded-lg p-4">
-                            <h2 class="text-lg font-semibold my-4 text-capitalize">{{ t('CONFIGURATION') }}</h2>
+                            <h2 class="text-lg font-semibold my-4 text-capitalize">
+                                <v-icon class="me-2" color="primary">mdi-cogs</v-icon>
+                                {{ t('CONFIGURATION') }}
+                            </h2>
 
                             <v-row class="mx-3">
                                 <v-col class="text-h6 text-capitalize" cols="12">

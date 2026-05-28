@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import apiClient from '@/plugins/axios';
 import Logo from '@/layouts/full/logo/Logo.vue';
 import { useI18n } from 'vue-i18n';
 import SummaryForm from '@/components/customer/SummaryForm.vue';
@@ -11,16 +10,16 @@ import {
 } from '@/api';
 import { ref } from 'vue';
 import SummaryResult from '@/components/customer/SummaryResult.vue';
-import { router } from '@/router';
 import { useSnackbarStore } from '@/stores/snackbar';
+import { getAuthorization } from '@/utils/request';
 
 const { t } = useI18n();
 const loading = ref(false);
 
 const snapshot = ref<CustomerSummaryResponse>({
     ocserv_user: {
-    	certificate_enabled: false,
-	certificate_available: false,
+        certificate_enabled: false,
+        certificate_available: false,
         deactivated_at: '',
         expire_at: '',
         is_locked: false,
@@ -86,22 +85,21 @@ const disconnect = () => {
 };
 
 const downloadCertificate = () => {
-    apiClient
-        .post('/customers/certificate', customerSummaryData.value, {
-            responseType: 'blob'
-        })
-        .then((res) => {
-            const url = window.URL.createObjectURL(new Blob([res.data]));
-            const link = document.createElement('a');
+    api.customersCertificatePost({
+        ...getAuthorization(),
+        request: customerSummaryData.value
+    }).then((res) => {
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a');
 
-            link.href = url;
-            link.setAttribute('download', `${result.value.ocserv_user.username}.p12`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+        link.href = url;
+        link.setAttribute('download', `${result.value.ocserv_user.username}.p12`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
 
-            window.URL.revokeObjectURL(url);
-        });
+        window.URL.revokeObjectURL(url);
+    });
 };
 </script>
 
@@ -123,13 +121,13 @@ const downloadCertificate = () => {
                     </v-card>
                 </v-col>
 
-                <SummaryResult 
-		    :result="result"
-		    v-if="hasResult"
-		    @newSummary="newSummary"
-		    @disconnect="disconnect"
-		    @downloadCertificate="downloadCertificate"
-		/>
+                <SummaryResult
+                    :result="result"
+                    v-if="hasResult"
+                    @newSummary="newSummary"
+                    @disconnect="disconnect"
+                    @downloadCertificate="downloadCertificate"
+                />
             </v-row>
         </v-container>
     </div>

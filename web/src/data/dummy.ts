@@ -39,35 +39,35 @@ const dummyOnlineUsers = <Array<ModelsOnlineUserSession>>[
         Groupname: '(none)',
         'Average RX': '12.3 kB/s',
         'Average TX': '1.2 kB/s',
-        '_Connected at': '20s'
+        '_Last connected at': '20s'
     },
     {
         Username: 'jane_doe',
         Groupname: 'group_test',
         'Average RX': '34.6 kB/s',
         'Average TX': '5.7 kB/s',
-        '_Connected at': '65m:20s'
+        '_Last connected at': '65m:20s'
     },
     {
         Username: 'admin',
         Groupname: 'group_test2',
         'Average RX': '98.1 kB/s',
         'Average TX': '22.4 kB/s',
-        '_Connected at': '1h:30m:40s'
+        '_Last connected at': '1h:30m:40s'
     },
     {
         Username: 'Tester 1',
         Groupname: 'group_test2',
         'Average RX': '98.1 kB/s',
         'Average TX': '22.4 kB/s',
-        '_Connected at': '1h:30m:40s'
+        '_Last connected at': '1h:30m:40s'
     },
     {
         Username: 'Tester 2',
         Groupname: 'group_test2',
         'Average RX': '98.1 kB/s',
         'Average TX': '22.4 kB/s',
-        '_Connected at': '1h:30m:40s'
+        '_Last connected at': '1h:30m:40s'
     }
 ];
 

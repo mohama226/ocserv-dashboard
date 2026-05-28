@@ -31,7 +31,8 @@ const result = ref<ModelsOcservUser>({
     traffic_type: ModelsOcservUserTrafficTypeEnum.FREE,
     tx: 0,
     uid: '',
-    username: ''
+    username: '',
+    online_sessions: []
 });
 const groups = ref<string[]>([]);
 

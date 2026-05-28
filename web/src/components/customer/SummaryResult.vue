@@ -30,11 +30,11 @@ const { t } = useI18n();
                             {{ t('DISCONNECT_ALL_SESSIONS') }}
                         </v-btn>
                     </v-col>
-		    <v-col cols="12" md="auto" sm="12" v-if="result.ocserv_user.certificate_available">
-			<v-btn color="info" variant="outlined" @click="emit('downloadCertificate')" size="small">
-			    {{ t('DOWNLOAD_CERTIFICATE') }}
-			</v-btn>
-		    </v-col>
+                    <v-col cols="12" md="auto" sm="12" v-if="result.ocserv_user.certificate_available">
+                        <v-btn color="info" variant="outlined" @click="emit('downloadCertificate')" size="small">
+                            {{ t('DOWNLOAD_CERTIFICATE') }}
+                        </v-btn>
+                    </v-col>
                 </v-row>
             </template>
 
@@ -64,24 +64,24 @@ const { t } = useI18n();
                                 <span class="ms-1">{{ result.ocserv_user.traffic_size || 0 }}</span>
                             </v-col>
                         </v-row>
-			<v-row align="center" justify="start">
-			    <v-col cols="12" md="6">
-				<span class="font-medium text-gray-600 text-capitalize"> {{ t('CERTIFICATE') }}: </span>
-				<span
-				    :class="result.ocserv_user.certificate_enabled ? 'text-success' : 'text-warning'"
-				    class="ms-1 text-capitalize"
-				>
-				    {{ result.ocserv_user.certificate_enabled ? t('ENABLED') : t('DISABLED') }}
-				</span>
-			    </v-col>
+                        <v-row align="center" justify="start">
+                            <v-col cols="12" md="6">
+                                <span class="font-medium text-gray-600 text-capitalize"> {{ t('CERTIFICATE') }}: </span>
+                                <span
+                                    :class="result.ocserv_user.certificate_enabled ? 'text-success' : 'text-warning'"
+                                    class="ms-1 text-capitalize"
+                                >
+                                    {{ result.ocserv_user.certificate_enabled ? t('ENABLED') : t('DISABLED') }}
+                                </span>
+                            </v-col>
 
-			    <v-col cols="12" md="6">
-				<span class="font-medium text-gray-600 text-capitalize"> {{ t('TOTAL') }}: </span>
-				<span class="ms-1">
-				    {{ bytesToGB(result.ocserv_user.rx + result.ocserv_user.tx) }} GB
-				</span>
-			    </v-col>
-			</v-row>
+                            <v-col cols="12" md="6">
+                                <span class="font-medium text-gray-600 text-capitalize"> {{ t('TOTAL') }}: </span>
+                                <span class="ms-1">
+                                    {{ bytesToGB(result.ocserv_user.rx + result.ocserv_user.tx) }} GB
+                                </span>
+                            </v-col>
+                        </v-row>
                         <v-row align="center" justify="start">
                             <v-col cols="12" md="6">
                                 <span class="font-medium text-gray-600 text-capitalize"> RX ({{ t('TOTAL') }}): </span>

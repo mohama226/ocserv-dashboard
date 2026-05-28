@@ -45,7 +45,7 @@ const getStyle = (index: number): CSSProperties => {
                 }
             "
         >
-            {{ snack.message }}
+            <span class="text-capitalize">{{ snack.message }}</span>
         </v-snackbar>
     </div>
 </template>

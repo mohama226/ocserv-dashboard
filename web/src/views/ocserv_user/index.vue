@@ -2,30 +2,28 @@
 import { router } from '@/router';
 import UiParentCard from '@/components/shared/UiParentCard.vue';
 import { useI18n } from 'vue-i18n';
-import { onMounted, reactive, ref } from 'vue';
+import { reactive, ref } from 'vue';
 import {
     type ModelsOcservUser,
     ModelsOcservUserTrafficTypeEnum,
-    OcservGroupsApi,
     OcservUsersApi,
-    type OcservUsersGetFilterEnum,
-    ReportApi,
-    type ReportOcservUserReportResponse
+    type OcservUsersGetFilterEnum
 } from '@/api';
 import { getAuthorization } from '@/utils/request';
 import { bytesToGB, formatDate, trafficTypesTransformer } from '@/utils/convertors';
-import DeleteDialog from '@/components/ocserv_user/DeleteDialog.vue';
-import ActivateDialog from '@/components/ocserv_user/ActivateDialog.vue';
 import Pagination from '@/components/shared/Pagination.vue';
 import type { Meta } from '@/types/metaTypes/MetaType';
-import { useSnackbarStore } from '@/stores/snackbar';
 import { useProfileStore } from '@/stores/profile';
-import SessionLogsDialog from '@/components/ocserv_user/SessionLogsDialog.vue';
-import StatisticsDialog from '@/components/ocserv_user/StatisticsDialog.vue';
+import Status from '@/components/ocserv_user/list/Status.vue';
+import Actions from '@/components/ocserv_user/list/Actions.vue';
+import Stats from '@/components/ocserv_user/list/Stats.vue';
+import SearchAndFilter from '@/components/ocserv_user/list/SearchAndFilter.vue';
+
+const statsRef = ref<InstanceType<typeof Stats> | null>(null);
 
 const { t } = useI18n();
 const loading = ref(false);
-const q = ref('');
+
 const api = new OcservUsersApi();
 const meta = reactive<Meta>({
     page: 1,
@@ -34,59 +32,22 @@ const meta = reactive<Meta>({
     total_records: 0
 });
 
-const deleteDialog = ref(false);
-const deleteUserName = ref('');
-const deleteUserUID = ref('');
-
-const activateDialog = ref(false);
-const activateUserName = ref('');
-const activateUserUID = ref('');
-
-const statisticsDialog = ref(false);
-const statisticsUsername = ref('');
-const statisticsUID = ref('');
-
-const sessionLogsDialog = ref(false);
-const sessionLogsUsername = ref('');
-const sessionLogsUID = ref('');
-
 const users = ref<ModelsOcservUser[]>([]);
-const snackbar = useSnackbarStore();
-
 const profileStore = useProfileStore();
 const isAdmin = ref(profileStore.isAdmin);
 
-const userStats = ref<ReportOcservUserReportResponse>({
-    active: 0,
-    deactivated: 0,
-    online: 0,
-    locked: 0
-});
-
-const filter = ref<OcservUsersGetFilterEnum>();
-const group = ref<string | null>(null);
-const groups = ref<string[]>([]);
-const groupsApi = new OcservGroupsApi();
-
-const getGroups = () => {
-    groupsApi
-        .ocservGroupsLookupGet({ ...getAuthorization() })
-        .then((res) => {
-            groups.value = (res.data ?? []).filter(Boolean);
-        })
-        .catch(() => {
-            groups.value = [];
-        });
-};
-
-const getUsers = () => {
+const getUsers = (
+    q: string | null = null,
+    filter: OcservUsersGetFilterEnum | undefined = undefined,
+    group: string | null = null
+) => {
     loading.value = true;
     api.ocservUsersGet({
         ...getAuthorization(),
         ...meta,
-        q: q.value,
-        filter: filter.value,
-        group: group.value || undefined
+        q: q || '',
+        filter: filter,
+        group: group || undefined
     })
         .then((res) => {
             users.value = res.data.result ?? [];
@@ -97,214 +58,104 @@ const getUsers = () => {
         });
 };
 
-const detailUser = async (uid: string) => {
-    await router.push({ name: 'Ocserv User Detail', params: { uid: uid } });
+const updateMeta = (newMeta: Meta) => {
+    Object.assign(meta, newMeta);
+    getUsers(null);
 };
 
-const editUser = async (uid: string) => {
-    await router.push({ name: 'Ocserv User Update', params: { uid: uid } });
+const reloadStats = () => {
+    statsRef.value?.getUserStats();
 };
 
-const disconnect = (username: string) => {
-    api.ocservUsersUsernameDisconnectPost({
-        ...getAuthorization(),
-        username: username
-    })
-        .then(() => {
-            let index = users.value.findIndex((i) => i.username === username);
-            if (index > -1) {
-                users.value[index].is_online = false;
-            }
-        })
-        .finally(() => {
-            snackbar.show({
-                id: 1,
-                message: t('USER_DISCONNECTED_SUCCESS_SNACK'),
-                color: 'success',
-                timeout: 4000
-            });
-        });
+type ActionTypes =
+    | 'lock'
+    | 'unlock'
+    | 'disconnect'
+    | 'disconnect_session'
+    | 'terminate'
+    | 'terminate_session'
+    | 'delete'
+    | 'activate';
+
+type ActivateExtra = {
+    formattedExpireAt: string;
+    id: string | number;
 };
 
-const lock = (uid: string) => {
-    api.ocservUsersUidLockPost({
-        ...getAuthorization(),
-        uid: uid
-    })
-        .then(() => {
-            let index = users.value.findIndex((i) => i.uid === uid);
+const actions = (act: ActionTypes, identifier: string, extra: ActivateExtra | null = null) => {
+    switch (act) {
+        case 'lock': {
+            const index = users.value.findIndex((i) => i.uid === identifier);
+
             if (index > -1) {
                 users.value[index].is_locked = true;
             }
-            getUserStats();
-        })
-        .finally(() => {
-            snackbar.show({
-                id: 1,
-                message: t('USER_LOCKED_SUCCESSFULLY_SNACK'),
-                color: 'success',
-                timeout: 4000
-            });
-        });
-};
 
-const unlock = (uid: string) => {
-    api.ocservUsersUidUnlockPost({
-        ...getAuthorization(),
-        uid: uid
-    })
-        .then(() => {
-            let index = users.value.findIndex((i) => i.uid === uid);
+            reloadStats();
+            break;
+        }
+
+        case 'unlock': {
+            const index = users.value.findIndex((i) => i.uid === identifier);
+
             if (index > -1) {
                 users.value[index].is_locked = false;
             }
-            getUserStats();
-        })
-        .finally(() => {
-            snackbar.show({
-                id: 1,
-                message: t('USER_UNLOCKED_SUCCESSFULLY_SNACK'),
-                color: 'success',
-                timeout: 4000
-            });
-        });
-};
 
-const activateUser = (expireAt: string | null) => {
-    const formattedExpireAt = formatDate(expireAt);
-
-    api.ocservUsersUidActivatePost({
-        ...getAuthorization(),
-        uid: activateUserUID.value,
-        request: {
-            expire_at: formattedExpireAt || undefined
+            reloadStats();
+            break;
         }
-    })
-        .then(() => {
-            let index = users.value.findIndex((i) => i.uid === activateUserUID.value);
+
+        case 'disconnect':
+        case 'terminate': {
+            const index = users.value.findIndex((i) => i.username === identifier);
             if (index > -1) {
+                users.value[index].is_online = false;
+                users.value[index].online_sessions.splice(0);
+            }
+            break;
+        }
+
+        case 'disconnect_session':
+        case 'terminate_session': {
+            if (extra?.id == null) return;
+            const index = users.value.findIndex((i) => i.username === identifier);
+            if (index > -1) {
+                let sessionIndex = users.value[index].online_sessions.findIndex((i) => i.ID === extra.id);
+                if (sessionIndex > -1) {
+                    users.value[index].online_sessions.splice(sessionIndex, 1);
+                }
+            }
+
+            if (users.value[index].online_sessions.length == 0) {
+                users.value[index].is_online = false;
+            }
+            break;
+        }
+
+        case 'delete': {
+            getUsers(null);
+            reloadStats();
+            break;
+        }
+
+        case 'activate': {
+            const index = users.value.findIndex((i) => i.uid === identifier);
+
+            if (index > -1 && extra) {
                 users.value[index].is_locked = false;
                 users.value[index].deactivated_at = undefined;
-                users.value[index].expire_at = formattedExpireAt;
+                users.value[index].expire_at = extra.formattedExpireAt || undefined;
                 users.value[index].is_online = false;
                 users.value[index].rx = 0;
                 users.value[index].tx = 0;
             }
 
-            getUserStats();
-            cancelActivateUser();
-
-            snackbar.show({
-                id: 1,
-                message: t('USER_ACTIVATE_SUCCESSFULLY_SNACK'),
-                color: 'success',
-                timeout: 4000
-            });
-        });
-};
-
-const statistics = async (uid: string, username: string) => {
-    statisticsDialog.value = true;
-    statisticsUsername.value = username;
-    statisticsUID.value = uid;
-};
-
-const sessionLogs = async (uid: string, username: string) => {
-    sessionLogsDialog.value = true;
-    sessionLogsUsername.value = username;
-    sessionLogsUID.value = uid;
-};
-
-const deleteUserHandler = (uid: string, username: string) => {
-    deleteUserUID.value = uid;
-    deleteUserName.value = username;
-    deleteDialog.value = true;
-};
-
-const activateUserHandler = (uid: string, username: string) => {
-    activateUserUID.value = uid;
-    activateUserName.value = username;
-    activateDialog.value = true;
-};
-
-const cancelDeleteUser = () => {
-    deleteUserUID.value = '';
-    deleteUserName.value = '';
-    deleteDialog.value = false;
-};
-
-const cancelActivateUser = () => {
-    activateUserUID.value = '';
-    activateUserName.value = '';
-    activateDialog.value = false;
-};
-
-const closeStatisticsDialog = () => {
-    statisticsUID.value = '';
-    statisticsUsername.value = '';
-    statisticsDialog.value = false;
-};
-
-const closeSessionLogsDialog = () => {
-    sessionLogsUID.value = '';
-    sessionLogsUsername.value = '';
-    sessionLogsDialog.value = false;
-};
-
-const deleteUser = () => {
-    api.ocservUsersUidDelete({
-        ...getAuthorization(),
-        uid: deleteUserUID.value
-    })
-        .then((_) => {
-            getUsers();
-            getUserStats();
-        })
-        .finally(() => {
-            cancelDeleteUser();
-        });
-};
-
-const updateMeta = (newMeta: Meta) => {
-    Object.assign(meta, newMeta);
-    getUsers();
-};
-
-const search = (clear: boolean = false) => {
-    if (clear) {
-        q.value = '';
-    }
-
-    if (q.value.length > 1 || clear || filter.value || group.value) {
-        if (q.value.length < 2) {
-            q.value = '';
+            reloadStats();
+            break;
         }
-        getUsers();
     }
 };
-
-const reload = () => {
-    q.value = '';
-    filter.value = undefined;
-    group.value = null;
-    getUsers();
-};
-
-const getUserStats = () => {
-    const apiStats = new ReportApi();
-    apiStats
-        .reportsUsersGet({
-            ...getAuthorization()
-        })
-        .then((res) => {
-            Object.assign(userStats.value, res.data);
-        });
-};
-
-onMounted(() => {
-    getUserStats();
-    getGroups();
-});
 </script>
 
 <template>
@@ -323,114 +174,13 @@ onMounted(() => {
                     </v-btn>
                 </template>
 
-                <div class="mx-15 mb-5">
-                    <v-row align="center" justify="center">
-                        <v-col cols="12" lg="2" sm="6">
-                            <v-card class="text-center" elevation="10">
-                                <v-card-title class="text-subtitle-1 mt-2 text-capitalize">
-                                    {{ t('ONLINE') }} {{ t('USERS') }}
-                                </v-card-title>
+                <Stats ref="statsRef" />
 
-                                <v-card-text class="text-muted text-h5">
-                                    {{ userStats.online || 0 }}
-                                </v-card-text>
-                            </v-card>
-                        </v-col>
-
-                        <v-col cols="12" lg="2" sm="6">
-                            <v-card class="text-center" elevation="10">
-                                <v-card-title class="text-subtitle-1 mt-2 text-capitalize">
-                                    {{ t('ACTIVE') }} {{ t('USERS') }}
-                                </v-card-title>
-
-                                <v-card-text class="text-muted text-h5">
-                                    {{ userStats.active || 0 }}
-                                </v-card-text>
-                            </v-card>
-                        </v-col>
-
-                        <v-col cols="12" lg="2" sm="6">
-                            <v-card class="text-center" elevation="10">
-                                <v-card-title class="text-subtitle-1 mt-2 text-capitalize">
-                                    {{ t('DEACTIVATED') }} {{ t('USERS') }}
-                                </v-card-title>
-
-                                <v-card-text class="text-muted text-h5">
-                                    {{ userStats.deactivated }}
-                                </v-card-text>
-                            </v-card>
-                        </v-col>
-
-                        <v-col cols="12" lg="2" sm="6">
-                            <v-card class="text-center" elevation="10">
-                                <v-card-title class="text-subtitle-1 mt-2 text-capitalize">
-                                    {{ t('LOCKED') }} {{ t('USERS') }}
-                                </v-card-title>
-
-                                <v-card-text class="text-muted text-h5">
-                                    {{ userStats.locked }}
-                                </v-card-text>
-                            </v-card>
-                        </v-col>
-                    </v-row>
-                </div>
+                <SearchAndFilter @getUsers="getUsers" />
 
                 <v-progress-linear :active="loading" indeterminate></v-progress-linear>
 
-                <div v-if="!loading">
-                    <div class="mb-3">
-                        <v-row align="center" class="px-md-15 mb-3 text-capitalize" justify="start">
-                            <v-col cols="12" md="3" sm="5">
-                                <v-text-field
-                                    v-model="q"
-                                    :label="t('USERNAME')"
-                                    clearable
-                                    color="primary"
-                                    density="compact"
-                                    hide-details
-                                    variant="outlined"
-                                    @click:clear="search(true)"
-                                    @keyup.enter.native="search(false)"
-                                />
-                            </v-col>
-
-                            <v-col cols="12" md="auto" sm="5" class="ma-0 pa-0 mt-5 me-5">
-                                <v-radio-group inline v-model="filter">
-                                    <v-radio value="active" :label="t('ACTIVE')" hide-details />
-                                    <v-radio value="online" :label="t('ONLINE')" hide-details />
-                                    <v-radio value="deactivated" :label="t('DEACTIVATED')" hide-details />
-                                    <v-radio value="locked" :label="t('LOCKED')" hide-details />
-                                </v-radio-group>
-                            </v-col>
-
-                            <v-col cols="12" md="2" sm="4">
-                                <v-select
-                                    v-model="group"
-                                    :items="groups"
-                                    :label="t('GROUP')"
-                                    :placeholder="t('GROUP_FILTER_ALL')"
-                                    clearable
-                                    color="primary"
-                                    density="compact"
-                                    hide-details
-                                    variant="outlined"
-                                />
-                            </v-col>
-
-                            <v-col class="ma-0 pa-0" cols="12" md="auto">
-                                <v-btn color="info" size="small" @click="search(false)">
-                                    <v-icon start>mdi-magnify</v-icon>
-                                    {{ t('SEARCH') }}
-                                </v-btn>
-                            </v-col>
-
-                            <v-col cols="12" md="auto">
-                                <v-btn color="secondary" size="small" variant="outlined" @click="reload">
-                                    {{ t('RELOAD') }}
-                                </v-btn>
-                            </v-col>
-                        </v-row>
-                    </div>
+                <div>
                     <v-table v-if="users.length > 0" class="px-md-15">
                         <thead>
                             <tr class="text-capitalize bg-lightprimary">
@@ -442,10 +192,10 @@ onMounted(() => {
                                 <th class="text-left">{{ t('DATES') }}</th>
                                 <th class="text-left">{{ t('STATUS') }}</th>
                                 <th class="text-left">{{ t('CERTIFICATE') }}</th>
-				<th class="text-left">{{ t('ACTION') }}</th>
+                                <th class="text-left">{{ t('ACTION') }}</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody v-if="!loading">
                             <tr v-for="item in users" :key="item.username">
                                 <td>{{ item.username }}</td>
                                 <td v-if="isAdmin">{{ item.owner || '' }}</td>
@@ -506,23 +256,23 @@ onMounted(() => {
                                             </template>
                                         </v-tooltip>
                                     </div>
-				    <div>
-					{{ t('TOTAL') }}:
-					<span
-					    v-if="item.traffic_type != ModelsOcservUserTrafficTypeEnum.FREE"
-					    class="text-muted text-subtitle-2"
-					>
-					    ({{ t('CURRENT') }})
-					</span>
-					<br />
-					<v-tooltip :text="`${(item.rx + item.tx).toLocaleString()} bytes`">
-					    <template #activator="{ props }">
-						<span class="text-info" v-bind="props">
-						    {{ bytesToGB(item.rx + item.tx, 4) }} GB
-						</span>
-					    </template>
-					</v-tooltip>
-				    </div>
+                                    <div>
+                                        {{ t('TOTAL') }}:
+                                        <span
+                                            v-if="item.traffic_type != ModelsOcservUserTrafficTypeEnum.FREE"
+                                            class="text-muted text-subtitle-2"
+                                        >
+                                            ({{ t('CURRENT') }})
+                                        </span>
+                                        <br />
+                                        <v-tooltip :text="`${(item.rx + item.tx).toLocaleString()} bytes`">
+                                            <template #activator="{ props }">
+                                                <span class="text-info" v-bind="props">
+                                                    {{ bytesToGB(item.rx + item.tx, 4) }} GB
+                                                </span>
+                                            </template>
+                                        </v-tooltip>
+                                    </div>
                                 </td>
                                 <td class="text-capitalize">
                                     <div>
@@ -538,183 +288,34 @@ onMounted(() => {
                                         </span>
                                     </div>
                                 </td>
+
                                 <td>
-                                    <div class="text-capitalize">
-                                        {{ t('STATUS') }}:<br />
-                                        <!-- Locked -->
-                                        <span v-if="item.is_locked && !Boolean(item.deactivated_at)">
-                                            <v-icon color="warning" start>mdi-lock</v-icon>
-                                            <span class="text-warning text-capitalize">{{ t('LOCKED') }}</span>
-                                        </span>
-
-                                        <!-- Deactivated -->
-                                        <span v-else-if="Boolean(item.deactivated_at)">
-                                            <v-icon color="error" start>mdi-close-network-outline</v-icon>
-                                            <span class="text-error text-capitalize">{{ t('DEACTIVATED') }}</span>
-                                        </span>
-
-                                        <!-- Online -->
-                                        <span v-else-if="item.is_online">
-                                            <v-icon color="success" start>mdi-lan-connect</v-icon>
-                                            <span class="text-success text-capitalize">{{ t('ONLINE') }}</span>
-                                        </span>
-
-                                        <!-- Disconnected -->
-                                        <span v-else-if="!item.is_online">
-                                            <v-icon color="grey" start>mdi-lan-disconnect</v-icon>
-                                            <span class="text-grey text-capitalize">{{ t('DISCONNECTED') }}</span>
-                                        </span>
-                                    </div>
+                                    <Status :item="item" />
                                 </td>
-				<td>
-				    <span
-				        :class="item.certificate_enabled ? 'text-success' : 'text-warning'"
-					class="text-capitalize"
-				    >
-				    	{{ item.certificate_enabled ? t('ENABLED') : t('DISABLED') }}
-				    </span>
-				</td>
+
                                 <td>
-                                    <v-menu>
-                                        <template v-slot:activator="{ props }">
-                                            <v-icon start v-bind="props"> mdi-dots-vertical</v-icon>
-                                        </template>
-
-                                        <v-list>
-                                            <v-list-item @click="detailUser(item?.uid)">
-                                                <v-list-item-title class="text-primary text-capitalize me-5">
-                                                    {{ t('DETAIL') }}
-                                                </v-list-item-title>
-                                                <template v-slot:prepend>
-                                                    <v-icon class="ms-2" color="primary">mdi-information-outline</v-icon>
-                                                </template>
-                                            </v-list-item>
-
-                                            <v-list-item
-                                                v-if="!(item.is_locked && item.deactivated_at)"
-                                                @click="editUser(item?.uid)"
-                                            >
-                                                <v-list-item-title class="text-info text-capitalize me-5">
-                                                    {{ t('UPDATE') }}
-                                                </v-list-item-title>
-                                                <template v-slot:prepend>
-                                                    <v-icon class="ms-2" color="info">mdi-pencil</v-icon>
-                                                </template>
-                                            </v-list-item>
-
-                                            <v-list-item
-                                                v-if="item.is_online && !item.is_locked && !item.deactivated_at"
-                                                @click="disconnect(item?.username)"
-                                            >
-                                                <v-list-item-title class="text-error text-capitalize me-5">
-                                                    {{ t('DISCONNECT') }}
-                                                </v-list-item-title>
-                                                <template v-slot:prepend>
-                                                    <v-icon class="ms-2" color="error">mdi-lan-disconnect</v-icon>
-                                                </template>
-                                            </v-list-item>
-
-                                            <v-list-item
-                                                v-if="!item.is_locked && !item.deactivated_at"
-                                                @click="lock(item?.uid)"
-                                            >
-                                                <v-list-item-title class="text-warning text-capitalize me-5">
-                                                    {{ t('LOCK') }}
-                                                </v-list-item-title>
-                                                <template v-slot:prepend>
-                                                    <v-icon class="ms-2" color="warning">mdi-lock</v-icon>
-                                                </template>
-                                            </v-list-item>
-
-                                            <v-list-item
-                                                v-if="item.is_locked && !item.deactivated_at"
-                                                @click="unlock(item?.uid)"
-                                            >
-                                                <v-list-item-title class="text-grey text-capitalize me-5">
-                                                    {{ t('UNLOCK') }}
-                                                </v-list-item-title>
-                                                <template v-slot:prepend>
-                                                    <v-icon class="ms-2" color="grey">mdi-lock</v-icon>
-                                                </template>
-                                            </v-list-item>
-
-                                            <v-list-item
-                                                v-if="item.deactivated_at"
-                                                @click="activateUserHandler(item.uid, item.username)"
-                                            >
-                                                <v-list-item-title class="text-success text-capitalize me-5">
-                                                    {{ t('ACTIVATE') }}
-                                                </v-list-item-title>
-                                                <template v-slot:prepend>
-                                                    <v-icon class="ms-2" color="success">mdi-network-outline</v-icon>
-                                                </template>
-                                            </v-list-item>
-
-                                            <v-list-item @click="statistics(item.uid, item.username)">
-                                                <v-list-item-title class="text-grey text-capitalize me-5">
-                                                    {{ t('STATISTICS') }}
-                                                </v-list-item-title>
-                                                <template v-slot:prepend>
-                                                    <v-icon class="ms-2" color="grey">mdi-chart-bar-stacked</v-icon>
-                                                </template>
-                                            </v-list-item>
-
-                                            <v-list-item @click="sessionLogs(item.uid, item.username)">
-                                                <v-list-item-title class="text-grey text-capitalize me-5">
-                                                    {{ t('SESSION_LOGS') }}
-                                                </v-list-item-title>
-                                                <template v-slot:prepend>
-                                                    <v-icon class="ms-2" color="grey">mdi-timeline-text-outline</v-icon>
-                                                </template>
-                                            </v-list-item>
-
-                                            <v-list-item @click="deleteUserHandler(item?.uid, item.username)">
-                                                <v-list-item-title class="text-error text-capitalize me-5">
-                                                    {{ t('DELETE') }}
-                                                </v-list-item-title>
-                                                <template v-slot:prepend>
-                                                    <v-icon class="ms-2" color="error">mdi-delete</v-icon>
-                                                </template>
-                                            </v-list-item>
-                                        </v-list>
-                                    </v-menu>
+                                    <span
+                                        :class="item.certificate_enabled ? 'text-success' : 'text-warning'"
+                                        class="text-capitalize"
+                                    >
+                                        {{ item.certificate_enabled ? t('ENABLED') : t('DISABLED') }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <Actions :item="item" @actions="actions" />
                                 </td>
                             </tr>
                         </tbody>
+                        <tbody v-if="loading || users.length == 0">
+                        {{ t('NO_USER_FOUND_TABLE') }}
+                        </tbody>
                     </v-table>
-                </div>
-
-                <div v-if="loading || users.length == 0" class="ms-md-5 mb-md-5 text-capitalize">
-                    {{ t('NO_USER_FOUND_TABLE') }}
                 </div>
 
                 <Pagination :totalRecords="meta.total_records" @update="updateMeta" />
             </UiParentCard>
         </v-col>
     </v-row>
-
-    <ActivateDialog
-        :show="activateDialog"
-        :username="activateUserName"
-        @close="cancelActivateUser"
-        @activateUser="activateUser"
-    />
-
-    <DeleteDialog :show="deleteDialog" :username="deleteUserName" @close="cancelDeleteUser" @deleteUser="deleteUser" />
-
-    <StatisticsDialog
-        :show="statisticsDialog"
-        :username="statisticsUsername"
-        :uid="statisticsUID"
-        @close="closeStatisticsDialog"
-    />
-
-    <SessionLogsDialog
-        :show="sessionLogsDialog"
-        :username="sessionLogsUsername"
-        :uid="sessionLogsUID"
-        @close="closeSessionLogsDialog"
-    />
 </template>
 
 <style scoped>
