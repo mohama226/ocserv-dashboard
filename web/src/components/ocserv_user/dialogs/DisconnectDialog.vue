@@ -63,7 +63,7 @@ const { t } = useI18n();
                         </div>
 
                         <!-- Sessions -->
-                        <div v-for="(session, index) in sessions" :key="session.ID" class="pa-3 mb-2 rounded border">
+                        <div v-for="session in sessions" :key="session.ID" class="pa-3 mb-2 rounded border">
                             <!-- Header -->
                             <div class="d-flex justify-space-between align-center mb-2">
                                 <div class="text-body-2 font-weight-medium">
@@ -87,7 +87,7 @@ const { t } = useI18n();
                             </div>
 
                             <div class="text-caption text-capitalize text-medium-emphasis">
-                                {{ t('STARTED') }}: {{ session['Session started at'] }}
+                                {{ t('STARTED_AT') }}: {{ session['Session started at'] }}
                             </div>
 
                             <!-- Actions -->

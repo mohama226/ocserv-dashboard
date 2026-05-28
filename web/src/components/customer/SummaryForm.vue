@@ -1,12 +1,8 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue';
+import { reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { CustomersApi, type CustomerSummaryData, type SystemLoginData, SystemUsersApi } from '@/api';
+import { type CustomerSummaryData } from '@/api';
 import { requiredRule } from '@/utils/rules';
-import Captcha from '@/components/auth/Captcha.vue';
-import { useConfigStore } from '@/stores/config';
-import { useProfileStore } from '@/stores/profile';
-import { router } from '@/router';
 
 defineProps({
     loading: {
@@ -61,7 +57,7 @@ const getSummary = () => {
                 />
             </v-col>
             <v-col class="pt-0 mt-3" cols="12">
-                <v-btn :loading="loading" :disabled="!valid" block color="primary" flat size="large" @click="getSummary">
+                <v-btn :disabled="!valid" :loading="loading" block color="primary" flat size="large" @click="getSummary">
                     {{ t('GET_MY_SUMMARY') }}
                 </v-btn>
             </v-col>

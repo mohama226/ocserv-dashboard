@@ -1,18 +1,11 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useI18n } from 'vue-i18n';
-import UiChildCard from '@/components/shared/UiChildCard.vue';
 import DateRange from '@/components/shared/DateRange.vue';
-import BarChart from '@/components/shared/BarChart.vue';
 import { reactive, ref } from 'vue';
-import {
-    type ModelsOcservUserSessionLog,
-    ModelsOcservUserTrafficTypeEnum,
-    OcservUsersApi,
-    type OcservUserStatisticsResponse
-} from '@/api';
+import { type ModelsOcservUserSessionLog, OcservUsersApi } from '@/api';
 import { getAuthorization } from '@/utils/request';
 import type { Meta } from '@/types/metaTypes/MetaType';
-import { bytesToGB, formatDate, formatDateTime, trafficTypesTransformer } from '@/utils/convertors';
+import { formatDate, formatDateTime } from '@/utils/convertors';
 import Pagination from '@/components/shared/Pagination.vue';
 
 const props = defineProps({
@@ -78,10 +71,10 @@ const updateMeta = (newMeta: Meta) => {
 </script>
 
 <template>
-    <v-dialog v-model="props.show" max-width="1200" height="980">
+    <v-dialog v-model="props.show" height="980" max-width="1200">
         <v-card>
             <v-card-title class="bg-info text-capitalize">
-                <v-row align="end" justify="space-between" class="no-gutters">
+                <v-row align="end" class="no-gutters" justify="space-between">
                     <v-col md="auto"> {{ t('SESSION_LOGS') }} ({{ username }}) </v-col>
                     <v-col md="auto">
                         <v-icon @click="emits('close')">mdi-close</v-icon>
@@ -99,11 +92,11 @@ const updateMeta = (newMeta: Meta) => {
                                 <v-row align="center" class="px-md-15 mb-3 text-capitalize" justify="start">
                                     <v-col cols="12" md="12" sm="12">
                                         <DateRange
+                                            :disable-more30-days="false"
                                             :initDate="initData"
                                             :loading="loading"
-                                            @search="search"
-                                            :disable-more30-days="false"
                                             :pre-hook="false"
+                                            @search="search"
                                         />
                                     </v-col>
                                 </v-row>

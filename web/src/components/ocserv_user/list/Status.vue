@@ -55,7 +55,7 @@ const { t } = useI18n();
                         </div>
 
                         <div class="text-caption text-medium-emphasis">
-                            {{ t('STARTED') }}: {{ session['Session started at'] }}
+                            {{ t('STARTED_AT') }}: {{ session['Session started at'] }}
                         </div>
                     </div>
                 </div>

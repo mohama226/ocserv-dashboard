@@ -318,6 +318,7 @@ const actions = (act: ActionTypes, identifier: string, extra: ActivateExtra | nu
     </v-row>
 </template>
 
+<!--suppress CssUnresolvedCustomProperty -->
 <style scoped>
 tbody tr:nth-child(even) td {
     background-color: rgba(var(--v-theme-on-surface), 0.04);

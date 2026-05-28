@@ -20,9 +20,14 @@ const commands = [
     { id: 2, command: 'Show user by username', description: t('SHOW_USER_DETAIL'), value: t('OCSERV_USERNAME') },
     { id: 3, command: 'Show user by id', description: t('SHOW_ID_DESC'), value: t('OCSERV_USER_ID') },
     { id: 4, command: 'Disconnect user', description: t('DISCONNECT_USER_DESC'), value: t('OCSERV_USERNAME') },
-    { id: 14, command: 'Disconnect user by ID', description: t('DISCONNECT_USER_BY_ID_DESC'), value: t('SESSION_ID') },
-    { id: 15, command: 'Terminate user', description: t('Terminate_USER_DESC'), value: t('OCSERV_USERNAME') },
-    { id: 16, command: 'Terminate user by ID', description: t('Terminate_USER_BY_ID_DESC'), value: t('SESSION_ID') },
+    {
+        id: 14,
+        command: 'Disconnect user by ID',
+        description: t('DISCONNECT_USER_BY_ID_DESC'),
+        value: t('USER_SESSION_ID')
+    },
+    { id: 15, command: 'Terminate user', description: t('TERMINATE_USER_DESC'), value: t('OCSERV_USERNAME') },
+    { id: 16, command: 'Terminate user by ID', description: t('TERMINATE_USER_BY_ID_DESC'), value: t('USER_SESSION_ID') },
     { id: 5, command: 'Show sessions all', description: t('SHOW_SESSIONS_ALL_DESC') },
     { id: 6, command: 'Show sessions valid', description: t('SHOW_SESSIONS_VALID_DESC') },
     { id: 7, command: 'Show session by SID', description: t('SHOW_SESSION_DESC'), value: 'SID' },
@@ -31,7 +36,7 @@ const commands = [
     { id: 10, command: 'Show status', description: t('SHOW_STATUS_DESC') },
     { id: 11, command: 'Show events', description: t('SHOW_EVENTS_DESC') },
     { id: 12, command: 'Show iroutes', description: t('SHOW_IROUTES_DESC') },
-    { id: 13, command: 'Reload', description: t('RELOAD_DESC') },
+    { id: 13, command: 'Reload', description: t('RELOAD_DESC') }
 ];
 
 const serverStore = useServerStore();

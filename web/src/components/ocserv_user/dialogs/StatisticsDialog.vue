@@ -1,15 +1,10 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useI18n } from 'vue-i18n';
 import UiChildCard from '@/components/shared/UiChildCard.vue';
 import DateRange from '@/components/shared/DateRange.vue';
 import BarChart from '@/components/shared/BarChart.vue';
 import { computed, ref } from 'vue';
-import {
-    type ModelsDailyTraffic,
-    OcservUsersApi,
-    type OcservUserStatisticsResponse,
-    type RepositoryTotalBandwidths
-} from '@/api';
+import { type ModelsDailyTraffic, OcservUsersApi, type RepositoryTotalBandwidths } from '@/api';
 import { getAuthorization } from '@/utils/request';
 import { numberToFixer } from '@/utils/convertors';
 import DonutChart from '@/components/shared/DonutChart.vue';
@@ -73,7 +68,7 @@ const txPercentage = computed(() => {
     <v-dialog v-model="props.show" max-width="1200">
         <v-card>
             <v-card-title class="bg-info text-capitalize">
-                <v-row align="end" justify="space-between" class="no-gutters">
+                <v-row align="end" class="no-gutters" justify="space-between">
                     <v-col md="auto"> {{ t('STATISTICS') }} ({{ username }}) </v-col>
                     <v-col md="auto">
                         <v-icon @click="emits('close')">mdi-close</v-icon>
@@ -86,16 +81,16 @@ const txPercentage = computed(() => {
                     <v-col cols="12" md="12">
                         <UiChildCard class="px-2 mt-0">
                             <DateRange
+                                :disable-more30-days="false"
                                 :initDate="initData"
                                 :loading="loading"
                                 @search="search"
-                                :disable-more30-days="false"
                             />
                         </UiChildCard>
                     </v-col>
 
                     <v-col cols="12" md="6">
-                        <UiChildCard :title="t('TOTAL_BANDWIDTHS')" class="mt-5 px-2" :height="460">
+                        <UiChildCard :height="460" :title="t('TOTAL_BANDWIDTHS')" class="mt-5 px-2">
                             <v-row align="center" justify="center">
                                 <v-col cols="12" md="auto">
                                     <h6 class="text-h6 text-capitalize text-body-1">
@@ -154,13 +149,13 @@ const txPercentage = computed(() => {
                         </UiChildCard>
                     </v-col>
 
-                    <v-col cols="12" md="6" v-if="chartData.length > 0">
-                        <UiChildCard class="mt-5 px-2" title="RX / TX" :height="460">
+                    <v-col v-if="chartData.length > 0" cols="12" md="6">
+                        <UiChildCard :height="460" class="mt-5 px-2" title="RX / TX">
                             <BarChart :data="chartData" />
                         </UiChildCard>
                     </v-col>
 
-                    <v-col cols="12" md="6" v-else>
+                    <v-col v-else cols="12" md="6">
                         <UiChildCard :title="t('NO_FOUND_RX_TX_IN_STATS')" class="mt-5 px-2" />
                     </v-col>
                 </v-row>

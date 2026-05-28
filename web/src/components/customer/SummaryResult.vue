@@ -3,7 +3,6 @@ import type { CustomerSummaryResponse } from '@/api';
 import { bytesToGB, formatDate, trafficTypesTransformer } from '@/utils/convertors';
 import UiChildCard from '@/components/shared/UiChildCard.vue';
 import { useI18n } from 'vue-i18n';
-import { router } from '@/router';
 
 defineProps<{
     result: CustomerSummaryResponse;
@@ -26,12 +25,12 @@ const { t } = useI18n();
                         </span>
                     </v-col>
                     <v-col cols="12" md="auto" sm="12">
-                        <v-btn color="primary" flat @click="emit('disconnect')" size="small">
+                        <v-btn color="primary" flat size="small" @click="emit('disconnect')">
                             {{ t('DISCONNECT_ALL_SESSIONS') }}
                         </v-btn>
                     </v-col>
-                    <v-col cols="12" md="auto" sm="12" v-if="result.ocserv_user.certificate_available">
-                        <v-btn color="info" variant="outlined" @click="emit('downloadCertificate')" size="small">
+                    <v-col v-if="result.ocserv_user.certificate_available" cols="12" md="auto" sm="12">
+                        <v-btn color="info" size="small" variant="outlined" @click="emit('downloadCertificate')">
                             {{ t('DOWNLOAD_CERTIFICATE') }}
                         </v-btn>
                     </v-col>
