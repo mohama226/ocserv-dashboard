@@ -22,6 +22,18 @@
 export interface CustomerModelCustomer {
     /**
      * 
+     * @type {boolean}
+     * @memberof CustomerModelCustomer
+     */
+    'certificate_available': boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CustomerModelCustomer
+     */
+    'certificate_enabled': boolean;
+    /**
+     * 
      * @type {string}
      * @memberof CustomerModelCustomer
      */
@@ -38,18 +50,6 @@ export interface CustomerModelCustomer {
      * @memberof CustomerModelCustomer
      */
     'is_locked': boolean;
-    /**
-     *
-     * @type {boolean}
-     * @memberof CustomerModelCustomer
-     */
-    'certificate_enabled'?: boolean;
-    /**
-     *
-     * @type {boolean}
-     * @memberof CustomerModelCustomer
-     */
-    'certificate_available'?: boolean;
     /**
      * 
      * @type {string}
@@ -92,9 +92,9 @@ export const CustomerModelCustomerTrafficTypeEnum = {
     FREE: 'Free',
     MONTHLY_TRANSMIT: 'MonthlyTransmit',
     MONTHLY_RECEIVE: 'MonthlyReceive',
+    MONTHLY_RX_TX: 'MonthlyRxTx',
     TOTALLY_TRANSMIT: 'TotallyTransmit',
     TOTALLY_RECEIVE: 'TotallyReceive',
-    MONTHLY_RX_TX: 'MonthlyRxTx',
     TOTALLY_RX_TX: 'TotallyRxTx'
 } as const;
 

@@ -15,7 +15,13 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import type { ModelsOcservUserCertificateBackup } from './models-ocserv-user-certificate-backup';
+// May contain unused imports in some cases
+// @ts-ignore
 import type { ModelsOcservUserConfig } from './models-ocserv-user-config';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { ModelsOnlineUserSession } from './models-online-user-session';
 
 /**
  * 
@@ -23,6 +29,24 @@ import type { ModelsOcservUserConfig } from './models-ocserv-user-config';
  * @interface ModelsOcservUser
  */
 export interface ModelsOcservUser {
+    /**
+     * 
+     * @type {ModelsOcservUserCertificateBackup}
+     * @memberof ModelsOcservUser
+     */
+    'certificate'?: ModelsOcservUserCertificateBackup;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ModelsOcservUser
+     */
+    'certificate_available'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ModelsOcservUser
+     */
+    'certificate_enabled'?: boolean;
     /**
      * 
      * @type {ModelsOcservUserConfig}
@@ -35,18 +59,6 @@ export interface ModelsOcservUser {
      * @memberof ModelsOcservUser
      */
     'created_at': string;
-    /**
-     *
-     * @type {boolean}
-     * @memberof ModelsOcservUser
-     */
-    'certificate_enabled'?: boolean;
-    /**
-     *
-     * @type {boolean}
-     * @memberof ModelsOcservUser
-     */
-    'certificate_available'?: boolean;
     /**
      * 
      * @type {string}
@@ -85,12 +97,18 @@ export interface ModelsOcservUser {
     'is_online': boolean;
     /**
      * 
+     * @type {Array<ModelsOnlineUserSession>}
+     * @memberof ModelsOcservUser
+     */
+    'online_sessions': Array<ModelsOnlineUserSession>;
+    /**
+     * 
      * @type {string}
      * @memberof ModelsOcservUser
      */
     'owner': string;
     /**
-     * Length matches migration 007 (ocserv_users.password column); do not widen without a new migration.
+     * 
      * @type {string}
      * @memberof ModelsOcservUser
      */
@@ -143,9 +161,9 @@ export const ModelsOcservUserTrafficTypeEnum = {
     FREE: 'Free',
     MONTHLY_TRANSMIT: 'MonthlyTransmit',
     MONTHLY_RECEIVE: 'MonthlyReceive',
+    MONTHLY_RX_TX: 'MonthlyRxTx',
     TOTALLY_TRANSMIT: 'TotallyTransmit',
     TOTALLY_RECEIVE: 'TotallyReceive',
-    MONTHLY_RX_TX: 'MonthlyRxTx',
     TOTALLY_RX_TX: 'TotallyRxTx'
 } as const;
 

@@ -117,6 +117,86 @@ export const OcservUsersApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
+         * Disconnect Ocserv User Session BY ID
+         * @summary Disconnect Ocserv User Session BY ID
+         * @param {string} authorization Bearer TOKEN
+         * @param {string} id Ocserv User Session ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersIdDisconnectByIdPost: async (authorization: string, id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('ocservUsersIdDisconnectByIdPost', 'authorization', authorization)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('ocservUsersIdDisconnectByIdPost', 'id', id)
+            const localVarPath = `/ocserv/users/{id}/disconnect_by_id`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Terminate Ocserv User Session BY ID
+         * @summary Terminate Ocserv User Session BY ID
+         * @param {string} authorization Bearer TOKEN
+         * @param {string} id Ocserv User Session ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersIdTerminateByIdPost: async (authorization: string, id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('ocservUsersIdTerminateByIdPost', 'authorization', authorization)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('ocservUsersIdTerminateByIdPost', 'id', id)
+            const localVarPath = `/ocserv/users/{id}/terminate_by_id`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Ocserv User creation
          * @summary Ocserv User creation
          * @param {string} authorization Bearer TOKEN
@@ -198,6 +278,86 @@ export const OcservUsersApiAxiosParamCreator = function (configuration?: Configu
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(request, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Download the user\'s .p12 certificate bundle
+         * @summary Download ocserv user certificate
+         * @param {string} authorization Bearer TOKEN
+         * @param {string} uid Ocserv User UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersUidCertificateGet: async (authorization: string, uid: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('ocservUsersUidCertificateGet', 'authorization', authorization)
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('ocservUsersUidCertificateGet', 'uid', uid)
+            const localVarPath = `/ocserv/users/{uid}/certificate`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Create certificate for an existing ocserv user using the currently stored password
+         * @summary Create certificate for ocserv user
+         * @param {string} authorization Bearer TOKEN
+         * @param {string} uid Ocserv User UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersUidCertificatePost: async (authorization: string, uid: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('ocservUsersUidCertificatePost', 'authorization', authorization)
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('ocservUsersUidCertificatePost', 'uid', uid)
+            const localVarPath = `/ocserv/users/{uid}/certificate`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -531,8 +691,8 @@ export const OcservUsersApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
-         * Disconnect Ocserv User
-         * @summary Disconnect Ocserv User
+         * Disconnect Ocserv User (All Sessions)
+         * @summary Disconnect Ocserv User (All Sessions)
          * @param {string} authorization Bearer TOKEN
          * @param {string} username Ocserv User username
          * @param {*} [options] Override http request option.
@@ -544,6 +704,46 @@ export const OcservUsersApiAxiosParamCreator = function (configuration?: Configu
             // verify required parameter 'username' is not null or undefined
             assertParamExists('ocservUsersUsernameDisconnectPost', 'username', username)
             const localVarPath = `/ocserv/users/{username}/disconnect`
+                .replace(`{${"username"}}`, encodeURIComponent(String(username)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            if (authorization != null) {
+                localVarHeaderParameter['Authorization'] = String(authorization);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Terminate Ocserv User (All Sessions)
+         * @summary Terminate Ocserv User (All Sessions)
+         * @param {string} authorization Bearer TOKEN
+         * @param {string} username Ocserv User username
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersUsernameTerminatePost: async (authorization: string, username: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'authorization' is not null or undefined
+            assertParamExists('ocservUsersUsernameTerminatePost', 'authorization', authorization)
+            // verify required parameter 'username' is not null or undefined
+            assertParamExists('ocservUsersUsernameTerminatePost', 'username', username)
+            const localVarPath = `/ocserv/users/{username}/terminate`
                 .replace(`{${"username"}}`, encodeURIComponent(String(username)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -601,6 +801,34 @@ export const OcservUsersApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Disconnect Ocserv User Session BY ID
+         * @summary Disconnect Ocserv User Session BY ID
+         * @param {string} authorization Bearer TOKEN
+         * @param {string} id Ocserv User Session ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ocservUsersIdDisconnectByIdPost(authorization: string, id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersIdDisconnectByIdPost(authorization, id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersIdDisconnectByIdPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Terminate Ocserv User Session BY ID
+         * @summary Terminate Ocserv User Session BY ID
+         * @param {string} authorization Bearer TOKEN
+         * @param {string} id Ocserv User Session ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ocservUsersIdTerminateByIdPost(authorization: string, id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersIdTerminateByIdPost(authorization, id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersIdTerminateByIdPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Ocserv User creation
          * @summary Ocserv User creation
          * @param {string} authorization Bearer TOKEN
@@ -627,6 +855,34 @@ export const OcservUsersApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersUidActivatePost(authorization, uid, request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersUidActivatePost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Download the user\'s .p12 certificate bundle
+         * @summary Download ocserv user certificate
+         * @param {string} authorization Bearer TOKEN
+         * @param {string} uid Ocserv User UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ocservUsersUidCertificateGet(authorization: string, uid: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<File>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersUidCertificateGet(authorization, uid, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersUidCertificateGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Create certificate for an existing ocserv user using the currently stored password
+         * @summary Create certificate for ocserv user
+         * @param {string} authorization Bearer TOKEN
+         * @param {string} uid Ocserv User UID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ocservUsersUidCertificatePost(authorization: string, uid: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersUidCertificatePost(authorization, uid, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersUidCertificatePost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -737,8 +993,8 @@ export const OcservUsersApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Disconnect Ocserv User
-         * @summary Disconnect Ocserv User
+         * Disconnect Ocserv User (All Sessions)
+         * @summary Disconnect Ocserv User (All Sessions)
          * @param {string} authorization Bearer TOKEN
          * @param {string} username Ocserv User username
          * @param {*} [options] Override http request option.
@@ -748,6 +1004,20 @@ export const OcservUsersApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersUsernameDisconnectPost(authorization, username, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersUsernameDisconnectPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Terminate Ocserv User (All Sessions)
+         * @summary Terminate Ocserv User (All Sessions)
+         * @param {string} authorization Bearer TOKEN
+         * @param {string} username Ocserv User username
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ocservUsersUsernameTerminatePost(authorization: string, username: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ocservUsersUsernameTerminatePost(authorization, username, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OcservUsersApi.ocservUsersUsernameTerminatePost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -771,6 +1041,26 @@ export const OcservUsersApiFactory = function (configuration?: Configuration, ba
             return localVarFp.ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.q, requestParameters.filter, requestParameters.group, options).then((request) => request(axios, basePath));
         },
         /**
+         * Disconnect Ocserv User Session BY ID
+         * @summary Disconnect Ocserv User Session BY ID
+         * @param {OcservUsersApiOcservUsersIdDisconnectByIdPostRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersIdDisconnectByIdPost(requestParameters: OcservUsersApiOcservUsersIdDisconnectByIdPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.ocservUsersIdDisconnectByIdPost(requestParameters.authorization, requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Terminate Ocserv User Session BY ID
+         * @summary Terminate Ocserv User Session BY ID
+         * @param {OcservUsersApiOcservUsersIdTerminateByIdPostRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersIdTerminateByIdPost(requestParameters: OcservUsersApiOcservUsersIdTerminateByIdPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.ocservUsersIdTerminateByIdPost(requestParameters.authorization, requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Ocserv User creation
          * @summary Ocserv User creation
          * @param {OcservUsersApiOcservUsersPostRequest} requestParameters Request parameters.
@@ -789,6 +1079,26 @@ export const OcservUsersApiFactory = function (configuration?: Configuration, ba
          */
         ocservUsersUidActivatePost(requestParameters: OcservUsersApiOcservUsersUidActivatePostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.ocservUsersUidActivatePost(requestParameters.authorization, requestParameters.uid, requestParameters.request, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Download the user\'s .p12 certificate bundle
+         * @summary Download ocserv user certificate
+         * @param {OcservUsersApiOcservUsersUidCertificateGetRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersUidCertificateGet(requestParameters: OcservUsersApiOcservUsersUidCertificateGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<File> {
+            return localVarFp.ocservUsersUidCertificateGet(requestParameters.authorization, requestParameters.uid, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Create certificate for an existing ocserv user using the currently stored password
+         * @summary Create certificate for ocserv user
+         * @param {OcservUsersApiOcservUsersUidCertificatePostRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersUidCertificatePost(requestParameters: OcservUsersApiOcservUsersUidCertificatePostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.ocservUsersUidCertificatePost(requestParameters.authorization, requestParameters.uid, options).then((request) => request(axios, basePath));
         },
         /**
          * Ocserv User delete
@@ -861,14 +1171,24 @@ export const OcservUsersApiFactory = function (configuration?: Configuration, ba
             return localVarFp.ocservUsersUidUnlockPost(requestParameters.authorization, requestParameters.uid, options).then((request) => request(axios, basePath));
         },
         /**
-         * Disconnect Ocserv User
-         * @summary Disconnect Ocserv User
+         * Disconnect Ocserv User (All Sessions)
+         * @summary Disconnect Ocserv User (All Sessions)
          * @param {OcservUsersApiOcservUsersUsernameDisconnectPostRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         ocservUsersUsernameDisconnectPost(requestParameters: OcservUsersApiOcservUsersUsernameDisconnectPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.ocservUsersUsernameDisconnectPost(requestParameters.authorization, requestParameters.username, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Terminate Ocserv User (All Sessions)
+         * @summary Terminate Ocserv User (All Sessions)
+         * @param {OcservUsersApiOcservUsersUsernameTerminatePostRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ocservUsersUsernameTerminatePost(requestParameters: OcservUsersApiOcservUsersUsernameTerminatePostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.ocservUsersUsernameTerminatePost(requestParameters.authorization, requestParameters.username, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -937,6 +1257,48 @@ export interface OcservUsersApiOcservUsersGetRequest {
 }
 
 /**
+ * Request parameters for ocservUsersIdDisconnectByIdPost operation in OcservUsersApi.
+ * @export
+ * @interface OcservUsersApiOcservUsersIdDisconnectByIdPostRequest
+ */
+export interface OcservUsersApiOcservUsersIdDisconnectByIdPostRequest {
+    /**
+     * Bearer TOKEN
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersIdDisconnectByIdPost
+     */
+    readonly authorization: string
+
+    /**
+     * Ocserv User Session ID
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersIdDisconnectByIdPost
+     */
+    readonly id: string
+}
+
+/**
+ * Request parameters for ocservUsersIdTerminateByIdPost operation in OcservUsersApi.
+ * @export
+ * @interface OcservUsersApiOcservUsersIdTerminateByIdPostRequest
+ */
+export interface OcservUsersApiOcservUsersIdTerminateByIdPostRequest {
+    /**
+     * Bearer TOKEN
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersIdTerminateByIdPost
+     */
+    readonly authorization: string
+
+    /**
+     * Ocserv User Session ID
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersIdTerminateByIdPost
+     */
+    readonly id: string
+}
+
+/**
  * Request parameters for ocservUsersPost operation in OcservUsersApi.
  * @export
  * @interface OcservUsersApiOcservUsersPostRequest
@@ -983,6 +1345,48 @@ export interface OcservUsersApiOcservUsersUidActivatePostRequest {
      * @memberof OcservUsersApiOcservUsersUidActivatePost
      */
     readonly request: OcservUserActivateUserData
+}
+
+/**
+ * Request parameters for ocservUsersUidCertificateGet operation in OcservUsersApi.
+ * @export
+ * @interface OcservUsersApiOcservUsersUidCertificateGetRequest
+ */
+export interface OcservUsersApiOcservUsersUidCertificateGetRequest {
+    /**
+     * Bearer TOKEN
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersUidCertificateGet
+     */
+    readonly authorization: string
+
+    /**
+     * Ocserv User UID
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersUidCertificateGet
+     */
+    readonly uid: string
+}
+
+/**
+ * Request parameters for ocservUsersUidCertificatePost operation in OcservUsersApi.
+ * @export
+ * @interface OcservUsersApiOcservUsersUidCertificatePostRequest
+ */
+export interface OcservUsersApiOcservUsersUidCertificatePostRequest {
+    /**
+     * Bearer TOKEN
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersUidCertificatePost
+     */
+    readonly authorization: string
+
+    /**
+     * Ocserv User UID
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersUidCertificatePost
+     */
+    readonly uid: string
 }
 
 /**
@@ -1217,6 +1621,27 @@ export interface OcservUsersApiOcservUsersUsernameDisconnectPostRequest {
 }
 
 /**
+ * Request parameters for ocservUsersUsernameTerminatePost operation in OcservUsersApi.
+ * @export
+ * @interface OcservUsersApiOcservUsersUsernameTerminatePostRequest
+ */
+export interface OcservUsersApiOcservUsersUsernameTerminatePostRequest {
+    /**
+     * Bearer TOKEN
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersUsernameTerminatePost
+     */
+    readonly authorization: string
+
+    /**
+     * Ocserv User username
+     * @type {string}
+     * @memberof OcservUsersApiOcservUsersUsernameTerminatePost
+     */
+    readonly username: string
+}
+
+/**
  * OcservUsersApi - object-oriented interface
  * @export
  * @class OcservUsersApi
@@ -1233,6 +1658,30 @@ export class OcservUsersApi extends BaseAPI {
      */
     public ocservUsersGet(requestParameters: OcservUsersApiOcservUsersGetRequest, options?: RawAxiosRequestConfig) {
         return OcservUsersApiFp(this.configuration).ocservUsersGet(requestParameters.authorization, requestParameters.page, requestParameters.size, requestParameters.order, requestParameters.sort, requestParameters.q, requestParameters.filter, requestParameters.group, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Disconnect Ocserv User Session BY ID
+     * @summary Disconnect Ocserv User Session BY ID
+     * @param {OcservUsersApiOcservUsersIdDisconnectByIdPostRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OcservUsersApi
+     */
+    public ocservUsersIdDisconnectByIdPost(requestParameters: OcservUsersApiOcservUsersIdDisconnectByIdPostRequest, options?: RawAxiosRequestConfig) {
+        return OcservUsersApiFp(this.configuration).ocservUsersIdDisconnectByIdPost(requestParameters.authorization, requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Terminate Ocserv User Session BY ID
+     * @summary Terminate Ocserv User Session BY ID
+     * @param {OcservUsersApiOcservUsersIdTerminateByIdPostRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OcservUsersApi
+     */
+    public ocservUsersIdTerminateByIdPost(requestParameters: OcservUsersApiOcservUsersIdTerminateByIdPostRequest, options?: RawAxiosRequestConfig) {
+        return OcservUsersApiFp(this.configuration).ocservUsersIdTerminateByIdPost(requestParameters.authorization, requestParameters.id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1257,6 +1706,30 @@ export class OcservUsersApi extends BaseAPI {
      */
     public ocservUsersUidActivatePost(requestParameters: OcservUsersApiOcservUsersUidActivatePostRequest, options?: RawAxiosRequestConfig) {
         return OcservUsersApiFp(this.configuration).ocservUsersUidActivatePost(requestParameters.authorization, requestParameters.uid, requestParameters.request, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Download the user\'s .p12 certificate bundle
+     * @summary Download ocserv user certificate
+     * @param {OcservUsersApiOcservUsersUidCertificateGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OcservUsersApi
+     */
+    public ocservUsersUidCertificateGet(requestParameters: OcservUsersApiOcservUsersUidCertificateGetRequest, options?: RawAxiosRequestConfig) {
+        return OcservUsersApiFp(this.configuration).ocservUsersUidCertificateGet(requestParameters.authorization, requestParameters.uid, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Create certificate for an existing ocserv user using the currently stored password
+     * @summary Create certificate for ocserv user
+     * @param {OcservUsersApiOcservUsersUidCertificatePostRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OcservUsersApi
+     */
+    public ocservUsersUidCertificatePost(requestParameters: OcservUsersApiOcservUsersUidCertificatePostRequest, options?: RawAxiosRequestConfig) {
+        return OcservUsersApiFp(this.configuration).ocservUsersUidCertificatePost(requestParameters.authorization, requestParameters.uid, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1344,8 +1817,8 @@ export class OcservUsersApi extends BaseAPI {
     }
 
     /**
-     * Disconnect Ocserv User
-     * @summary Disconnect Ocserv User
+     * Disconnect Ocserv User (All Sessions)
+     * @summary Disconnect Ocserv User (All Sessions)
      * @param {OcservUsersApiOcservUsersUsernameDisconnectPostRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1353,6 +1826,18 @@ export class OcservUsersApi extends BaseAPI {
      */
     public ocservUsersUsernameDisconnectPost(requestParameters: OcservUsersApiOcservUsersUsernameDisconnectPostRequest, options?: RawAxiosRequestConfig) {
         return OcservUsersApiFp(this.configuration).ocservUsersUsernameDisconnectPost(requestParameters.authorization, requestParameters.username, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Terminate Ocserv User (All Sessions)
+     * @summary Terminate Ocserv User (All Sessions)
+     * @param {OcservUsersApiOcservUsersUsernameTerminatePostRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OcservUsersApi
+     */
+    public ocservUsersUsernameTerminatePost(requestParameters: OcservUsersApiOcservUsersUsernameTerminatePostRequest, options?: RawAxiosRequestConfig) {
+        return OcservUsersApiFp(this.configuration).ocservUsersUsernameTerminatePost(requestParameters.authorization, requestParameters.username, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

@@ -68,9 +68,9 @@ export const OcservUserSyncOcpasswdRequestTrafficTypeEnum = {
     FREE: 'Free',
     MONTHLY_TRANSMIT: 'MonthlyTransmit',
     MONTHLY_RECEIVE: 'MonthlyReceive',
+    MONTHLY_RX_TX: 'MonthlyRxTx',
     TOTALLY_TRANSMIT: 'TotallyTransmit',
     TOTALLY_RECEIVE: 'TotallyReceive',
-    MONTHLY_RX_TX: 'MonthlyRxTx',
     TOTALLY_RX_TX: 'TotallyRxTx'
 } as const;
 
