@@ -39,6 +39,7 @@ Easily manage users, groups, and server configurations while keeping your VPN se
 - Sync the `ocpasswd` file with the database to keep user credentials consistent.
 - Set traffic usage limits per user (e.g., GB or monthly quotas).
 - Manage account expiration to automatically deactivate users when their subscription ends.
+- Generate and manage user certificate files in .p12 format for secure client authentication and easy device import.
 
 ### 2. Ocserv Group Management
 - Create, update, and delete user groups.
