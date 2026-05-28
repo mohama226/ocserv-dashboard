@@ -221,6 +221,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/customers/certificate": {
+            "post": {
+                "description": "Download customer's own .p12 certificate bundle using ocserv username/password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/x-pkcs12"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Download customer certificate",
+                "parameters": [
+                    {
+                        "description": "customer username and password (same ocserv account).",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/customer.SummaryData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "user.p12",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.TooManyRequests"
+                        }
+                    }
+                }
+            }
+        },
         "/customers/disconnect_sessions": {
             "post": {
                 "description": "disconnects all online sessions for a customer",
@@ -1381,6 +1427,102 @@ const docTemplate = `{
                 }
             }
         },
+        "/ocserv/users/{id}/disconnect_by_id": {
+            "post": {
+                "description": "Disconnect Ocserv User Session BY ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ocserv(Users)"
+                ],
+                "summary": "Disconnect Ocserv User Session BY ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer TOKEN",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ocserv User Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Unauthorized"
+                        }
+                    }
+                }
+            }
+        },
+        "/ocserv/users/{id}/terminate_by_id": {
+            "post": {
+                "description": "Terminate Ocserv User Session BY ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ocserv(Users)"
+                ],
+                "summary": "Terminate Ocserv User Session BY ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer TOKEN",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ocserv User Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Unauthorized"
+                        }
+                    }
+                }
+            }
+        },
         "/ocserv/users/{uid}": {
             "get": {
                 "description": "Ocserv user detail",
@@ -1572,6 +1714,100 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/ocserv_user.ActivateUserData"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Unauthorized"
+                        }
+                    }
+                }
+            }
+        },
+        "/ocserv/users/{uid}/certificate": {
+            "get": {
+                "description": "Download the user's .p12 certificate bundle",
+                "produces": [
+                    "application/x-pkcs12"
+                ],
+                "tags": [
+                    "Ocserv(Users)"
+                ],
+                "summary": "Download ocserv user certificate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer TOKEN",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ocserv User UID",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "user.p12",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Unauthorized"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create certificate for an existing ocserv user using the currently stored password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ocserv(Users)"
+                ],
+                "summary": "Create certificate for ocserv user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer TOKEN",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ocserv User UID",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1848,7 +2084,7 @@ const docTemplate = `{
         },
         "/ocserv/users/{username}/disconnect": {
             "post": {
-                "description": "Disconnect Ocserv User",
+                "description": "Disconnect Ocserv User (All Sessions)",
                 "consumes": [
                     "application/json"
                 ],
@@ -1858,7 +2094,55 @@ const docTemplate = `{
                 "tags": [
                     "Ocserv(Users)"
                 ],
-                "summary": "Disconnect Ocserv User",
+                "summary": "Disconnect Ocserv User (All Sessions)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer TOKEN",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ocserv User username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Unauthorized"
+                        }
+                    }
+                }
+            }
+        },
+        "/ocserv/users/{username}/terminate": {
+            "post": {
+                "description": "Terminate Ocserv User (All Sessions)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ocserv(Users)"
+                ],
+                "summary": "Terminate Ocserv User (All Sessions)",
                 "parameters": [
                     {
                         "type": "string",
@@ -3047,6 +3331,8 @@ const docTemplate = `{
         "customer.ModelCustomer": {
             "type": "object",
             "required": [
+                "certificate_available",
+                "certificate_enabled",
                 "deactivated_at",
                 "expire_at",
                 "is_locked",
@@ -3058,6 +3344,12 @@ const docTemplate = `{
                 "username"
             ],
             "properties": {
+                "certificate_available": {
+                    "type": "boolean"
+                },
+                "certificate_enabled": {
+                    "type": "boolean"
+                },
                 "deactivated_at": {
                     "type": "string"
                 },
@@ -3084,8 +3376,10 @@ const docTemplate = `{
                         "Free",
                         "MonthlyTransmit",
                         "MonthlyReceive",
+                        "MonthlyRxTx",
                         "TotallyTransmit",
-                        "TotallyReceive"
+                        "TotallyReceive",
+                        "TotallyRxTx"
                     ]
                 },
                 "tx": {
@@ -3703,6 +3997,7 @@ const docTemplate = `{
                 "group",
                 "is_locked",
                 "is_online",
+                "online_sessions",
                 "owner",
                 "password",
                 "rx",
@@ -3713,6 +4008,15 @@ const docTemplate = `{
                 "username"
             ],
             "properties": {
+                "certificate": {
+                    "$ref": "#/definitions/models.OcservUserCertificateBackup"
+                },
+                "certificate_available": {
+                    "type": "boolean"
+                },
+                "certificate_enabled": {
+                    "type": "boolean"
+                },
                 "config": {
                     "$ref": "#/definitions/models.OcservUserConfig"
                 },
@@ -3737,11 +4041,16 @@ const docTemplate = `{
                 "is_online": {
                     "type": "boolean"
                 },
+                "online_sessions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.OnlineUserSession"
+                    }
+                },
                 "owner": {
                     "type": "string"
                 },
                 "password": {
-                    "description": "Length matches migration 007 (ocserv_users.password column); do not widen without a new migration.",
                     "type": "string"
                 },
                 "rx": {
@@ -3758,8 +4067,10 @@ const docTemplate = `{
                         "Free",
                         "MonthlyTransmit",
                         "MonthlyReceive",
+                        "MonthlyRxTx",
                         "TotallyTransmit",
-                        "TotallyReceive"
+                        "TotallyReceive",
+                        "TotallyRxTx"
                     ]
                 },
                 "tx": {
@@ -3773,6 +4084,24 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.OcservUserCertificateBackup": {
+            "type": "object",
+            "properties": {
+                "cert_pem": {
+                    "type": "string"
+                },
+                "key_pem": {
+                    "type": "string"
+                },
+                "p12_base64": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "active or suspended",
                     "type": "string"
                 }
             }
@@ -3884,6 +4213,13 @@ const docTemplate = `{
         },
         "models.OnlineUserSession": {
             "type": "object",
+            "required": [
+                "Device",
+                "ID",
+                "IPv4",
+                "Session started at",
+                "vhost"
+            ],
             "properties": {
                 "Average RX": {
                     "type": "string"
@@ -3891,13 +4227,28 @@ const docTemplate = `{
                 "Average TX": {
                     "type": "string"
                 },
+                "Device": {
+                    "type": "string"
+                },
                 "Groupname": {
+                    "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "IPv4": {
+                    "type": "string"
+                },
+                "Session started at": {
                     "type": "string"
                 },
                 "Username": {
                     "type": "string"
                 },
-                "_Connected at": {
+                "_Last connected at": {
+                    "type": "string"
+                },
+                "vhost": {
                     "type": "string"
                 }
             }
@@ -4085,10 +4436,11 @@ const docTemplate = `{
                         "Free",
                         "MonthlyTransmit",
                         "MonthlyReceive",
+                        "MonthlyRxTx",
                         "TotallyTransmit",
-                        "TotallyReceive"
-                    ],
-                    "example": "MonthlyTransmit"
+                        "TotallyReceive",
+                        "TotallyRxTx"
+                    ]
                 },
                 "unlimited": {
                     "type": "boolean",
@@ -4201,10 +4553,11 @@ const docTemplate = `{
                         "Free",
                         "MonthlyTransmit",
                         "MonthlyReceive",
+                        "MonthlyRxTx",
                         "TotallyTransmit",
-                        "TotallyReceive"
-                    ],
-                    "example": "MonthlyTransmit"
+                        "TotallyReceive",
+                        "TotallyRxTx"
+                    ]
                 },
                 "users": {
                     "type": "array",
@@ -4250,10 +4603,11 @@ const docTemplate = `{
                         "Free",
                         "MonthlyTransmit",
                         "MonthlyReceive",
+                        "MonthlyRxTx",
                         "TotallyTransmit",
-                        "TotallyReceive"
-                    ],
-                    "example": "MonthlyTransmit"
+                        "TotallyReceive",
+                        "TotallyRxTx"
+                    ]
                 },
                 "unlimited": {
                     "type": "boolean",

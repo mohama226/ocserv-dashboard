@@ -13,6 +13,10 @@ definitions:
     type: object
   customer.ModelCustomer:
     properties:
+      certificate_available:
+        type: boolean
+      certificate_enabled:
+        type: boolean
       deactivated_at:
         type: string
       expire_at:
@@ -32,8 +36,10 @@ definitions:
         - Free
         - MonthlyTransmit
         - MonthlyReceive
+        - MonthlyRxTx
         - TotallyTransmit
         - TotallyReceive
+        - TotallyRxTx
         type: string
       tx:
         description: Transmit in bytes
@@ -41,6 +47,8 @@ definitions:
       username:
         type: string
     required:
+    - certificate_available
+    - certificate_enabled
     - deactivated_at
     - expire_at
     - is_locked
@@ -474,6 +482,12 @@ definitions:
     type: object
   models.OcservUser:
     properties:
+      certificate:
+        $ref: '#/definitions/models.OcservUserCertificateBackup'
+      certificate_available:
+        type: boolean
+      certificate_enabled:
+        type: boolean
       config:
         $ref: '#/definitions/models.OcservUserConfig'
       created_at:
@@ -490,11 +504,13 @@ definitions:
         type: boolean
       is_online:
         type: boolean
+      online_sessions:
+        items:
+          $ref: '#/definitions/models.OnlineUserSession'
+        type: array
       owner:
         type: string
       password:
-        description: Length matches migration 007 (ocserv_users.password column);
-          do not widen without a new migration.
         type: string
       rx:
         description: Receive in bytes
@@ -507,8 +523,10 @@ definitions:
         - Free
         - MonthlyTransmit
         - MonthlyReceive
+        - MonthlyRxTx
         - TotallyTransmit
         - TotallyReceive
+        - TotallyRxTx
         type: string
       tx:
         description: Transmit in bytes
@@ -524,6 +542,7 @@ definitions:
     - group
     - is_locked
     - is_online
+    - online_sessions
     - owner
     - password
     - rx
@@ -532,6 +551,18 @@ definitions:
     - tx
     - uid
     - username
+    type: object
+  models.OcservUserCertificateBackup:
+    properties:
+      cert_pem:
+        type: string
+      key_pem:
+        type: string
+      p12_base64:
+        type: string
+      status:
+        description: active or suspended
+        type: string
     type: object
   models.OcservUserConfig:
     properties:
@@ -620,16 +651,32 @@ definitions:
     type: object
   models.OnlineUserSession:
     properties:
-      _Connected at:
+      _Last connected at:
         type: string
       Average RX:
         type: string
       Average TX:
         type: string
+      Device:
+        type: string
       Groupname:
+        type: string
+      ID:
+        type: integer
+      IPv4:
+        type: string
+      Session started at:
         type: string
       Username:
         type: string
+      vhost:
+        type: string
+    required:
+    - Device
+    - ID
+    - IPv4
+    - Session started at
+    - vhost
     type: object
   models.ServerVersion:
     properties:
@@ -751,9 +798,10 @@ definitions:
         - Free
         - MonthlyTransmit
         - MonthlyReceive
+        - MonthlyRxTx
         - TotallyTransmit
         - TotallyReceive
-        example: MonthlyTransmit
+        - TotallyRxTx
         type: string
       unlimited:
         default: false
@@ -836,9 +884,10 @@ definitions:
         - Free
         - MonthlyTransmit
         - MonthlyReceive
+        - MonthlyRxTx
         - TotallyTransmit
         - TotallyReceive
-        example: MonthlyTransmit
+        - TotallyRxTx
         type: string
       users:
         items:
@@ -875,9 +924,10 @@ definitions:
         - Free
         - MonthlyTransmit
         - MonthlyReceive
+        - MonthlyRxTx
         - TotallyTransmit
         - TotallyReceive
-        example: MonthlyTransmit
+        - TotallyRxTx
         type: string
       unlimited:
         default: false
@@ -1318,6 +1368,36 @@ paths:
       summary: Restore ocserv users
       tags:
       - System(Restore)
+  /customers/certificate:
+    post:
+      consumes:
+      - application/json
+      description: Download customer's own .p12 certificate bundle using ocserv username/password
+      parameters:
+      - description: customer username and password (same ocserv account).
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/customer.SummaryData'
+      produces:
+      - application/x-pkcs12
+      responses:
+        "200":
+          description: user.p12
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/middlewares.TooManyRequests'
+      summary: Download customer certificate
+      tags:
+      - Customers
   /customers/disconnect_sessions:
     post:
       consumes:
@@ -2004,6 +2084,70 @@ paths:
       summary: Ocserv User creation
       tags:
       - Ocserv(Users)
+  /ocserv/users/{id}/disconnect_by_id:
+    post:
+      consumes:
+      - application/json
+      description: Disconnect Ocserv User Session BY ID
+      parameters:
+      - description: Bearer TOKEN
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Ocserv User Session ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middlewares.Unauthorized'
+      summary: Disconnect Ocserv User Session BY ID
+      tags:
+      - Ocserv(Users)
+  /ocserv/users/{id}/terminate_by_id:
+    post:
+      consumes:
+      - application/json
+      description: Terminate Ocserv User Session BY ID
+      parameters:
+      - description: Bearer TOKEN
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Ocserv User Session ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middlewares.Unauthorized'
+      summary: Terminate Ocserv User Session BY ID
+      tags:
+      - Ocserv(Users)
   /ocserv/users/{uid}:
     delete:
       consumes:
@@ -2144,6 +2288,70 @@ paths:
           schema:
             $ref: '#/definitions/middlewares.Unauthorized'
       summary: Restore and activate expired Ocserv User accounts
+      tags:
+      - Ocserv(Users)
+  /ocserv/users/{uid}/certificate:
+    get:
+      description: Download the user's .p12 certificate bundle
+      parameters:
+      - description: Bearer TOKEN
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Ocserv User UID
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/x-pkcs12
+      responses:
+        "200":
+          description: user.p12
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middlewares.Unauthorized'
+      summary: Download ocserv user certificate
+      tags:
+      - Ocserv(Users)
+    post:
+      consumes:
+      - application/json
+      description: Create certificate for an existing ocserv user using the currently
+        stored password
+      parameters:
+      - description: Bearer TOKEN
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Ocserv User UID
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middlewares.Unauthorized'
+      summary: Create certificate for ocserv user
       tags:
       - Ocserv(Users)
   /ocserv/users/{uid}/lock:
@@ -2320,7 +2528,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Disconnect Ocserv User
+      description: Disconnect Ocserv User (All Sessions)
       parameters:
       - description: Bearer TOKEN
         in: header
@@ -2345,7 +2553,39 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/middlewares.Unauthorized'
-      summary: Disconnect Ocserv User
+      summary: Disconnect Ocserv User (All Sessions)
+      tags:
+      - Ocserv(Users)
+  /ocserv/users/{username}/terminate:
+    post:
+      consumes:
+      - application/json
+      description: Terminate Ocserv User (All Sessions)
+      parameters:
+      - description: Bearer TOKEN
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Ocserv User username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/request.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middlewares.Unauthorized'
+      summary: Terminate Ocserv User (All Sessions)
       tags:
       - Ocserv(Users)
   /ocserv/users/ocpasswd:
