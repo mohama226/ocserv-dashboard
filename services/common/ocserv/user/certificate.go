@@ -100,12 +100,15 @@ func (u *OcservUser) CreateCertificate(username, password string) error {
 		return err
 	}
 
+	activationDate := time.Now().UTC().AddDate(0, 0, -1).Format("2006-01-02 15:04:05 UTC")
+
 	tmpl := fmt.Sprintf(`cn = "%s"
 tls_www_client
 encryption_key
 signing_key
+activation_date = "%s"
 expiration_days = 825
-`, username)
+`, username, activationDate)
 
 	if err := os.WriteFile(tmplPath, []byte(tmpl), 0600); err != nil {
 		return err
