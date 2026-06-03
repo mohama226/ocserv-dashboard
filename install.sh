@@ -460,16 +460,16 @@ TELEGRAM_BOT_ENABLED=${TELEGRAM_BOT_ENABLED}
 EOL
 
     # Add mirror variables if they are set
-    if [[ -n "$GO_PROXY" ]]; then
+    if [[ -n "${GO_PROXY:-}" ]]; then
         echo "GO_PROXY=${GO_PROXY}" >> "$ENV_FILE"
     fi
-    if [[ -n "$NPM_REGISTRY" ]]; then
+    if [[ -n "${NPM_REGISTRY:-}" ]]; then
         echo "NPM_REGISTRY=${NPM_REGISTRY}" >> "$ENV_FILE"
     fi
-    if [[ -n "$DEBIAN_MIRROR" ]]; then
+    if [[ -n "${DEBIAN_MIRROR:-}" ]]; then
         echo "DEBIAN_MIRROR=${DEBIAN_MIRROR}" >> "$ENV_FILE"
     fi
-    if [[ -n "$DEBIAN_SECURITY_MIRROR" ]]; then
+    if [[ -n "${DEBIAN_SECURITY_MIRROR:-}" ]]; then
         echo "DEBIAN_SECURITY_MIRROR=${DEBIAN_SECURITY_MIRROR}" >> "$ENV_FILE"
     fi
 
