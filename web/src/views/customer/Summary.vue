@@ -5,15 +5,17 @@ import SummaryForm from '@/components/customer/SummaryForm.vue';
 import {
     CustomerModelCustomerTrafficTypeEnum,
     CustomersApi,
-    type CustomerIOSSetupResponse,
+    type CustomerCiscoSetupResponse,
     type CustomerSummaryData,
     type CustomerSummaryResponse
 } from '@/api';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import SummaryResult from '@/components/customer/SummaryResult.vue';
 import { useSnackbarStore } from '@/stores/snackbar';
 
 const { t } = useI18n();
+const router = useRouter();
 const loading = ref(false);
 
 const snapshot = ref<CustomerSummaryResponse>({
@@ -43,15 +45,34 @@ const snapshot = ref<CustomerSummaryResponse>({
 const api = new CustomersApi();
 
 const result = ref<CustomerSummaryResponse>(snapshot.value);
-const iosSetup = ref<CustomerIOSSetupResponse | null>(null);
+const ciscoSetup = ref<CustomerCiscoSetupResponse | null>(null);
 
 const hasResult = ref(false);
 
 const customerSummaryData = ref<CustomerSummaryData>({ password: '', username: '' });
 
+onMounted(() => {
+    const storedResult = sessionStorage.getItem('customerSummaryResult');
+    const storedData = sessionStorage.getItem('customerSummaryData');
+
+    if (!storedResult || !storedData) {
+        return;
+    }
+
+    try {
+        result.value = JSON.parse(storedResult) as CustomerSummaryResponse;
+        customerSummaryData.value = JSON.parse(storedData) as CustomerSummaryData;
+        hasResult.value = true;
+    } catch {
+        sessionStorage.removeItem('customerSummaryResult');
+        sessionStorage.removeItem('customerSummaryData');
+    }
+});
+
 const getSummary = (data: CustomerSummaryData) => {
     loading.value = true;
-    iosSetup.value = null;
+    ciscoSetup.value = null;
+    sessionStorage.removeItem('customerCiscoSetup');
     Object.assign(customerSummaryData.value, data);
 
     api.customersSummaryPost({
@@ -60,6 +81,8 @@ const getSummary = (data: CustomerSummaryData) => {
         .then((res) => {
             result.value = res.data;
             hasResult.value = true;
+            sessionStorage.setItem('customerSummaryResult', JSON.stringify(res.data));
+            sessionStorage.setItem('customerSummaryData', JSON.stringify(customerSummaryData.value));
         })
         .finally(() => {
             loading.value = false;
@@ -68,7 +91,10 @@ const getSummary = (data: CustomerSummaryData) => {
 
 const newSummary = () => {
     Object.assign(result.value, snapshot.value);
-    iosSetup.value = null;
+    ciscoSetup.value = null;
+    sessionStorage.removeItem('customerCiscoSetup');
+    sessionStorage.removeItem('customerSummaryResult');
+    sessionStorage.removeItem('customerSummaryData');
     hasResult.value = false;
     Object.assign(customerSummaryData.value, { password: '', username: '' });
 };
@@ -111,22 +137,24 @@ const downloadCertificate = () => {
     });
 };
 
-const loadIOSSetup = () => {
-    api.customersSetupIosPost({
+const openCiscoSetup = () => {
+    api.customersSetupCiscoPost({
         request: customerSummaryData.value
     }).then((res) => {
-        iosSetup.value = res.data;
+        ciscoSetup.value = res.data;
+        sessionStorage.setItem('customerCiscoSetup', JSON.stringify(res.data));
+        router.push({ name: 'CustomerCiscoSetup' });
     });
 };
 </script>
 
 <template>
-    <div class="authentication">
-        <v-container class="pa-3" fluid>
-            <v-row class="h-100vh d-flex justify-center align-center">
-                <v-col class="d-flex align-center" cols="12" lg="4" xl="3" v-if="!hasResult">
-                    <v-card class="px-sm-1 px-0 mx-auto" elevation="10" max-width="500" rounded="md">
-                        <v-card-item class="pa-sm-8">
+    <div class="authentication customer-summary-page">
+        <v-container class="pa-3 pa-sm-6" fluid>
+            <v-row class="customer-summary-row d-flex justify-center align-start align-sm-center">
+                <v-col class="d-flex align-center" cols="12" sm="8" md="6" lg="4" xl="3" v-if="!hasResult">
+                    <v-card class="px-sm-1 px-0 mx-auto w-100" elevation="10" max-width="500" rounded="md">
+                        <v-card-item class="pa-5 pa-sm-8">
                             <div class="d-flex justify-center py-4">
                                 <Logo />
                             </div>
@@ -140,14 +168,31 @@ const loadIOSSetup = () => {
 
                 <SummaryResult
                     :result="result"
-                    :iosSetup="iosSetup"
                     v-if="hasResult"
                     @newSummary="newSummary"
                     @disconnect="disconnect"
                     @downloadCertificate="downloadCertificate"
-                    @loadIOSSetup="loadIOSSetup"
+                    @openCiscoSetup="openCiscoSetup"
                 />
             </v-row>
         </v-container>
     </div>
 </template>
+
+<style scoped>
+.customer-summary-page {
+    min-height: 100svh;
+}
+
+.customer-summary-row {
+    min-height: calc(100svh - 24px);
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+@media (min-width: 600px) {
+    .customer-summary-row {
+        min-height: calc(100svh - 48px);
+    }
+}
+</style>

@@ -35,7 +35,7 @@ type SummaryResponse struct {
 	Usage      UsageResponse `json:"usage" validate:"required"`
 }
 
-type IOSSetupResponse struct {
+type CiscoSetupResponse struct {
 	CertificateImportURI string    `json:"certificate_import_uri" validate:"required"`
 	ConnectionCreateURI  string    `json:"connection_create_uri" validate:"required"`
 	CertificatePassword  string    `json:"certificate_password" validate:"required"`

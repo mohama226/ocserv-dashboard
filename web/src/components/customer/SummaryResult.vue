@@ -1,47 +1,45 @@
 <script lang="ts" setup>
-import type { CustomerIOSSetupResponse, CustomerSummaryResponse } from '@/api';
+import type { CustomerSummaryResponse } from '@/api';
 import { bytesToGB, bytesToTrafficSize, formatDate, trafficTypesTransformer } from '@/utils/convertors';
 import UiChildCard from '@/components/shared/UiChildCard.vue';
 import { useI18n } from 'vue-i18n';
 
 defineProps<{
     result: CustomerSummaryResponse;
-    iosSetup: CustomerIOSSetupResponse | null;
 }>();
 
-const emit = defineEmits(['newSummary', 'disconnect', 'downloadCertificate', 'loadIOSSetup']);
+const emit = defineEmits(['newSummary', 'disconnect', 'downloadCertificate', 'openCiscoSetup']);
 
 const { t } = useI18n();
-
-const copyCertificatePassword = (password: string) => {
-    navigator.clipboard?.writeText(password);
-};
 </script>
 
 <template>
-    <v-col cols="12" md="6">
-        <UiChildCard class="px-3">
+    <v-col cols="12" sm="10" md="8" lg="6">
+        <UiChildCard class="px-2 px-sm-3">
             <template #title-header>
-                <v-row align="center" justify="start">
-                    <v-col cols="12" md="8" sm="12">
-                        <span class="text-capitalize text-primary text-h3">
+                <v-row align="center" justify="start" class="ga-2">
+                    <v-col cols="12" md="8">
+                        <span class="text-capitalize text-primary text-h4 text-sm-h3">
                             <span>{{ result.ocserv_user.username }}</span>
                             <span class="text-muted mx-1 text-capitalize"> ({{ t('ACCOUNT_AND_USAGE_SUMMARY') }}) </span>
                         </span>
                     </v-col>
-                    <v-col cols="12" md="auto" sm="12">
-                        <v-btn color="primary" flat size="small" @click="emit('disconnect')">
+
+                    <v-col cols="12" sm="auto">
+                        <v-btn block color="primary" flat size="small" @click="emit('disconnect')">
                             {{ t('DISCONNECT_ALL_SESSIONS') }}
                         </v-btn>
                     </v-col>
-                    <v-col v-if="result.ocserv_user.certificate_available" cols="12" md="auto" sm="12">
-                        <v-btn color="info" size="small" variant="outlined" @click="emit('downloadCertificate')">
+
+                    <v-col v-if="result.ocserv_user.certificate_available" cols="12" sm="auto">
+                        <v-btn block color="info" size="small" variant="outlined" @click="emit('downloadCertificate')">
                             {{ t('DOWNLOAD_CERTIFICATE') }}
                         </v-btn>
                     </v-col>
-                    <v-col v-if="result.ocserv_user.certificate_available" cols="12" md="auto" sm="12">
-                        <v-btn color="primary" size="small" variant="outlined" @click="emit('loadIOSSetup')">
-                            {{ t('IOS_SETUP') }}
+
+                    <v-col cols="12" sm="auto">
+                        <v-btn block color="primary" size="small" variant="outlined" @click="emit('openCiscoSetup')">
+                            {{ t('CISCO_SETUP') }}
                         </v-btn>
                     </v-col>
                 </v-row>
@@ -54,12 +52,12 @@ const copyCertificatePassword = (password: string) => {
                 </v-btn>
             </template>
 
-            <div class="space-y-4 mt-8 px-1">
+            <div class="space-y-4 mt-8 px-0 px-sm-1">
                 <!-- General info -->
-                <div class="bg-surface shadow rounded-lg p-4">
+                <div class="bg-surface shadow rounded-lg pa-3 pa-sm-4">
                     <h4 class="text-lg font-semibold my-4">{{ t('DETAILS') }}</h4>
 
-                    <div class="grid grid-cols-2 gap-4 mx-5">
+                    <div class="mx-1 mx-sm-5">
                         <v-row align="center" justify="start">
                             <v-col cols="12" md="6">
                                 <span class="font-medium text-gray-600 text-capitalize"> {{ t('TRAFFIC_TYPE') }}: </span>
@@ -73,6 +71,7 @@ const copyCertificatePassword = (password: string) => {
                                 <span class="ms-1">{{ bytesToTrafficSize(result.ocserv_user.traffic_size) }}</span>
                             </v-col>
                         </v-row>
+
                         <v-row align="center" justify="start">
                             <v-col cols="12" md="6">
                                 <span class="font-medium text-gray-600 text-capitalize"> {{ t('CERTIFICATE') }}: </span>
@@ -91,6 +90,7 @@ const copyCertificatePassword = (password: string) => {
                                 </span>
                             </v-col>
                         </v-row>
+
                         <v-row align="center" justify="start">
                             <v-col cols="12" md="6">
                                 <span class="font-medium text-gray-600 text-capitalize"> RX ({{ t('TOTAL') }}): </span>
@@ -102,6 +102,7 @@ const copyCertificatePassword = (password: string) => {
                                 <span class="ms-1">{{ bytesToGB(result.ocserv_user.tx) }} GB</span>
                             </v-col>
                         </v-row>
+
                         <v-row align="center" justify="start">
                             <v-col cols="12" md="6">
                                 <span class="font-medium text-gray-600 text-capitalize"> {{ t('EXPIRE_AT') }}: </span>
@@ -125,17 +126,19 @@ const copyCertificatePassword = (password: string) => {
 
                     <h4 class="text-lg font-semibold my-4">{{ t('MONTHLY_BANDWIDTHS') }}</h4>
 
-                    <div class="grid grid-cols-2 gap-4 mx-5">
+                    <div class="mx-1 mx-sm-5">
                         <v-row align="center" justify="start">
                             <v-col cols="12" md="6">
                                 <span class="font-medium text-gray-600 text-capitalize"> {{ t('DATE_START') }}: </span>
                                 <span class="ms-1">{{ formatDate(result.usage.date_start) }}</span>
                             </v-col>
+
                             <v-col cols="12" md="6">
                                 <span class="font-medium text-gray-600 text-capitalize"> {{ t('DATE_END') }}: </span>
                                 <span class="ms-1">{{ formatDate(result.usage.date_end) }}</span>
                             </v-col>
                         </v-row>
+
                         <v-row align="center" justify="start">
                             <v-col cols="12" md="6">
                                 <span class="font-medium text-gray-600 text-capitalize"> RX: </span>
@@ -149,51 +152,6 @@ const copyCertificatePassword = (password: string) => {
                         </v-row>
                     </div>
                 </div>
-            </div>
-        </UiChildCard>
-
-        <UiChildCard v-if="iosSetup" class="px-3 mt-4">
-            <template #title-header>
-                <span class="text-capitalize text-primary text-h3">
-                    {{ t('IOS_SETUP_TITLE') }}
-                </span>
-            </template>
-
-            <div class="space-y-4 mt-8 px-1">
-                <v-alert class="mb-4" type="info" variant="tonal">
-                    {{ t('IOS_SETUP_EXTERNAL_CONTROL_HINT') }}
-                </v-alert>
-
-                <v-alert class="mb-4" type="warning" variant="tonal">
-                    {{ t('IOS_SETUP_PASSWORD_HINT') }}
-                    <strong>{{ iosSetup.certificate_password }}</strong>
-                    <v-btn
-                        class="ms-2"
-                        size="x-small"
-                        variant="text"
-                        @click="copyCertificatePassword(iosSetup.certificate_password)"
-                    >
-                        {{ t('COPY') }}
-                    </v-btn>
-                </v-alert>
-
-                <v-row>
-                    <v-col cols="12" md="6">
-                        <v-btn block color="primary" :href="iosSetup.certificate_import_uri" variant="flat">
-                            {{ t('IOS_IMPORT_CERTIFICATE') }}
-                        </v-btn>
-                    </v-col>
-
-                    <v-col cols="12" md="6">
-                        <v-btn block color="success" :href="iosSetup.connection_create_uri" variant="flat">
-                            {{ t('IOS_ADD_CONNECTION') }}
-                        </v-btn>
-                    </v-col>
-                </v-row>
-
-                <p class="mt-4 text-caption">
-                    {{ t('IOS_SETUP_EXPIRES_HINT') }}
-                </p>
             </div>
         </UiChildCard>
     </v-col>

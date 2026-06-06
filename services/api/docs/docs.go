@@ -310,9 +310,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/customers/setup/ios": {
+        "/customers/setup/cisco": {
             "post": {
-                "description": "Create Cisco Secure Client iOS certificate import and connection creation URIs using ocserv username/password",
+                "description": "Create Cisco Secure Client certificate import and connection creation URIs using ocserv username/password",
                 "consumes": [
                     "application/json"
                 ],
@@ -322,7 +322,7 @@ const docTemplate = `{
                 "tags": [
                     "Customers"
                 ],
-                "summary": "Create customer iOS setup links",
+                "summary": "Create customer Cisco Secure Client setup links",
                 "parameters": [
                     {
                         "description": "customer username and password (same ocserv account).",
@@ -338,7 +338,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/customer.IOSSetupResponse"
+                            "$ref": "#/definitions/customer.CiscoSetupResponse"
                         }
                     },
                     "400": {
@@ -356,20 +356,20 @@ const docTemplate = `{
                 }
             }
         },
-        "/customers/setup/ios/certificate/{token}": {
+        "/customers/setup/cisco/certificate/{token}": {
             "get": {
-                "description": "Download customer's PKCS#12 certificate using a short-lived iOS setup token",
+                "description": "Download customer's PKCS#12 certificate using a short-lived Cisco Secure Client setup token",
                 "produces": [
                     "application/x-pkcs12"
                 ],
                 "tags": [
                     "Customers"
                 ],
-                "summary": "Download customer iOS setup certificate",
+                "summary": "Download customer Cisco Secure Client setup certificate",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "iOS setup certificate token",
+                        "description": "Cisco Secure Client setup certificate token",
                         "name": "token",
                         "in": "path",
                         "required": true
@@ -3415,7 +3415,7 @@ const docTemplate = `{
                 }
             }
         },
-        "customer.IOSSetupResponse": {
+        "customer.CiscoSetupResponse": {
             "type": "object",
             "required": [
                 "certificate_import_uri",

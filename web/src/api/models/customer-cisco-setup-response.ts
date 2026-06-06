@@ -17,49 +17,49 @@
 /**
  * 
  * @export
- * @interface CustomerIOSSetupResponse
+ * @interface CustomerCiscoSetupResponse
  */
-export interface CustomerIOSSetupResponse {
+export interface CustomerCiscoSetupResponse {
     /**
      * 
      * @type {string}
-     * @memberof CustomerIOSSetupResponse
+     * @memberof CustomerCiscoSetupResponse
      */
     'certificate_import_uri': string;
     /**
      * 
      * @type {string}
-     * @memberof CustomerIOSSetupResponse
+     * @memberof CustomerCiscoSetupResponse
      */
     'certificate_password': string;
     /**
      * 
      * @type {string}
-     * @memberof CustomerIOSSetupResponse
+     * @memberof CustomerCiscoSetupResponse
      */
     'connection_create_uri': string;
     /**
      * 
      * @type {string}
-     * @memberof CustomerIOSSetupResponse
+     * @memberof CustomerCiscoSetupResponse
      */
     'connection_name': string;
     /**
      * 
      * @type {string}
-     * @memberof CustomerIOSSetupResponse
+     * @memberof CustomerCiscoSetupResponse
      */
     'expires_at': string;
     /**
      * 
      * @type {string}
-     * @memberof CustomerIOSSetupResponse
+     * @memberof CustomerCiscoSetupResponse
      */
     'server_address': string;
     /**
      * 
      * @type {number}
-     * @memberof CustomerIOSSetupResponse
+     * @memberof CustomerCiscoSetupResponse
      */
     'server_port': number;
 }
