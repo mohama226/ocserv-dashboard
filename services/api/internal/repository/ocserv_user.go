@@ -218,11 +218,9 @@ func (o *OcservUserRepository) Create(ctx context.Context, ocservUser *models.Oc
 		return nil, err
 	}
 
-	if ocservUser.Config != nil {
-		go func() {
-			_, _ = o.commonOcservOcctlRepo.ReloadConfigs()
-		}()
-	}
+	go func() {
+		_, _ = o.commonOcservOcctlRepo.ReloadConfigs()
+	}()
 	o.applyCertificateStatus(ocservUser)
 	return ocservUser, err
 }
@@ -263,12 +261,9 @@ func (o *OcservUserRepository) Update(ctx context.Context, ocservUser *models.Oc
 		return nil, err
 	}
 
-	if ocservUser.Config != nil {
-		go func() {
-			_, _ = o.commonOcservOcctlRepo.ReloadConfigs()
-		}()
-	}
-
+	go func() {
+		_, _ = o.commonOcservOcctlRepo.ReloadConfigs()
+	}()
 	return ocservUser, nil
 }
 

@@ -98,7 +98,7 @@ func ConfigWriter(file *os.File, config map[string]interface{}) error {
 			continue
 		} else {
 			if _, err := file.WriteString(fmt.Sprintf("%s=%s\n", k, formatConfigValue(v))); err != nil {
-			return fmt.Errorf("failed to write to file: %w", err)
+				return fmt.Errorf("failed to write to file: %w", err)
 			}
 		}
 	}
@@ -150,7 +150,7 @@ func formatConfigValue(v interface{}) string {
 
 // GetUsersByGroup parses the ocpasswd file and returns usernames
 // belonging to the given group. It ignores comments, empty lines,
-// and malformed entries. Assumes group is stored as the third field
+// and malformed entries. The ocpasswd group is stored as the second field
 // in colon-separated records. Returns an error if scanning fails.
 func GetUsersByGroup(groupName string) ([]string, error) {
 	file, err := os.Open(OcpasswdPath)
@@ -174,8 +174,10 @@ func GetUsersByGroup(groupName string) ([]string, error) {
 		}
 
 		username := parts[0]
-		group := parts[2]
-
+		group := parts[1]
+		if group == "*" {
+			group = "defaults"
+		}
 		if group == groupName {
 			users = append(users, username)
 		}
@@ -282,7 +284,7 @@ func GetOcservVersion() string {
 		logger.Error("Command error: %v", err)
 		return ""
 	}
-	
+
 	// Combine stdout and stderr for pattern matching
 	fullOutput := out.String() + stderr.String()
 
