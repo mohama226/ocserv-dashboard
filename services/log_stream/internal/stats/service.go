@@ -187,24 +187,45 @@ func (s *StatService) getPeriodicStat(cleanLine string) (*UserStats, error) {
 }
 
 func (s *StatService) getDisconnectStat(cleanLine string) (*UserStats, error) {
-	reTxRx := regexp.MustCompile(`main\[([^\]]+)\].*rx:\s*(\d+),\s*tx:\s*(\d+)`)
+	reTxRx := regexp.MustCompile(`main\[([^\]]+)\]:\s*(\S+).*rx:\s*(\d+),\s*tx:\s*(\d+)`)
 	matchRxTx := reTxRx.FindStringSubmatch(cleanLine)
-	if len(matchRxTx) <= 4 {
+	if len(matchRxTx) == 5 {
+		rx, err := strconv.Atoi(matchRxTx[3])
+		if err != nil {
+			return nil, err
+		}
+
+		tx, err := strconv.Atoi(matchRxTx[4])
+		if err != nil {
+			return nil, err
+		}
+
+		return &UserStats{
+			Username: matchRxTx[1],
+			IP:       normalizeSessionIP(matchRxTx[2]),
+			RX:       rx,
+			TX:       tx,
+		}, nil
+	}
+
+	reTxRx = regexp.MustCompile(`main\[([^\]]+)\].*rx:\s*(\d+),\s*tx:\s*(\d+)`)
+	matchRxTx = reTxRx.FindStringSubmatch(cleanLine)
+	if len(matchRxTx) != 4 {
 		return nil, nil
 	}
 
-	rx, err := strconv.Atoi(matchRxTx[3])
+	rx, err := strconv.Atoi(matchRxTx[2])
 	if err != nil {
 		return nil, err
 	}
-	tx, err := strconv.Atoi(matchRxTx[4])
+
+	tx, err := strconv.Atoi(matchRxTx[3])
 	if err != nil {
 		return nil, err
 	}
 
 	return &UserStats{
 		Username: matchRxTx[1],
-		IP:       normalizeSessionIP(matchRxTx[2]),
 		RX:       rx,
 		TX:       tx,
 	}, nil
@@ -250,17 +271,13 @@ func (s *StatService) saveRxTxDelta(ctx context.Context, stats *UserStats, final
 		return nil
 	}
 
-	var err error
-	if final {
-		err = s.saveRxTx(ctx, &UserStats{
-			Username: stats.Username,
-			IP:       stats.IP,
-			RX:       deltaRx,
-			TX:       deltaTx,
-		})
-	}
+	return s.saveRxTx(ctx, &UserStats{
+		Username: stats.Username,
+		IP:       stats.IP,
+		RX:       deltaRx,
+		TX:       deltaTx,
+	})
 
-	return err
 }
 
 func (s *StatService) saveRxTx(ctx context.Context, u *UserStats) error {
