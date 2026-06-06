@@ -30,7 +30,7 @@ type PatchSettingsData struct {
 	CardNumber          *string `json:"card_number" validate:"omitempty,max=64"`
 	CardHolder          *string `json:"card_holder" validate:"omitempty,max=128"`
 	// SupportUsername must be a Telegram handle without @ (5–32 chars, a–z 0–9 _).
-	SupportUsername     *string `json:"support_username" validate:"omitempty,max=64"`
+	SupportUsername *string `json:"support_username" validate:"omitempty,max=64"`
 }
 
 type TestData struct {
@@ -41,7 +41,7 @@ type CreatePackageData struct {
 	Title         string `json:"title" validate:"required,min=2,max=128"`
 	Days          int    `json:"days" validate:"required,min=1,max=3650"`
 	TrafficSizeGB int    `json:"traffic_size_gb" validate:"min=0,max=100000"`
-	TrafficType   string `json:"traffic_type" validate:"required,oneof=Free MonthlyTransmit MonthlyReceive TotallyTransmit TotallyReceive"`
+	TrafficType   string `json:"traffic_type" validate:"required,oneof=Free MonthlyTransmit MonthlyReceive MonthlyRxTx TotallyTransmit TotallyReceive TotallyRxTx"`
 	PriceText     string `json:"price_text" validate:"omitempty,max=64"`
 	IsActive      bool   `json:"is_active"`
 }
@@ -50,7 +50,7 @@ type PatchPackageData struct {
 	Title         *string `json:"title" validate:"omitempty,min=2,max=128"`
 	Days          *int    `json:"days" validate:"omitempty,min=1,max=3650"`
 	TrafficSizeGB *int    `json:"traffic_size_gb" validate:"omitempty,min=0,max=100000"`
-	TrafficType   *string `json:"traffic_type" validate:"omitempty,oneof=Free MonthlyTransmit MonthlyReceive TotallyTransmit TotallyReceive"`
+	TrafficType   *string `json:"traffic_type" validate:"omitempty,oneof=Free MonthlyTransmit MonthlyReceive MonthlyRxTx TotallyTransmit TotallyReceive TotallyRxTx"`
 	PriceText     *string `json:"price_text" validate:"omitempty,max=64"`
 	IsActive      *bool   `json:"is_active"`
 }

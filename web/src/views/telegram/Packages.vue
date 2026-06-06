@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { ModelsOcservUserTrafficTypeEnum } from '@/api';
 import { TelegramAPI, type TelegramPackage } from '@/api/telegram';
 import { useSnackbarStore } from '@/stores/snackbar';
 import UiParentCard from '@/components/shared/UiParentCard.vue';
+import { trafficTypesTransformer } from '@/utils/convertors';
 
 const { t } = useI18n();
 const snackbar = useSnackbarStore();
@@ -15,11 +17,34 @@ const editing = ref<TelegramPackage>(emptyPackage());
 const isNew = ref(true);
 
 const trafficTypes = [
-    { value: 'TotallyTransmit', title: 'TotallyTransmit' },
-    { value: 'TotallyReceive', title: 'TotallyReceive' },
-    { value: 'MonthlyTransmit', title: 'MonthlyTransmit' },
-    { value: 'MonthlyReceive', title: 'MonthlyReceive' },
-    { value: 'Free', title: 'Free' }
+    {
+        value: ModelsOcservUserTrafficTypeEnum.TOTALLY_TRANSMIT,
+        title: trafficTypesTransformer(ModelsOcservUserTrafficTypeEnum.TOTALLY_TRANSMIT)
+    },
+    {
+        value: ModelsOcservUserTrafficTypeEnum.TOTALLY_RECEIVE,
+        title: trafficTypesTransformer(ModelsOcservUserTrafficTypeEnum.TOTALLY_RECEIVE)
+    },
+    {
+        value: ModelsOcservUserTrafficTypeEnum.TOTALLY_RX_TX,
+        title: trafficTypesTransformer(ModelsOcservUserTrafficTypeEnum.TOTALLY_RX_TX)
+    },
+    {
+        value: ModelsOcservUserTrafficTypeEnum.MONTHLY_TRANSMIT,
+        title: trafficTypesTransformer(ModelsOcservUserTrafficTypeEnum.MONTHLY_TRANSMIT)
+    },
+    {
+        value: ModelsOcservUserTrafficTypeEnum.MONTHLY_RECEIVE,
+        title: trafficTypesTransformer(ModelsOcservUserTrafficTypeEnum.MONTHLY_RECEIVE)
+    },
+    {
+        value: ModelsOcservUserTrafficTypeEnum.MONTHLY_RX_TX,
+        title: trafficTypesTransformer(ModelsOcservUserTrafficTypeEnum.MONTHLY_RX_TX)
+    },
+    {
+        value: ModelsOcservUserTrafficTypeEnum.FREE,
+        title: trafficTypesTransformer(ModelsOcservUserTrafficTypeEnum.FREE)
+    }
 ];
 
 function emptyPackage(): TelegramPackage {
@@ -28,11 +53,15 @@ function emptyPackage(): TelegramPackage {
         title: '',
         days: 30,
         traffic_size_gb: 30,
-        traffic_type: 'TotallyTransmit',
+        traffic_type: ModelsOcservUserTrafficTypeEnum.TOTALLY_TRANSMIT,
         price_text: '',
         is_active: true
     };
 }
+
+const formatTrafficType = (trafficType: string): string => {
+    return trafficTypesTransformer(trafficType as ModelsOcservUserTrafficTypeEnum);
+};
 
 const load = async () => {
     loading.value = true;
@@ -135,7 +164,7 @@ onMounted(load);
                                 <td>{{ pkg.title }}</td>
                                 <td>{{ pkg.days }}</td>
                                 <td>{{ pkg.traffic_size_gb }}</td>
-                                <td>{{ pkg.traffic_type }}</td>
+                                <td>{{ formatTrafficType(pkg.traffic_type) }}</td>
                                 <td>{{ pkg.price_text || '—' }}</td>
                                 <td>
                                     <v-chip :color="pkg.is_active ? 'success' : 'grey'" size="small" variant="flat">
