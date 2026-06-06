@@ -1,4 +1,5 @@
 export * from './backup-restore-response';
+export * from './customer-iossetup-response';
 export * from './customer-model-customer';
 export * from './customer-summary-data';
 export * from './customer-summary-response';

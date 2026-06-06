@@ -31,6 +31,24 @@ export interface SystemGetSystemResponse {
      * @type {string}
      * @memberof SystemGetSystemResponse
      */
+    'client_profile_connection_name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SystemGetSystemResponse
+     */
+    'client_profile_server_address'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof SystemGetSystemResponse
+     */
+    'client_profile_server_port'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof SystemGetSystemResponse
+     */
     'google_captcha_secret_key'?: string;
     /**
      * 

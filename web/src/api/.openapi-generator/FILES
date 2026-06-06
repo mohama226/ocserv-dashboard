@@ -20,6 +20,7 @@ configuration.ts
 git_push.sh
 index.ts
 models/backup-restore-response.ts
+models/customer-iossetup-response.ts
 models/customer-model-customer.ts
 models/customer-summary-data.ts
 models/customer-summary-response.ts

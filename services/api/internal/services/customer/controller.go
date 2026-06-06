@@ -2,16 +2,18 @@ package customer
 
 import (
 	"errors"
-	"github.com/labstack/echo/v4"
-	"github.com/mmtaee/ocserv-dashboard/api/internal/repository"
-	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/labstack/echo/v4"
+	"github.com/mmtaee/ocserv-dashboard/api/internal/repository"
+	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 )
 
 type Controller struct {
 	request        request.CustomRequestInterface
+	systemRepo     repository.SystemRepositoryInterface
 	ocservUserRepo repository.OcservUserRepositoryInterface
 	occtl          repository.OcctlRepositoryInterface
 }
@@ -19,6 +21,7 @@ type Controller struct {
 func New() *Controller {
 	return &Controller{
 		request:        request.NewCustomRequest(),
+		systemRepo:     repository.NewSystemRepository(),
 		ocservUserRepo: repository.NewtOcservUserRepository(),
 		occtl:          repository.NewOcctlRepository(),
 	}

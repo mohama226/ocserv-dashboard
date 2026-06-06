@@ -5,13 +5,13 @@ import SummaryForm from '@/components/customer/SummaryForm.vue';
 import {
     CustomerModelCustomerTrafficTypeEnum,
     CustomersApi,
+    type CustomerIOSSetupResponse,
     type CustomerSummaryData,
     type CustomerSummaryResponse
 } from '@/api';
 import { ref } from 'vue';
 import SummaryResult from '@/components/customer/SummaryResult.vue';
 import { useSnackbarStore } from '@/stores/snackbar';
-import { getAuthorization } from '@/utils/request';
 
 const { t } = useI18n();
 const loading = ref(false);
@@ -43,6 +43,7 @@ const snapshot = ref<CustomerSummaryResponse>({
 const api = new CustomersApi();
 
 const result = ref<CustomerSummaryResponse>(snapshot.value);
+const iosSetup = ref<CustomerIOSSetupResponse | null>(null);
 
 const hasResult = ref(false);
 
@@ -50,6 +51,7 @@ const customerSummaryData = ref<CustomerSummaryData>({ password: '', username: '
 
 const getSummary = (data: CustomerSummaryData) => {
     loading.value = true;
+    iosSetup.value = null;
     Object.assign(customerSummaryData.value, data);
 
     api.customersSummaryPost({
@@ -66,6 +68,7 @@ const getSummary = (data: CustomerSummaryData) => {
 
 const newSummary = () => {
     Object.assign(result.value, snapshot.value);
+    iosSetup.value = null;
     hasResult.value = false;
     Object.assign(customerSummaryData.value, { password: '', username: '' });
 };
@@ -107,6 +110,14 @@ const downloadCertificate = () => {
         window.URL.revokeObjectURL(url);
     });
 };
+
+const loadIOSSetup = () => {
+    api.customersSetupIosPost({
+        request: customerSummaryData.value
+    }).then((res) => {
+        iosSetup.value = res.data;
+    });
+};
 </script>
 
 <template>
@@ -129,10 +140,12 @@ const downloadCertificate = () => {
 
                 <SummaryResult
                     :result="result"
+                    :iosSetup="iosSetup"
                     v-if="hasResult"
                     @newSummary="newSummary"
                     @disconnect="disconnect"
                     @downloadCertificate="downloadCertificate"
+                    @loadIOSSetup="loadIOSSetup"
                 />
             </v-row>
         </v-container>

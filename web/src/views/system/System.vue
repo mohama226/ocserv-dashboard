@@ -90,7 +90,41 @@ onMounted(() => {
                                         {{ systemData.google_captcha_secret_key || t('NOT_SET') }}
                                     </v-list-item-subtitle>
                                 </v-list-item>
+                                <v-list-item class="mb-3">
+                                    <template #prepend>
+                                        <v-icon size="large">mdi-vpn</v-icon>
+                                    </template>
+                                    <v-list-item-title class="text-subtitle-2 text-capitalize mb-2">
+                                        {{ t('CLIENT_PROFILE_CONNECTION_NAME') }}
+                                    </v-list-item-title>
+                                    <v-list-item-subtitle class="text-subtitle-1">
+                                        {{ systemData.client_profile_connection_name || t('NOT_SET') }}
+                                    </v-list-item-subtitle>
+                                </v-list-item>
 
+                                <v-list-item class="mb-3">
+                                    <template #prepend>
+                                        <v-icon size="large">mdi-server-network</v-icon>
+                                    </template>
+                                    <v-list-item-title class="text-subtitle-2 text-capitalize mb-2">
+                                        {{ t('CLIENT_PROFILE_SERVER_ADDRESS') }}
+                                    </v-list-item-title>
+                                    <v-list-item-subtitle class="text-subtitle-1">
+                                        {{ systemData.client_profile_server_address || t('NOT_SET') }}
+                                    </v-list-item-subtitle>
+                                </v-list-item>
+
+                                <v-list-item class="mb-3">
+                                    <template #prepend>
+                                        <v-icon size="large">mdi-numeric</v-icon>
+                                    </template>
+                                    <v-list-item-title class="text-subtitle-2 text-capitalize mb-2">
+                                        {{ t('CLIENT_PROFILE_SERVER_PORT') }}
+                                    </v-list-item-title>
+                                    <v-list-item-subtitle class="text-subtitle-1">
+                                        {{ systemData.client_profile_server_port || t('NOT_SET') }}
+                                    </v-list-item-subtitle>
+                                </v-list-item>
                                 <v-list-item class="mb-3">
                                     <template #prepend>
                                         <v-icon size="large">mdi-delete-sweep</v-icon>

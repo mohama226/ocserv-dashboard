@@ -6,11 +6,14 @@ import (
 )
 
 type System struct {
-	ID                      uint   `json:"_" gorm:"primaryKey"`
-	GoogleCaptchaSecretKey  string `json:"google_captcha_secret" gorm:"type:text"`
-	GoogleCaptchaSiteKey    string `json:"google_captcha_site_key" gorm:"type:text"`
-	AutoDeleteInactiveUsers bool   `json:"auto_delete_inactive_users" gorm:"type:boolean;default:false"`
-	KeepInactiveUserDays    int    `json:"keep_inactive_user_days" gorm:"default:30"`
+	ID                          uint   `json:"_" gorm:"primaryKey"`
+	GoogleCaptchaSecretKey      string `json:"google_captcha_secret" gorm:"type:text"`
+	GoogleCaptchaSiteKey        string `json:"google_captcha_site_key" gorm:"type:text"`
+	AutoDeleteInactiveUsers     bool   `json:"auto_delete_inactive_users" gorm:"type:boolean;default:false"`
+	KeepInactiveUserDays        int    `json:"keep_inactive_user_days" gorm:"default:30"`
+	ClientProfileServerAddress  string `json:"client_profile_server_address" gorm:"type:varchar(255);default:''"`
+	ClientProfileServerPort     int    `json:"client_profile_server_port" gorm:"default:443"`
+	ClientProfileConnectionName string `json:"client_profile_connection_name" gorm:"type:varchar(64);default:''"`
 }
 
 func (s *System) BeforeCreate(tx *gorm.DB) error {

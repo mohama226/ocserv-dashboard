@@ -35,21 +35,23 @@ func (l *WrapperLogger) SetLevel(v LabstackLog.Lvl) {}
 func (l *WrapperLogger) SetHeader(h string) {}
 
 func (l *WrapperLogger) send(level logger.LogLevel, format string, args ...interface{}) {
-	if l.Log != nil {
-		msg := logger.SafeSprintf(format, args...)
-		switch level {
-		case logger.InfoLevel:
-			l.send(logger.InfoLevel, msg)
-		case logger.WarnLevel:
-			l.send(logger.WarnLevel, msg)
-		case logger.ErrorLevel:
-			l.send(logger.ErrorLevel, msg)
-		case logger.FatalLevel:
-			l.send(logger.FatalLevel, msg)
-		}
+	if l.Log == nil {
+		return
+	}
+
+	msg := logger.SafeSprintf(format, args...)
+
+	switch level {
+	case logger.InfoLevel:
+		logger.Info("%s", msg)
+	case logger.WarnLevel:
+		logger.Warn("%s", msg)
+	case logger.ErrorLevel:
+		logger.Error("%s", msg)
+	case logger.FatalLevel:
+		logger.Error("%s", msg)
 	}
 }
-
 func (l *WrapperLogger) Print(i ...interface{}) {
 	l.send(logger.InfoLevel, "%v", fmt.Sprint(i...))
 }
@@ -124,18 +126,18 @@ func (l *WrapperLogger) Fatalj(j LabstackLog.JSON) {
 
 func (l *WrapperLogger) Panic(i ...interface{}) {
 	msg := logger.SafeSprintf("%v", fmt.Sprint(i...))
-	l.send(logger.FatalLevel, msg)
+	l.send(logger.FatalLevel, "%s", msg)
 	panic(msg)
 }
 
 func (l *WrapperLogger) Panicf(format string, args ...interface{}) {
 	msg := logger.SafeSprintf(format, args...)
-	l.send(logger.FatalLevel, msg)
+	l.send(logger.FatalLevel, "%s", msg)
 	panic(msg)
 }
 
 func (l *WrapperLogger) Panicj(j LabstackLog.JSON) {
 	msg := logger.SafeSprintf("%v", j)
-	l.send(logger.FatalLevel, msg)
+	l.send(logger.FatalLevel, "%s", msg)
 	panic(msg)
 }

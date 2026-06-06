@@ -22,6 +22,8 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { CustomerIOSSetupResponse } from '../models';
+// @ts-ignore
 import type { CustomerSummaryData } from '../models';
 // @ts-ignore
 import type { CustomerSummaryResponse } from '../models';
@@ -82,6 +84,76 @@ export const CustomersApiAxiosParamCreator = function (configuration?: Configura
             // verify required parameter 'request' is not null or undefined
             assertParamExists('customersDisconnectSessionsPost', 'request', request)
             const localVarPath = `/customers/disconnect_sessions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(request, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Download customer\'s PKCS#12 certificate using a short-lived iOS setup token
+         * @summary Download customer iOS setup certificate
+         * @param {string} token iOS setup certificate token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersSetupIosCertificateTokenGet: async (token: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'token' is not null or undefined
+            assertParamExists('customersSetupIosCertificateTokenGet', 'token', token)
+            const localVarPath = `/customers/setup/ios/certificate/{token}`
+                .replace(`{${"token"}}`, encodeURIComponent(String(token)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Create Cisco Secure Client iOS certificate import and connection creation URIs using ocserv username/password
+         * @summary Create customer iOS setup links
+         * @param {CustomerSummaryData} request customer username and password (same ocserv account).
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersSetupIosPost: async (request: CustomerSummaryData, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'request' is not null or undefined
+            assertParamExists('customersSetupIosPost', 'request', request)
+            const localVarPath = `/customers/setup/ios`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -180,6 +252,32 @@ export const CustomersApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Download customer\'s PKCS#12 certificate using a short-lived iOS setup token
+         * @summary Download customer iOS setup certificate
+         * @param {string} token iOS setup certificate token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async customersSetupIosCertificateTokenGet(token: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<File>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.customersSetupIosCertificateTokenGet(token, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CustomersApi.customersSetupIosCertificateTokenGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Create Cisco Secure Client iOS certificate import and connection creation URIs using ocserv username/password
+         * @summary Create customer iOS setup links
+         * @param {CustomerSummaryData} request customer username and password (same ocserv account).
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async customersSetupIosPost(request: CustomerSummaryData, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CustomerIOSSetupResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.customersSetupIosPost(request, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CustomersApi.customersSetupIosPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Customer summary account
          * @summary Customer summary account
          * @param {CustomerSummaryData} request customer username and password (same ocserv account).
@@ -223,6 +321,26 @@ export const CustomersApiFactory = function (configuration?: Configuration, base
             return localVarFp.customersDisconnectSessionsPost(requestParameters.request, options).then((request) => request(axios, basePath));
         },
         /**
+         * Download customer\'s PKCS#12 certificate using a short-lived iOS setup token
+         * @summary Download customer iOS setup certificate
+         * @param {CustomersApiCustomersSetupIosCertificateTokenGetRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersSetupIosCertificateTokenGet(requestParameters: CustomersApiCustomersSetupIosCertificateTokenGetRequest, options?: RawAxiosRequestConfig): AxiosPromise<File> {
+            return localVarFp.customersSetupIosCertificateTokenGet(requestParameters.token, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Create Cisco Secure Client iOS certificate import and connection creation URIs using ocserv username/password
+         * @summary Create customer iOS setup links
+         * @param {CustomersApiCustomersSetupIosPostRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersSetupIosPost(requestParameters: CustomersApiCustomersSetupIosPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<CustomerIOSSetupResponse> {
+            return localVarFp.customersSetupIosPost(requestParameters.request, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Customer summary account
          * @summary Customer summary account
          * @param {CustomersApiCustomersSummaryPostRequest} requestParameters Request parameters.
@@ -259,6 +377,34 @@ export interface CustomersApiCustomersDisconnectSessionsPostRequest {
      * customer username and password (same ocserv account).
      * @type {CustomerSummaryData}
      * @memberof CustomersApiCustomersDisconnectSessionsPost
+     */
+    readonly request: CustomerSummaryData
+}
+
+/**
+ * Request parameters for customersSetupIosCertificateTokenGet operation in CustomersApi.
+ * @export
+ * @interface CustomersApiCustomersSetupIosCertificateTokenGetRequest
+ */
+export interface CustomersApiCustomersSetupIosCertificateTokenGetRequest {
+    /**
+     * iOS setup certificate token
+     * @type {string}
+     * @memberof CustomersApiCustomersSetupIosCertificateTokenGet
+     */
+    readonly token: string
+}
+
+/**
+ * Request parameters for customersSetupIosPost operation in CustomersApi.
+ * @export
+ * @interface CustomersApiCustomersSetupIosPostRequest
+ */
+export interface CustomersApiCustomersSetupIosPostRequest {
+    /**
+     * customer username and password (same ocserv account).
+     * @type {CustomerSummaryData}
+     * @memberof CustomersApiCustomersSetupIosPost
      */
     readonly request: CustomerSummaryData
 }
@@ -306,6 +452,30 @@ export class CustomersApi extends BaseAPI {
      */
     public customersDisconnectSessionsPost(requestParameters: CustomersApiCustomersDisconnectSessionsPostRequest, options?: RawAxiosRequestConfig) {
         return CustomersApiFp(this.configuration).customersDisconnectSessionsPost(requestParameters.request, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Download customer\'s PKCS#12 certificate using a short-lived iOS setup token
+     * @summary Download customer iOS setup certificate
+     * @param {CustomersApiCustomersSetupIosCertificateTokenGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CustomersApi
+     */
+    public customersSetupIosCertificateTokenGet(requestParameters: CustomersApiCustomersSetupIosCertificateTokenGetRequest, options?: RawAxiosRequestConfig) {
+        return CustomersApiFp(this.configuration).customersSetupIosCertificateTokenGet(requestParameters.token, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Create Cisco Secure Client iOS certificate import and connection creation URIs using ocserv username/password
+     * @summary Create customer iOS setup links
+     * @param {CustomersApiCustomersSetupIosPostRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CustomersApi
+     */
+    public customersSetupIosPost(requestParameters: CustomersApiCustomersSetupIosPostRequest, options?: RawAxiosRequestConfig) {
+        return CustomersApiFp(this.configuration).customersSetupIosPost(requestParameters.request, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

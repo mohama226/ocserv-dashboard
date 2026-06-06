@@ -120,7 +120,7 @@ export interface ModelsOcservUser {
      */
     'rx': number;
     /**
-     * in GiB  >> x * 1024 ** 3
+     * in bytes
      * @type {number}
      * @memberof ModelsOcservUser
      */

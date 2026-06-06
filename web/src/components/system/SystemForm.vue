@@ -14,6 +14,9 @@ const { t } = useI18n();
 
 const systemData = ref<SystemPatchSystemUpdateData>({
     auto_delete_inactive_users: false,
+    client_profile_connection_name: '',
+    client_profile_server_address: '',
+    client_profile_server_port: 443,
     google_captcha_secret_key: '',
     google_captcha_site_key: '',
     keep_inactive_user_days: 0
@@ -25,6 +28,9 @@ watch(
         if (!newData) return;
         systemData.value = {
             auto_delete_inactive_users: newData.auto_delete_inactive_users ?? false,
+            client_profile_connection_name: newData.client_profile_connection_name ?? '',
+            client_profile_server_address: newData.client_profile_server_address ?? '',
+            client_profile_server_port: newData.client_profile_server_port ?? 443,
             google_captcha_secret_key: newData.google_captcha_secret_key ?? '',
             google_captcha_site_key: newData.google_captcha_site_key ?? '',
             keep_inactive_user_days: newData.keep_inactive_user_days ?? 0
@@ -64,6 +70,47 @@ watch(
                 color="primary"
                 hide-details
                 type="text"
+                variant="outlined"
+            />
+        </v-col>
+        <v-col cols="12" md="6">
+            <v-label class="font-weight-bold mb-1">
+                {{ t('CLIENT_PROFILE_CONNECTION_NAME') }}
+            </v-label>
+            <v-text-field
+                v-model="systemData.client_profile_connection_name"
+                color="primary"
+                :hint="t('CLIENT_PROFILE_CONNECTION_NAME_HINT')"
+                persistent-hint
+                type="text"
+                variant="outlined"
+            />
+        </v-col>
+
+        <v-col cols="12" md="6">
+            <v-label class="font-weight-bold mb-1">
+                {{ t('CLIENT_PROFILE_SERVER_ADDRESS') }}
+            </v-label>
+            <v-text-field
+                v-model="systemData.client_profile_server_address"
+                color="primary"
+                :hint="t('CLIENT_PROFILE_SERVER_ADDRESS_HINT')"
+                persistent-hint
+                type="text"
+                variant="outlined"
+            />
+        </v-col>
+
+        <v-col cols="12" md="6">
+            <v-label class="font-weight-bold mb-1">
+                {{ t('CLIENT_PROFILE_SERVER_PORT') }}
+            </v-label>
+            <v-text-field
+                v-model.number="systemData.client_profile_server_port"
+                color="primary"
+                :hint="t('CLIENT_PROFILE_SERVER_PORT_HINT')"
+                persistent-hint
+                type="number"
                 variant="outlined"
             />
         </v-col>

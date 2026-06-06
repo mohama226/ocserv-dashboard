@@ -397,11 +397,11 @@ func (ctl *Controller) Lock(c echo.Context) error {
 
 		u, err := ctl.ocservUserRepo.GetByUID(ctx, userID)
 		if err != nil {
-			logger.Error("failed to fetch ocserv user error: ", err)
+			logger.Error("failed to fetch ocserv user error: %v", err)
 		}
 		_, err = ctl.ocservOcctlRepo.Disconnect(u.Username)
 		if err != nil {
-			logger.Error("failed to disconnect ocserv user error: ", err)
+			logger.Error("failed to disconnect ocserv user error: %v", err)
 		}
 		return
 	}()

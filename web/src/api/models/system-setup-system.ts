@@ -31,6 +31,24 @@ export interface SystemSetupSystem {
      * @type {string}
      * @memberof SystemSetupSystem
      */
+    'client_profile_connection_name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SystemSetupSystem
+     */
+    'client_profile_server_address'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof SystemSetupSystem
+     */
+    'client_profile_server_port'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof SystemSetupSystem
+     */
     'google_captcha_secret_key'?: string;
     /**
      * 

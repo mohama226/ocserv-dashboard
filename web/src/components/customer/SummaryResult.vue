@@ -1,16 +1,21 @@
 <script lang="ts" setup>
-import type { CustomerSummaryResponse } from '@/api';
+import type { CustomerIOSSetupResponse, CustomerSummaryResponse } from '@/api';
 import { bytesToGB, bytesToTrafficSize, formatDate, trafficTypesTransformer } from '@/utils/convertors';
 import UiChildCard from '@/components/shared/UiChildCard.vue';
 import { useI18n } from 'vue-i18n';
 
 defineProps<{
     result: CustomerSummaryResponse;
+    iosSetup: CustomerIOSSetupResponse | null;
 }>();
 
-const emit = defineEmits(['newSummary', 'disconnect', 'downloadCertificate']);
+const emit = defineEmits(['newSummary', 'disconnect', 'downloadCertificate', 'loadIOSSetup']);
 
 const { t } = useI18n();
+
+const copyCertificatePassword = (password: string) => {
+    navigator.clipboard?.writeText(password);
+};
 </script>
 
 <template>
@@ -32,6 +37,11 @@ const { t } = useI18n();
                     <v-col v-if="result.ocserv_user.certificate_available" cols="12" md="auto" sm="12">
                         <v-btn color="info" size="small" variant="outlined" @click="emit('downloadCertificate')">
                             {{ t('DOWNLOAD_CERTIFICATE') }}
+                        </v-btn>
+                    </v-col>
+                    <v-col v-if="result.ocserv_user.certificate_available" cols="12" md="auto" sm="12">
+                        <v-btn color="primary" size="small" variant="outlined" @click="emit('loadIOSSetup')">
+                            {{ t('IOS_SETUP') }}
                         </v-btn>
                     </v-col>
                 </v-row>
@@ -139,6 +149,51 @@ const { t } = useI18n();
                         </v-row>
                     </div>
                 </div>
+            </div>
+        </UiChildCard>
+
+        <UiChildCard v-if="iosSetup" class="px-3 mt-4">
+            <template #title-header>
+                <span class="text-capitalize text-primary text-h3">
+                    {{ t('IOS_SETUP_TITLE') }}
+                </span>
+            </template>
+
+            <div class="space-y-4 mt-8 px-1">
+                <v-alert class="mb-4" type="info" variant="tonal">
+                    {{ t('IOS_SETUP_EXTERNAL_CONTROL_HINT') }}
+                </v-alert>
+
+                <v-alert class="mb-4" type="warning" variant="tonal">
+                    {{ t('IOS_SETUP_PASSWORD_HINT') }}
+                    <strong>{{ iosSetup.certificate_password }}</strong>
+                    <v-btn
+                        class="ms-2"
+                        size="x-small"
+                        variant="text"
+                        @click="copyCertificatePassword(iosSetup.certificate_password)"
+                    >
+                        {{ t('COPY') }}
+                    </v-btn>
+                </v-alert>
+
+                <v-row>
+                    <v-col cols="12" md="6">
+                        <v-btn block color="primary" :href="iosSetup.certificate_import_uri" variant="flat">
+                            {{ t('IOS_IMPORT_CERTIFICATE') }}
+                        </v-btn>
+                    </v-col>
+
+                    <v-col cols="12" md="6">
+                        <v-btn block color="success" :href="iosSetup.connection_create_uri" variant="flat">
+                            {{ t('IOS_ADD_CONNECTION') }}
+                        </v-btn>
+                    </v-col>
+                </v-row>
+
+                <p class="mt-4 text-caption">
+                    {{ t('IOS_SETUP_EXPIRES_HINT') }}
+                </p>
             </div>
         </UiChildCard>
     </v-col>

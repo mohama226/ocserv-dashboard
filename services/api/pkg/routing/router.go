@@ -105,7 +105,7 @@ func Serve(cfg *config.Config) {
 		os.Exit(1)
 	}
 
-	logger.Info("Starting server at " + server)
+	logger.Info("Starting server at %s", server)
 }
 
 func Shutdown(ctx context.Context) {
