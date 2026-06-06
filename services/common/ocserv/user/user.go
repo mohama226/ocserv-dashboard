@@ -31,9 +31,9 @@ type OcservUserPasswords interface {
 
 type OcservUserCertificateManagement interface {
 	CreateCertificate(username, password string) error
+	RevokeCertificate(username string) error
 	SuspendCertificate(username string) error
 	UnsuspendCertificate(username string) error
-	RevokeCertificate(username string) error
 	CertificateStatus(username string) CertificateStatus
 	CertificatePath(username string) (string, error)
 	CertificateBackup(username string) (*models.OcservUserCertificateBackup, error)

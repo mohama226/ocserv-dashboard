@@ -186,7 +186,7 @@ func (b *BackupRepository) OcservGroupRestore(ctx context.Context, owner string,
 	}
 
 	if len(errs) > 0 {
-		return &insertedNames, &dbExisting, fmt.Errorf(strings.Join(errs, "; "))
+		return &insertedNames, &dbExisting, fmt.Errorf("%s", strings.Join(errs, "; "))
 	}
 
 	return &insertedNames, &dbExisting, nil
@@ -337,7 +337,7 @@ func (b *BackupRepository) OcservUserRestore(ctx context.Context, owner string, 
 	}
 
 	if len(errs) > 0 {
-		return &insertedNames, &dbExisting, fmt.Errorf(strings.Join(errs, "; "))
+		return &insertedNames, &dbExisting, fmt.Errorf("%s", strings.Join(errs, "; "))
 	}
 
 	return &insertedNames, &dbExisting, nil

@@ -310,6 +310,93 @@ const docTemplate = `{
                 }
             }
         },
+        "/customers/setup/cisco": {
+            "post": {
+                "description": "Create Cisco Secure Client certificate import and connection creation URIs using ocserv username/password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Create customer Cisco Secure Client setup links",
+                "parameters": [
+                    {
+                        "description": "customer username and password (same ocserv account).",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/customer.SummaryData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/customer.CiscoSetupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.TooManyRequests"
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/setup/cisco/certificate/{token}": {
+            "get": {
+                "description": "Download customer's PKCS#12 certificate using a short-lived Cisco Secure Client setup token",
+                "produces": [
+                    "application/x-pkcs12"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Download customer Cisco Secure Client setup certificate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cisco Secure Client setup certificate token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "user.p12",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/request.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.TooManyRequests"
+                        }
+                    }
+                }
+            }
+        },
         "/customers/summary": {
             "post": {
                 "description": "Customer summary account",
@@ -3328,6 +3415,41 @@ const docTemplate = `{
                 }
             }
         },
+        "customer.CiscoSetupResponse": {
+            "type": "object",
+            "required": [
+                "certificate_import_uri",
+                "certificate_password",
+                "connection_create_uri",
+                "connection_name",
+                "expires_at",
+                "server_address",
+                "server_port"
+            ],
+            "properties": {
+                "certificate_import_uri": {
+                    "type": "string"
+                },
+                "certificate_password": {
+                    "type": "string"
+                },
+                "connection_create_uri": {
+                    "type": "string"
+                },
+                "connection_name": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "server_address": {
+                    "type": "string"
+                },
+                "server_port": {
+                    "type": "integer"
+                }
+            }
+        },
         "customer.ModelCustomer": {
             "type": "object",
             "required": [
@@ -4058,7 +4180,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "traffic_size": {
-                    "description": "in GiB  \u003e\u003e x * 1024 ** 3",
+                    "description": "in bytes",
                     "type": "integer"
                 },
                 "traffic_type": {
@@ -4272,6 +4394,15 @@ const docTemplate = `{
                 },
                 "auto_delete_inactive_users": {
                     "type": "boolean"
+                },
+                "client_profile_connection_name": {
+                    "type": "string"
+                },
+                "client_profile_server_address": {
+                    "type": "string"
+                },
+                "client_profile_server_port": {
+                    "type": "integer"
                 },
                 "google_captcha_secret": {
                     "type": "string"
@@ -4803,6 +4934,15 @@ const docTemplate = `{
                 "auto_delete_inactive_users": {
                     "type": "boolean"
                 },
+                "client_profile_connection_name": {
+                    "type": "string"
+                },
+                "client_profile_server_address": {
+                    "type": "string"
+                },
+                "client_profile_server_port": {
+                    "type": "integer"
+                },
                 "google_captcha_secret_key": {
                     "type": "string"
                 },
@@ -4845,6 +4985,9 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "auto_delete_inactive_users",
+                "client_profile_connection_name",
+                "client_profile_server_address",
+                "client_profile_server_port",
                 "google_captcha_secret_key",
                 "google_captcha_site_key",
                 "keep_inactive_user_days"
@@ -4852,6 +4995,15 @@ const docTemplate = `{
             "properties": {
                 "auto_delete_inactive_users": {
                     "type": "boolean"
+                },
+                "client_profile_connection_name": {
+                    "type": "string"
+                },
+                "client_profile_server_address": {
+                    "type": "string"
+                },
+                "client_profile_server_port": {
+                    "type": "integer"
                 },
                 "google_captcha_secret_key": {
                     "type": "string"
@@ -4911,6 +5063,15 @@ const docTemplate = `{
             "properties": {
                 "auto_delete_inactive_users": {
                     "type": "boolean"
+                },
+                "client_profile_connection_name": {
+                    "type": "string"
+                },
+                "client_profile_server_address": {
+                    "type": "string"
+                },
+                "client_profile_server_port": {
+                    "type": "integer"
                 },
                 "google_captcha_secret_key": {
                     "type": "string"

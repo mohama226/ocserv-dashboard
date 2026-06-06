@@ -11,6 +11,7 @@ import (
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/crypto"
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/request"
 	"github.com/mmtaee/ocserv-dashboard/api/pkg/routing/middlewares"
+	ocservUser "github.com/mmtaee/ocserv-dashboard/common/ocserv/user"
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/config"
 	"github.com/mmtaee/ocserv-dashboard/common/pkg/logger"
 	"gorm.io/gorm"
@@ -117,12 +118,35 @@ func (ctl *Controller) SetupSystem(c echo.Context) error {
 	if inactiveDays < 1 {
 		inactiveDays = 1
 	}
+	clientProfileServerAddress := strings.TrimSpace(data.ClientProfileServerAddress)
+	if clientProfileServerAddress != "" {
+		if _, err := ocservUser.NormalizeProfileServerAddress(clientProfileServerAddress); err != nil {
+			return ctl.request.BadRequest(c, err)
+		}
+	}
 
+	clientProfileConnectionName := strings.TrimSpace(data.ClientProfileConnectionName)
+	if clientProfileConnectionName != "" {
+		if _, err := ocservUser.NormalizeProfileConnectionName(clientProfileConnectionName); err != nil {
+			return ctl.request.BadRequest(c, err)
+		}
+	}
+
+	clientProfileServerPort := data.ClientProfileServerPort
+	if clientProfileServerPort == 0 {
+		clientProfileServerPort = 443
+	}
+	if _, err := ocservUser.NormalizeProfileServerPort(clientProfileServerPort); err != nil {
+		return ctl.request.BadRequest(c, err)
+	}
 	system := &models.System{
-		GoogleCaptchaSiteKey:    data.GoogleCaptchaSiteKey,
-		GoogleCaptchaSecretKey:  data.GoogleCaptchaSecretKey,
-		AutoDeleteInactiveUsers: data.AutoDeleteInactiveUsers,
-		KeepInactiveUserDays:    inactiveDays,
+		GoogleCaptchaSiteKey:        data.GoogleCaptchaSiteKey,
+		GoogleCaptchaSecretKey:      data.GoogleCaptchaSecretKey,
+		AutoDeleteInactiveUsers:     data.AutoDeleteInactiveUsers,
+		KeepInactiveUserDays:        inactiveDays,
+		ClientProfileServerAddress:  clientProfileServerAddress,
+		ClientProfileServerPort:     clientProfileServerPort,
+		ClientProfileConnectionName: clientProfileConnectionName,
 	}
 	newUser, newSystem, err := ctl.systemRepo.SystemSetup(c.Request().Context(), user, system)
 	if err != nil {
@@ -230,10 +254,13 @@ func (ctl *Controller) System(c echo.Context) error {
 		return ctl.request.BadRequest(c, err)
 	}
 	return c.JSON(http.StatusOK, GetSystemResponse{
-		GoogleCaptchaSiteKey:    cfg.GoogleCaptchaSiteKey,
-		GoogleCaptchaSecretKey:  cfg.GoogleCaptchaSecretKey,
-		AutoDeleteInactiveUsers: cfg.AutoDeleteInactiveUsers,
-		KeepInactiveUserDays:    cfg.KeepInactiveUserDays,
+		GoogleCaptchaSiteKey:        cfg.GoogleCaptchaSiteKey,
+		GoogleCaptchaSecretKey:      cfg.GoogleCaptchaSecretKey,
+		AutoDeleteInactiveUsers:     cfg.AutoDeleteInactiveUsers,
+		KeepInactiveUserDays:        cfg.KeepInactiveUserDays,
+		ClientProfileServerAddress:  cfg.ClientProfileServerAddress,
+		ClientProfileServerPort:     cfg.ClientProfileServerPort,
+		ClientProfileConnectionName: cfg.ClientProfileConnectionName,
 	})
 }
 
@@ -275,18 +302,46 @@ func (ctl *Controller) SystemUpdate(c echo.Context) error {
 		}
 		system.KeepInactiveUserDays = inactiveDays
 	}
+	if data.ClientProfileServerAddress != nil {
+		clientProfileServerAddress := strings.TrimSpace(*data.ClientProfileServerAddress)
+		if clientProfileServerAddress != "" {
+			if _, err := ocservUser.NormalizeProfileServerAddress(clientProfileServerAddress); err != nil {
+				return ctl.request.BadRequest(c, err)
+			}
+		}
+		system.ClientProfileServerAddress = clientProfileServerAddress
+	}
+
+	if data.ClientProfileServerPort != nil {
+		if _, err := ocservUser.NormalizeProfileServerPort(*data.ClientProfileServerPort); err != nil {
+			return ctl.request.BadRequest(c, err)
+		}
+		system.ClientProfileServerPort = *data.ClientProfileServerPort
+	}
+
+	if data.ClientProfileConnectionName != nil {
+		clientProfileConnectionName := strings.TrimSpace(*data.ClientProfileConnectionName)
+		if clientProfileConnectionName != "" {
+			if _, err := ocservUser.NormalizeProfileConnectionName(clientProfileConnectionName); err != nil {
+				return ctl.request.BadRequest(c, err)
+			}
+		}
+		system.ClientProfileConnectionName = clientProfileConnectionName
+	}
 
 	ctx := context.WithValue(c.Request().Context(), "userUID", userUID)
 	updatedConfig, err := ctl.systemRepo.SystemUpdate(ctx, &system)
 	if err != nil {
 		return ctl.request.BadRequest(c, err)
 	}
-
 	return c.JSON(http.StatusOK, GetSystemResponse{
-		GoogleCaptchaSiteKey:    updatedConfig.GoogleCaptchaSiteKey,
-		GoogleCaptchaSecretKey:  updatedConfig.GoogleCaptchaSecretKey,
-		AutoDeleteInactiveUsers: updatedConfig.AutoDeleteInactiveUsers,
-		KeepInactiveUserDays:    updatedConfig.KeepInactiveUserDays,
+		GoogleCaptchaSiteKey:        updatedConfig.GoogleCaptchaSiteKey,
+		GoogleCaptchaSecretKey:      updatedConfig.GoogleCaptchaSecretKey,
+		AutoDeleteInactiveUsers:     updatedConfig.AutoDeleteInactiveUsers,
+		KeepInactiveUserDays:        updatedConfig.KeepInactiveUserDays,
+		ClientProfileServerAddress:  updatedConfig.ClientProfileServerAddress,
+		ClientProfileServerPort:     updatedConfig.ClientProfileServerPort,
+		ClientProfileConnectionName: updatedConfig.ClientProfileConnectionName,
 	})
 }
 

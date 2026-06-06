@@ -45,7 +45,7 @@ func (ctl *Controller) ServerInfo(c echo.Context) error {
 
 	serverStatus, err := ctl.occtlRepo.Status()
 	if err != nil {
-		logger.Error("Get server status error", err)
+		logger.Error("Get server status error: %v", err)
 		info.Status = "error"
 		return c.JSON(http.StatusOK, info)
 	}

@@ -34,3 +34,13 @@ type SummaryResponse struct {
 	OcservUser ModelCustomer `json:"ocserv_user" validate:"required"`
 	Usage      UsageResponse `json:"usage" validate:"required"`
 }
+
+type CiscoSetupResponse struct {
+	CertificateImportURI string    `json:"certificate_import_uri" validate:"required"`
+	ConnectionCreateURI  string    `json:"connection_create_uri" validate:"required"`
+	CertificatePassword  string    `json:"certificate_password" validate:"required"`
+	ConnectionName       string    `json:"connection_name" validate:"required"`
+	ServerAddress        string    `json:"server_address" validate:"required"`
+	ServerPort           int       `json:"server_port" validate:"required"`
+	ExpiresAt            time.Time `json:"expires_at" validate:"required"`
+}

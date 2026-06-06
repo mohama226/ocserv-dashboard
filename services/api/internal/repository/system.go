@@ -71,10 +71,13 @@ func (s *SystemRepository) SystemUpdate(ctx context.Context, system *models.Syst
 		Where("id = ?", latest.ID).
 		Updates(
 			map[string]interface{}{
-				"google_captcha_secret_key":  system.GoogleCaptchaSecretKey,
-				"google_captcha_site_key":    system.GoogleCaptchaSiteKey,
-				"auto_delete_inactive_users": system.AutoDeleteInactiveUsers,
-				"keep_inactive_user_days":    system.KeepInactiveUserDays,
+				"google_captcha_secret_key":      system.GoogleCaptchaSecretKey,
+				"google_captcha_site_key":        system.GoogleCaptchaSiteKey,
+				"auto_delete_inactive_users":     system.AutoDeleteInactiveUsers,
+				"keep_inactive_user_days":        system.KeepInactiveUserDays,
+				"client_profile_server_address":  system.ClientProfileServerAddress,
+				"client_profile_server_port":     system.ClientProfileServerPort,
+				"client_profile_connection_name": system.ClientProfileConnectionName,
 			},
 		).Error; err != nil {
 		return nil, err

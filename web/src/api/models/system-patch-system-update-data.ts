@@ -31,6 +31,24 @@ export interface SystemPatchSystemUpdateData {
      * @type {string}
      * @memberof SystemPatchSystemUpdateData
      */
+    'client_profile_connection_name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SystemPatchSystemUpdateData
+     */
+    'client_profile_server_address': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof SystemPatchSystemUpdateData
+     */
+    'client_profile_server_port': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof SystemPatchSystemUpdateData
+     */
     'google_captcha_secret_key': string;
     /**
      * 

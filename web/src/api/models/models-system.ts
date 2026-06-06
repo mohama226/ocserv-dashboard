@@ -37,6 +37,24 @@ export interface ModelsSystem {
      * @type {string}
      * @memberof ModelsSystem
      */
+    'client_profile_connection_name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelsSystem
+     */
+    'client_profile_server_address'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof ModelsSystem
+     */
+    'client_profile_server_port'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelsSystem
+     */
     'google_captcha_secret'?: string;
     /**
      * 
