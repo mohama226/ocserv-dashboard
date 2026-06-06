@@ -100,7 +100,7 @@ const goBack = () => {
                                         <v-col cols="12" sm="6">
                                             <v-btn
                                                 block
-                                                class="setup-action-btn test-none"
+                                                class="setup-action-btn text-none"
                                                 color="success"
                                                 :href="playStoreUrl"
                                             >
