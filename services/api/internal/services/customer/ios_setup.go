@@ -88,7 +88,7 @@ func (ctl *Controller) IOSSetup(c echo.Context) error {
 		return ctl.request.BadRequest(c, err)
 	}
 
-	connectionCreateURI, err := ocservUser.BuildAnyConnectCreateURI(connectionName, serverAddress, serverPort)
+	connectionCreateURI, err := ocservUser.BuildAnyConnectCreateURI(connectionName, serverAddress, serverPort, user.Username)
 	if err != nil {
 		return ctl.request.BadRequest(c, err)
 	}

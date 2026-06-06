@@ -66,7 +66,7 @@ func BuildProfileServerHostPort(serverAddress string, serverPort int) (string, e
 	return net.JoinHostPort(serverAddress, strconv.Itoa(serverPort)), nil
 }
 
-func BuildAnyConnectCreateURI(connectionName, serverAddress string, serverPort int) (string, error) {
+func BuildAnyConnectCreateURI(connectionName, serverAddress string, serverPort int, certCommonName string) (string, error) {
 	connectionName, err := NormalizeProfileConnectionName(connectionName)
 	if err != nil {
 		return "", err
@@ -81,6 +81,11 @@ func BuildAnyConnectCreateURI(connectionName, serverAddress string, serverPort i
 	values.Set("name", connectionName)
 	values.Set("host", hostPort)
 	values.Set("usecert", "true")
+
+	certCommonName = strings.TrimSpace(certCommonName)
+	if certCommonName != "" {
+		values.Set("certcommonname", certCommonName)
+	}
 
 	return "anyconnect://create/?" + values.Encode(), nil
 }

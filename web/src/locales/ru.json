@@ -406,5 +406,19 @@
     "USE_SECRET_KEY_FROM_ENV_FILE_IN_SERVER": "используйте секретный ключ из файла env на сервере",
     "VALUE": "значение",
     "VIEW": "просмотр",
-    "YESTERDAY": "вчера"
+    "YESTERDAY": "вчера",
+    "COPY": "копировать",
+    "IOS_SETUP": "настройка iOS",
+    "IOS_SETUP_TITLE": "Настройка Cisco Secure Client для iOS",
+    "IOS_SETUP_EXTERNAL_CONTROL_HINT": "Перед использованием этих кнопок откройте Cisco Secure Client и установите External Control в Prompt или Enable.",
+    "IOS_SETUP_PASSWORD_HINT": "Пароль сертификата:",
+    "IOS_IMPORT_CERTIFICATE": "Импортировать сертификат в Cisco",
+    "IOS_ADD_CONNECTION": "Добавить VPN-подключение в Cisco",
+    "IOS_SETUP_EXPIRES_HINT": "Ссылка для импорта сертификата временная. Создайте новую ссылку настройки, если она истекла.",
+    "CLIENT_PROFILE_CONNECTION_NAME": "имя подключения клиентского профиля",
+    "CLIENT_PROFILE_CONNECTION_NAME_HINT": "Имя подключения, отображаемое в Cisco Secure Client, например WordUp",
+    "CLIENT_PROFILE_SERVER_ADDRESS": "адрес сервера клиентского профиля",
+    "CLIENT_PROFILE_SERVER_ADDRESS_HINT": "Хост сервера в созданных профилях Cisco, без схемы и порта, например vpn.example.com",
+    "CLIENT_PROFILE_SERVER_PORT": "порт сервера клиентского профиля",
+    "CLIENT_PROFILE_SERVER_PORT_HINT": "Порт сервера в созданных профилях Cisco, например 9443"
 }

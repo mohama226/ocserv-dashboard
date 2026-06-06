@@ -406,5 +406,19 @@
     "USE_SECRET_KEY_FROM_ENV_FILE_IN_SERVER": "usa la chiave segreta dal file env nel server",
     "VALUE": "valore",
     "VIEW": "visualizza",
-    "YESTERDAY": "ieri"
+    "YESTERDAY": "ieri",
+    "COPY": "copia",
+    "IOS_SETUP": "configurazione iOS",
+    "IOS_SETUP_TITLE": "Configurazione Cisco Secure Client per iOS",
+    "IOS_SETUP_EXTERNAL_CONTROL_HINT": "Prima di usare questi pulsanti, apri Cisco Secure Client e imposta External Control su Prompt o Enable.",
+    "IOS_SETUP_PASSWORD_HINT": "Password del certificato:",
+    "IOS_IMPORT_CERTIFICATE": "Importa certificato in Cisco",
+    "IOS_ADD_CONNECTION": "Aggiungi connessione VPN in Cisco",
+    "IOS_SETUP_EXPIRES_HINT": "Il link di importazione del certificato è temporaneo. Genera un nuovo link di configurazione se scade.",
+    "CLIENT_PROFILE_CONNECTION_NAME": "nome connessione profilo client",
+    "CLIENT_PROFILE_CONNECTION_NAME_HINT": "Nome della connessione mostrato in Cisco Secure Client, per esempio WordUp",
+    "CLIENT_PROFILE_SERVER_ADDRESS": "indirizzo server profilo client",
+    "CLIENT_PROFILE_SERVER_ADDRESS_HINT": "Host del server usato nei profili Cisco generati, senza schema o porta, per esempio vpn.example.com",
+    "CLIENT_PROFILE_SERVER_PORT": "porta server profilo client",
+    "CLIENT_PROFILE_SERVER_PORT_HINT": "Porta del server usata nei profili Cisco generati, per esempio 9443"
 }

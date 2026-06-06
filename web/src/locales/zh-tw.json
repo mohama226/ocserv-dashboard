@@ -406,5 +406,19 @@
     "USE_SECRET_KEY_FROM_ENV_FILE_IN_SERVER": "使用伺服器中 env 檔案的密鑰",
     "VALUE": "值",
     "VIEW": "檢視",
-    "YESTERDAY": "昨天"
+    "YESTERDAY": "昨天",
+    "COPY": "複製",
+    "IOS_SETUP": "iOS 設定",
+    "IOS_SETUP_TITLE": "Cisco Secure Client iOS 設定",
+    "IOS_SETUP_EXTERNAL_CONTROL_HINT": "使用這些按鈕前，請開啟 Cisco Secure Client，並將 External Control 設為 Prompt 或 Enable。",
+    "IOS_SETUP_PASSWORD_HINT": "憑證密碼：",
+    "IOS_IMPORT_CERTIFICATE": "在 Cisco 中匯入憑證",
+    "IOS_ADD_CONNECTION": "在 Cisco 中新增 VPN 連線",
+    "IOS_SETUP_EXPIRES_HINT": "憑證匯入連結是暫時的。如果過期，請重新產生設定連結。",
+    "CLIENT_PROFILE_CONNECTION_NAME": "用戶端設定連線名稱",
+    "CLIENT_PROFILE_CONNECTION_NAME_HINT": "Cisco Secure Client 中顯示的連線名稱，例如 WordUp",
+    "CLIENT_PROFILE_SERVER_ADDRESS": "用戶端設定伺服器位址",
+    "CLIENT_PROFILE_SERVER_ADDRESS_HINT": "產生的 Cisco 設定中使用的伺服器主機，不包含協定或連接埠，例如 vpn.example.com",
+    "CLIENT_PROFILE_SERVER_PORT": "用戶端設定伺服器連接埠",
+    "CLIENT_PROFILE_SERVER_PORT_HINT": "產生的 Cisco 設定中使用的伺服器連接埠，例如 9443"
 }
