@@ -21,6 +21,7 @@ paths-ignore:
   - "web/.env"
   - "web/.env.*"
   - "web/env.sample"
+  - "web/src/data/dummy.ts"
   - "node_modules/**"
   - "web/node_modules/**"
   - "dist/**"
