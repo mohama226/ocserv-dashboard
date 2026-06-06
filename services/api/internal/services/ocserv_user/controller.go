@@ -574,9 +574,26 @@ func (ctl *Controller) SyncToDB(c echo.Context) error {
 		return ctl.request.BadRequest(c, err)
 	}
 
-	expireAt, err := time.Parse("2006-01-02", *data.ExpireAt)
-	if err != nil {
-		expireAt, _ = time.Parse("2006-01-02", time.Now().AddDate(0, 0, 30).Format("2006-01-02"))
+	expireAt := time.Now().AddDate(0, 0, 30)
+	if data.ExpireAt != nil && *data.ExpireAt != "" {
+		parsedExpireAt, err := time.Parse("2006-01-02", *data.ExpireAt)
+		if err == nil {
+			expireAt = parsedExpireAt
+		}
+	}
+
+	if data.TrafficType == nil {
+		return ctl.request.BadRequest(c, errors.New("traffic_type is required"))
+	}
+
+	if data.TrafficSize == nil {
+		return ctl.request.BadRequest(c, errors.New("traffic_size is required"))
+	}
+
+	trafficType := *data.TrafficType
+	trafficSize := *data.TrafficSize
+	if trafficType == models.Free {
+		trafficSize = 0
 	}
 
 	var users []models.OcservUser
@@ -595,8 +612,8 @@ func (ctl *Controller) SyncToDB(c echo.Context) error {
 				Group:       u.Group,
 				Owner:       owner,
 				ExpireAt:    &expireAt,
-				TrafficSize: *data.TrafficSize,
-				TrafficType: *data.TrafficType,
+				TrafficSize: trafficSize,
+				TrafficType: trafficType,
 				Config:      data.Config,
 			}
 

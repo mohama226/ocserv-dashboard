@@ -925,6 +925,8 @@ definitions:
           $ref: '#/definitions/user.Ocpasswd'
         type: array
     required:
+    - traffic_size
+    - traffic_type
     - users
     type: object
   ocserv_user.UpdateOcservUserData:

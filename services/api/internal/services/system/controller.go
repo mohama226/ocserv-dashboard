@@ -52,7 +52,22 @@ func New() *Controller {
 func (ctl *Controller) DashboardRelease(c echo.Context) error {
 	current := os.Getenv("CURRENT_RELEASE")
 
-	resp, err := http.Get("https://api.github.com/repos/mmtaee/ocserv-dashboard/releases/latest")
+	client := &http.Client{Timeout: 5 * time.Second}
+
+	req, err := http.NewRequestWithContext(
+		c.Request().Context(),
+		http.MethodGet,
+		"https://api.github.com/repos/mmtaee/ocserv-dashboard/releases/latest",
+		nil,
+	)
+	if err != nil {
+		return ctl.request.BadRequest(c, errors.New("failed to create latest release request"))
+	}
+
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("User-Agent", "ocserv-dashboard")
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return ctl.request.BadRequest(c, errors.New("failed to fetch latest release"))
 	}
@@ -63,6 +78,10 @@ func (ctl *Controller) DashboardRelease(c echo.Context) error {
 			logger.Error("error on close io.ReadCloser: %v", err)
 		}
 	}(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return ctl.request.BadRequest(c, errors.New("failed to fetch latest release"))
+	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
