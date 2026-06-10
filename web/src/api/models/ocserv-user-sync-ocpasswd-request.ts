@@ -49,13 +49,13 @@ export interface OcservUserSyncOcpasswdRequest {
      * @type {number}
      * @memberof OcservUserSyncOcpasswdRequest
      */
-    'traffic_size'?: number;
+    'traffic_size': number;
     /**
      * 
      * @type {string}
      * @memberof OcservUserSyncOcpasswdRequest
      */
-    'traffic_type'?: OcservUserSyncOcpasswdRequestTrafficTypeEnum;
+    'traffic_type': OcservUserSyncOcpasswdRequestTrafficTypeEnum;
     /**
      * 
      * @type {Array<UserOcpasswd>}

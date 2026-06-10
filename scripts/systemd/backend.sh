@@ -137,6 +137,10 @@ log "Ensured telegram receipts directory: $RECEIPTS_DIR"
 # -----------------------
 "${BIN_DIR}"/api migrate || exit
 
+# -----------------------
+# Filesystem Migration
+# -----------------------
+./scripts/migrate-ocserv-user-configs.sh
 
 # -----------------------
 # Create systemd units

@@ -4657,6 +4657,8 @@ const docTemplate = `{
         "ocserv_user.SyncOcpasswdRequest": {
             "type": "object",
             "required": [
+                "traffic_size",
+                "traffic_type",
                 "users"
             ],
             "properties": {

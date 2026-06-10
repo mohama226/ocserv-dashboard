@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { CustomerSummaryResponse } from '@/api';
-import { bytesToGB, bytesToTrafficSize, formatDate, trafficTypesTransformer } from '@/utils/convertors';
+import { bytesToGB, bytesToTrafficSize, formatDate, numberToFixer, trafficTypesTransformer } from '@/utils/convertors';
 import UiChildCard from '@/components/shared/UiChildCard.vue';
 import { useI18n } from 'vue-i18n';
 
@@ -138,16 +138,15 @@ const { t } = useI18n();
                                 <span class="ms-1">{{ formatDate(result.usage.date_end) }}</span>
                             </v-col>
                         </v-row>
-
                         <v-row align="center" justify="start">
                             <v-col cols="12" md="6">
                                 <span class="font-medium text-gray-600 text-capitalize"> RX: </span>
-                                <span class="ms-1">{{ bytesToGB(result.usage.bandwidths.rx) }} GB</span>
+                                <span class="ms-1">{{ numberToFixer(result.usage.bandwidths.rx, 6) }} GB</span>
                             </v-col>
 
                             <v-col cols="12" md="6">
                                 <span class="font-medium text-gray-600 text-capitalize"> TX: </span>
-                                <span class="ms-1">{{ bytesToGB(result.usage.bandwidths.tx) }} GB</span>
+                                <span class="ms-1">{{ numberToFixer(result.usage.bandwidths.tx, 6) }} GB</span>
                             </v-col>
                         </v-row>
                     </div>

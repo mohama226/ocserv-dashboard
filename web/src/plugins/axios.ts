@@ -55,7 +55,11 @@ api.interceptors.response.use(
                 window.location.href = '/login';
             }
             if (response.status === 400) {
-                if (response.data.hasOwnProperty('error') && response.data['error'] == 'record not found') {
+                if (
+                    !window.location.pathname.startsWith('/summary') &&
+                    response.data.hasOwnProperty('error') &&
+                    response.data['error'] == 'record not found'
+                ) {
                     window.location.href = '/not_found';
                 }
                 const snackbar = useSnackbarStore();

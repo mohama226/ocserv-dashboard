@@ -21,7 +21,7 @@ func DockerStreamLogs(ctx context.Context, containerName string, streamChan chan
 		ShowStdout: true,
 		ShowStderr: true,
 		Follow:     true,
-		Tail:       "100",
+		Tail:       "0",
 	}
 
 	logReader, err := cli.ContainerLogs(ctx, containerName, options)
@@ -37,6 +37,7 @@ func DockerStreamLogs(ctx context.Context, containerName string, streamChan chan
 	}()
 
 	scanner := bufio.NewScanner(pr)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 	for scanner.Scan() {
 
 		select {

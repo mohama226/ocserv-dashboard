@@ -218,11 +218,9 @@ func (o *OcservUserRepository) Create(ctx context.Context, ocservUser *models.Oc
 		return nil, err
 	}
 
-	if ocservUser.Config != nil {
-		go func() {
-			_, _ = o.commonOcservOcctlRepo.ReloadConfigs()
-		}()
-	}
+	go func() {
+		_, _ = o.commonOcservOcctlRepo.ReloadConfigs()
+	}()
 	o.applyCertificateStatus(ocservUser)
 	return ocservUser, err
 }
@@ -263,12 +261,9 @@ func (o *OcservUserRepository) Update(ctx context.Context, ocservUser *models.Oc
 		return nil, err
 	}
 
-	if ocservUser.Config != nil {
-		go func() {
-			_, _ = o.commonOcservOcctlRepo.ReloadConfigs()
-		}()
-	}
-
+	go func() {
+		_, _ = o.commonOcservOcctlRepo.ReloadConfigs()
+	}()
 	return ocservUser, nil
 }
 
@@ -513,16 +508,24 @@ func (o *OcservUserRepository) RestoreExpired(ctx context.Context, uid string, e
 			return err
 		}
 
+		terminateOutput, err := o.commonOcservOcctlRepo.TerminateUser(u.Username)
+		if err != nil && !isNoActiveOcctlUserError(terminateOutput, err) {
+			return fmt.Errorf("failed to terminate ocserv user %q: %s: %w", u.Username, strings.TrimSpace(terminateOutput), err)
+		}
+
 		unlockOutput, err := o.commonOcservUserRepo.UnLock(u.Username)
 		if err != nil && !isAlreadyUnlockedOcpasswdError(unlockOutput, err) {
 			return fmt.Errorf("failed to unlock ocserv user %q: %s: %w", u.Username, strings.TrimSpace(unlockOutput), err)
 		}
+
+		now := time.Now()
 
 		if err := tx.
 			Model(&u).
 			Updates(map[string]interface{}{
 				"expire_at":      expireAt,
 				"deactivated_at": nil,
+				"usage_reset_at": &now,
 				"is_locked":      false,
 				"rx":             0,
 				"tx":             0,
@@ -582,6 +585,15 @@ func isAlreadyUnlockedOcpasswdError(output string, err error) bool {
 		strings.Contains(text, "not disabled") ||
 		strings.Contains(text, "already unlocked") ||
 		strings.Contains(text, "already enabled")
+}
+
+func isNoActiveOcctlUserError(output string, err error) bool {
+	text := strings.ToLower(strings.TrimSpace(output + " " + err.Error()))
+
+	return strings.Contains(text, "could not terminate user") ||
+		strings.Contains(text, "could not disconnect user") ||
+		strings.Contains(text, "not found") ||
+		strings.Contains(text, "no such user")
 }
 
 func (o *OcservUserRepository) UserSessionLogs(
