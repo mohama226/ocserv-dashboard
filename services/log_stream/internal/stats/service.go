@@ -20,23 +20,31 @@ import (
 )
 
 type StatService struct {
-	ctx             context.Context
-	stream          <-chan string
-	ocservUserRepo  user.OcservUserInterface
-	ocservOcctlRepo occtl.OcservOcctlInterface
-	occtlDockerRepo occtlDocker.OcservOcctlUsersDocker
-	dockerMode      bool
-	sessionStats    map[string]UserStats
+	ctx                 context.Context
+	stream              <-chan string
+	ocservUserRepo      user.OcservUserInterface
+	ocservOcctlRepo     occtl.OcservOcctlInterface
+	occtlDockerRepo     occtlDocker.OcservOcctlUsersDocker
+	dockerMode          bool
+	sessionStats        map[string]UserStats
+	pendingMainSessions map[string][]pendingMainSession
+	workerSessionIDs    map[string]string
+}
+
+type pendingMainSession struct {
+	Endpoint  string
+	CreatedAt time.Time
 }
 
 func NewStatService(ctx context.Context, stream chan string, dockerMode bool) *StatService {
 	s := &StatService{
-		ctx:          ctx,
-		stream:       stream,
-		dockerMode:   dockerMode,
-		sessionStats: make(map[string]UserStats),
+		ctx:                 ctx,
+		stream:              stream,
+		dockerMode:          dockerMode,
+		sessionStats:        make(map[string]UserStats),
+		pendingMainSessions: make(map[string][]pendingMainSession),
+		workerSessionIDs:    make(map[string]string),
 	}
-
 	if dockerMode {
 		s.occtlDockerRepo = occtlDocker.NewOcservOcctlDocker()
 	} else {
@@ -72,6 +80,8 @@ func (s *StatService) CalculateUserStats() {
 			if !strings.Contains(cleanLine, "worker[") && !strings.Contains(cleanLine, "main[") {
 				continue
 			}
+
+			s.trackSessionIdentity(cleanLine)
 
 			if strings.Contains(cleanLine, "sent periodic stats") {
 				stats, err := s.getPeriodicStat(cleanLine)
@@ -173,21 +183,25 @@ func (s *StatService) getPeriodicStat(cleanLine string) (*UserStats, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	tx, err := strconv.Atoi(matchRxTx[4])
 	if err != nil {
 		return nil, err
 	}
 
+	ip := normalizeSessionIP(matchRxTx[2])
+
 	return &UserStats{
-		Username: matchRxTx[1],
-		IP:       normalizeSessionIP(matchRxTx[2]),
-		RX:       rx,
-		TX:       tx,
+		Username:  matchRxTx[1],
+		IP:        ip,
+		SessionID: s.workerSessionID(matchRxTx[1], ip, cleanLine),
+		RX:        rx,
+		TX:        tx,
 	}, nil
 }
 
 func (s *StatService) getDisconnectStat(cleanLine string) (*UserStats, error) {
-	reTxRx := regexp.MustCompile(`main\[([^\]]+)\]:\s*(\S+).*rx:\s*(\d+),\s*tx:\s*(\d+)`)
+	reTxRx := regexp.MustCompile(`main\[([^\]]+)\]:(\S+)\s+user disconnected.*rx:\s*(\d+),\s*tx:\s*(\d+)`)
 	matchRxTx := reTxRx.FindStringSubmatch(cleanLine)
 	if len(matchRxTx) == 5 {
 		rx, err := strconv.Atoi(matchRxTx[3])
@@ -201,33 +215,35 @@ func (s *StatService) getDisconnectStat(cleanLine string) (*UserStats, error) {
 		}
 
 		return &UserStats{
-			Username: matchRxTx[1],
-			IP:       normalizeSessionIP(matchRxTx[2]),
-			RX:       rx,
-			TX:       tx,
+			Username:  matchRxTx[1],
+			IP:        normalizeSessionIP(matchRxTx[2]),
+			SessionID: matchRxTx[2],
+			RX:        rx,
+			TX:        tx,
 		}, nil
 	}
 
-	reTxRx = regexp.MustCompile(`main\[([^\]]+)\].*rx:\s*(\d+),\s*tx:\s*(\d+)`)
-	matchRxTx = reTxRx.FindStringSubmatch(cleanLine)
-	if len(matchRxTx) != 4 {
+	fallbackRe := regexp.MustCompile(`main\[([^\]]+)\].*rx:\s*(\d+),\s*tx:\s*(\d+)`)
+	fallbackMatch := fallbackRe.FindStringSubmatch(cleanLine)
+	if len(fallbackMatch) != 4 {
 		return nil, nil
 	}
 
-	rx, err := strconv.Atoi(matchRxTx[2])
+	rx, err := strconv.Atoi(fallbackMatch[2])
 	if err != nil {
 		return nil, err
 	}
 
-	tx, err := strconv.Atoi(matchRxTx[3])
+	tx, err := strconv.Atoi(fallbackMatch[3])
 	if err != nil {
 		return nil, err
 	}
 
 	return &UserStats{
-		Username: matchRxTx[1],
-		RX:       rx,
-		TX:       tx,
+		Username:  fallbackMatch[1],
+		SessionID: processIDFromLine(cleanLine),
+		RX:        rx,
+		TX:        tx,
 	}, nil
 }
 
@@ -240,31 +256,147 @@ func normalizeSessionIP(endpoint string) string {
 	return endpoint
 }
 
+func processIDFromLine(line string) string {
+	re := regexp.MustCompile(`(?:^|\s)ocserv\[(\d+)\]:`)
+	match := re.FindStringSubmatch(line)
+	if len(match) != 2 {
+		return ""
+	}
+
+	return match[1]
+}
+
+func usernameIPKey(username, ip string) string {
+	return fmt.Sprintf("%s|%s", username, ip)
+}
+
+func workerIdentityKey(username, ip, pid string) string {
+	return fmt.Sprintf("%s|%s|pid:%s", username, ip, pid)
+}
+
 func sessionStatsKey(stats *UserStats) string {
-	return fmt.Sprintf("%s|%s", stats.Username, stats.IP)
+	if stats.SessionID != "" {
+		return fmt.Sprintf("%s|%s|%s", stats.Username, stats.IP, stats.SessionID)
+	}
+
+	return fmt.Sprintf("%s|%s|unknown", stats.Username, stats.IP)
+}
+
+func (s *StatService) trackSessionIdentity(line string) {
+	mainRe := regexp.MustCompile(`main\[([^\]]+)\]:(\S+)\s+new user session`)
+	if match := mainRe.FindStringSubmatch(line); len(match) == 3 {
+		username := match[1]
+		endpoint := match[2]
+		ip := normalizeSessionIP(endpoint)
+		key := usernameIPKey(username, ip)
+
+		s.pendingMainSessions[key] = append(s.pendingMainSessions[key], pendingMainSession{
+			Endpoint:  endpoint,
+			CreatedAt: time.Now(),
+		})
+
+		return
+	}
+
+	workerRe := regexp.MustCompile(`worker\[([^\]]+)\]:\s*(\S+)`)
+	match := workerRe.FindStringSubmatch(line)
+	if len(match) != 3 {
+		return
+	}
+
+	pid := processIDFromLine(line)
+	if pid == "" {
+		return
+	}
+
+	username := match[1]
+	ip := normalizeSessionIP(match[2])
+	workerKey := workerIdentityKey(username, ip, pid)
+	if _, ok := s.workerSessionIDs[workerKey]; ok {
+		return
+	}
+
+	pendingKey := usernameIPKey(username, ip)
+	pending := s.pendingMainSessions[pendingKey]
+	if len(pending) == 0 {
+		return
+	}
+
+	now := time.Now()
+	filtered := pending[:0]
+	for _, item := range pending {
+		if now.Sub(item.CreatedAt) <= 2*time.Minute {
+			filtered = append(filtered, item)
+		}
+	}
+
+	if len(filtered) == 0 {
+		delete(s.pendingMainSessions, pendingKey)
+		return
+	}
+
+	s.workerSessionIDs[workerKey] = filtered[0].Endpoint
+
+	if len(filtered) == 1 {
+		delete(s.pendingMainSessions, pendingKey)
+		return
+	}
+
+	s.pendingMainSessions[pendingKey] = filtered[1:]
+}
+
+func (s *StatService) workerSessionID(username, ip, line string) string {
+	pid := processIDFromLine(line)
+	if pid == "" {
+		return ""
+	}
+
+	workerKey := workerIdentityKey(username, ip, pid)
+	if sessionID, ok := s.workerSessionIDs[workerKey]; ok {
+		return sessionID
+	}
+
+	return "pid:" + pid
+}
+
+func (s *StatService) hasSessionStatsForUserIP(username, ip string) bool {
+	prefix := fmt.Sprintf("%s|%s|", username, ip)
+
+	for key := range s.sessionStats {
+		if strings.HasPrefix(key, prefix) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *StatService) saveRxTxDelta(ctx context.Context, stats *UserStats, final bool) error {
 	key := sessionStatsKey(stats)
 	lastStats, found := s.sessionStats[key]
 
+	if final && !found && s.hasSessionStatsForUserIP(stats.Username, stats.IP) {
+		logger.Warn("Skipping unmatched final RxTx stats for user=%s ip=%s session=%s RX=%d TX=%d", stats.Username, stats.IP, stats.SessionID, stats.RX, stats.TX)
+		return nil
+	}
+
 	deltaRx := stats.RX
 	deltaTx := stats.TX
+
 	if found {
 		deltaRx = stats.RX - lastStats.RX
 		deltaTx = stats.TX - lastStats.TX
 	}
 
-	// A lower value means ocserv started a new session for the same user/IP.
+	// A lower value means ocserv started a new session for the same stats key.
 	// In that case, the current stat is the first value of the new session.
 	if deltaRx < 0 || deltaTx < 0 {
 		deltaRx = stats.RX
 		deltaTx = stats.TX
 	}
 
-	// Keep the final value too.
-	// ocserv may emit a duplicate periodic stat after the disconnect line.
-	// If we delete the memory on disconnect, that duplicate gets counted again.
+	// Keep the latest value, including final disconnect values.
+	// This prevents duplicate final/periodic lines from being counted again.
 	s.sessionStats[key] = *stats
 
 	if deltaRx == 0 && deltaTx == 0 {
@@ -272,16 +404,16 @@ func (s *StatService) saveRxTxDelta(ctx context.Context, stats *UserStats, final
 	}
 
 	return s.saveRxTx(ctx, &UserStats{
-		Username: stats.Username,
-		IP:       stats.IP,
-		RX:       deltaRx,
-		TX:       deltaTx,
+		Username:  stats.Username,
+		IP:        stats.IP,
+		SessionID: stats.SessionID,
+		RX:        deltaRx,
+		TX:        deltaTx,
 	})
-
 }
 
 func (s *StatService) saveRxTx(ctx context.Context, u *UserStats) error {
-	logger.Info("saveRxTx called for user=%s RX=%d TX=%d", u.Username, u.RX, u.TX)
+	logger.Info("saveRxTx called for user=%s ip=%s session=%s RX=%d TX=%d", u.Username, u.IP, u.SessionID, u.RX, u.TX)
 
 	db := database.GetConnection()
 	db = db.WithContext(ctx)
