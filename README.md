@@ -113,7 +113,7 @@ Easily manage users, groups, and server configurations while keeping your VPN se
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/mmtaee/ocserv-dashboard.git
+git clone https://github.com/mohama226/ocserv-dashboard.git
 
 cd ocserv-dashboard
 
