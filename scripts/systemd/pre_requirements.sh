@@ -2,129 +2,126 @@
 
 set -e
 
-
 source /etc/os-release
 
+GO_VERSION="1.25.1"
 
-install_go(){
+install_go() {
 
-GO_VERSION="1.25.0"
+    if command -v go >/dev/null 2>&1; then
+        echo "Go already installed: $(go version)"
+        return
+    fi
 
-if ! command -v go >/dev/null 2>&1; then
+    ARCH=$(uname -m)
+
+    case "$ARCH" in
+        x86_64)
+            GO_ARCH="amd64"
+            ;;
+        aarch64)
+            GO_ARCH="arm64"
+            ;;
+        *)
+            echo "Unsupported architecture: $ARCH"
+            exit 1
+            ;;
+    esac
 
     cd /tmp
 
-    wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
+    wget -O go.tar.gz https://go.dev/dl/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz
 
     rm -rf /usr/local/go
 
-    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
-
+    tar -C /usr/local -xzf go.tar.gz
 
     cat >/etc/profile.d/go.sh <<EOF
 export PATH=\$PATH:/usr/local/go/bin
 EOF
 
-    source /etc/profile.d/go.sh
+    export PATH=$PATH:/usr/local/go/bin
 
-fi
+    go version
+}
 
+install_debian() {
+
+    apt update
+
+    apt install -y \
+        curl \
+        wget \
+        git \
+        gcc \
+        g++ \
+        make \
+        pkg-config \
+        build-essential \
+        nodejs \
+        npm \
+        nginx \
+        openssl \
+        ca-certificates \
+        certbot \
+        postgresql-client \
+        unzip \
+        tar \
+        jq \
+        nano
 
 }
 
+install_rhel() {
 
-install_debian(){
+    dnf -y update
 
-apt update
+    dnf -y install epel-release
 
+    dnf config-manager --set-enabled crb || true
 
-apt install -y \
-curl \
-wget \
-git \
-gcc \
-make \
-pkg-config \
-build-essential \
-nodejs \
-npm \
-nginx \
-openssl \
-certbot \
-postgresql-client \
-nano
+    dnf -y install \
+        curl \
+        wget \
+        git \
+        gcc \
+        gcc-c++ \
+        make \
+        pkgconf-pkg-config \
+        nodejs \
+        npm \
+        nginx \
+        openssl \
+        openssl-devel \
+        ca-certificates \
+        certbot \
+        unzip \
+        tar \
+        jq \
+        nano
 
-
-}
-
-
-install_rhel(){
-
-dnf update -y
-
-
-dnf install -y epel-release
-
-
-dnf install -y \
-curl \
-wget \
-git \
-gcc \
-gcc-c++ \
-make \
-pkgconf-pkg-config \
-nodejs \
-npm \
-nginx \
-openssl \
-openssl-devel \
-certbot \
-postgresql \
-postgresql-server \
-nano
-
-
-
-systemctl enable nginx
-systemctl start nginx
-
+    systemctl enable nginx
+    systemctl start nginx
 
 }
-
-
 
 case "$ID" in
 
+    ubuntu|debian)
+        install_debian
+        ;;
 
-ubuntu|debian)
+    almalinux|rocky|rhel|centos)
+        install_rhel
+        ;;
 
-    install_debian
-
-    ;;
-
-
-almalinux|rocky|rhel|centos)
-
-    install_rhel
-
-    ;;
-
-
-*)
-
-echo "Unsupported OS"
-
-exit 1
-
-
-;;
+    *)
+        echo "Unsupported OS: $PRETTY_NAME"
+        exit 1
+        ;;
 
 esac
 
-
-
 install_go
-
 
 echo "Requirements installed successfully"
