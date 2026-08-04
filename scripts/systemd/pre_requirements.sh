@@ -1,145 +1,130 @@
 #!/bin/bash
 
-# ==============================================================
-# Load shared logging utilities
-# (print_message, log, ok, warn, die are defined in lib.sh)
-# ==============================================================
-source ./scripts/lib.sh
+set -e
 
-# ===============================
-# Function: check_systemd_os
-# Description:
-#   Validate that the host OS is supported for systemd deployment.
-#   Supported OS: Ubuntu 20.04/22.04/24.04, Debian 11/12/13
-# ===============================
-check_systemd_os() {
-    if [[ -f /etc/os-release ]]; then
-        . /etc/os-release
-        OS_NAME=$ID
-        OS_VERSION="${VERSION_ID//\"/}"
-    else
-        die "Cannot detect OS. /etc/os-release not found."
-    fi
 
-    if [[ "$OS_NAME" == "ubuntu" ]]; then
-        [[ "$OS_VERSION" =~ ^(20.04|22.04|24.04)$ ]] || \
-            die "Unsupported Ubuntu version: $OS_VERSION"
-    elif [[ "$OS_NAME" == "debian" ]]; then
-        [[ "$OS_VERSION" =~ ^(11|12|13)$ ]] || \
-            die "Unsupported Debian version: $OS_VERSION"
-    else
-        die "Unsupported OS: $OS_NAME $OS_VERSION"
-    fi
+source /etc/os-release
 
-    print_message success "✅ OS supported for systemd deployment: $OS_NAME $OS_VERSION"
-}
 
-# ===============================
-# Function: check_go_version
-# Description:
-#   Verify that Go is installed and meets minimum version requirement.
-# Parameters:
-#   $1 - minimum Go version (default: 1.25)
-# ===============================
-check_go_version() {
-    local go_mod_file="services/api/go.mod"
+install_go(){
 
-    if [[ ! -f "$go_mod_file" ]]; then
-        die "❌ go.mod not found at $go_mod_file"
-    fi
+GO_VERSION="1.25.0"
 
-    # Extract Go version from the go.mod file (e.g., "1.25")
-    local required_version
-    required_version=$(grep '^go ' "$go_mod_file" | awk '{print $2}')
-    [[ -n "$required_version" ]] || die "❌ Could not read Go version from $go_mod_file"
+if ! command -v go >/dev/null 2>&1; then
 
-    # Normalize required_version to include patch if missing
-    if [[ ! "$required_version" =~ \.[0-9]+$ ]]; then
-        required_version="${required_version}.0"
-    fi
+    cd /tmp
 
-    if ! command -v go >/dev/null 2>&1; then
-        die "Go is not installed. Install from: https://go.dev/doc/install"
-    fi
+    wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
 
-    # Get current Go version (e.g., 1.25.5)
-    local current_version
-    current_version=$(go version | awk '{print $3}' | sed 's/^go//')
+    rm -rf /usr/local/go
 
-    # Ensure current_version includes patch number for comparison
-    if [[ ! "$current_version" =~ \.[0-9]+$ ]]; then
-        current_version="${current_version}.0"
-    fi
+    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
 
-    # Compare versions
-    if dpkg --compare-versions "$current_version" "lt" "$required_version"; then
-        die "Go version $current_version < required $required_version. Upgrade at https://go.dev/doc/install"
-    fi
 
-    print_message success "✅ Go version $current_version meets requirement (≥ $required_version)"
+    cat >/etc/profile.d/go.sh <<EOF
+export PATH=\$PATH:/usr/local/go/bin
+EOF
+
+    source /etc/profile.d/go.sh
+
+fi
+
+
 }
 
 
-# ==========================================
-# Function: ensure_node
-# Description:
-#   Ensures Node.js v23.x or higher exists.
-#   Installs Node.js via NodeSource if missing or outdated.
-#   Installs npm if missing.
-#   Installs Yarn globally.
-# ==========================================
-ensure_node() {
-    log "Checking Node.js..."
+install_debian(){
 
-    REQUIRED_NODE_MAJOR="24"
+apt update
 
-    if command -v node >/dev/null 2>&1; then
-        CURRENT_NODE_VERSION=$(node -v | sed 's/^v//')
-    else
-        CURRENT_NODE_VERSION=""
-    fi
 
-    CURRENT_NODE_MAJOR="${CURRENT_NODE_VERSION%%.*}"
+apt install -y \
+curl \
+wget \
+git \
+gcc \
+make \
+pkg-config \
+build-essential \
+nodejs \
+npm \
+nginx \
+openssl \
+certbot \
+postgresql-client \
+nano
 
-    if [[ -z "$CURRENT_NODE_VERSION" || "$CURRENT_NODE_MAJOR" -lt "$REQUIRED_NODE_MAJOR" ]]; then
-        warn "Node.js missing or outdated"
 
-        # only purge if apt package actually exists
-        if dpkg -l | grep -q "^ii  nodejs"; then
-            sudo apt-get purge -y nodejs
-        fi
-
-        sudo rm -f /etc/apt/sources.list.d/nodesource.list
-        sudo rm -f /usr/share/keyrings/nodesource.gpg
-
-        curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-            | sudo gpg --dearmor -o /usr/share/keyrings/nodesource.gpg
-
-        echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${REQUIRED_NODE_MAJOR}.x nodistro main" \
-            | sudo tee /etc/apt/sources.list.d/nodesource.list >/dev/null
-
-        sudo apt-get update
-        sudo apt-get install -y nodejs
-
-        CURRENT_NODE_VERSION=$(node -v | sed 's/^v//')
-        ok "Node.js installed: v$CURRENT_NODE_VERSION"
-    else
-        ok "Node.js is already installed: v$CURRENT_NODE_VERSION"
-    fi
-
-    if ! command -v npm >/dev/null 2>&1; then
-        warn "npm not found. Installing..."
-        sudo apt-get install -y npm
-    fi
-
-    if ! command -v yarn >/dev/null 2>&1; then
-        sudo npm install -g yarn
-        ok "Yarn installed"
-    else
-        ok "Yarn already installed"
-    fi
 }
 
-check_systemd_os
-check_go_version
-ensure_node
+
+install_rhel(){
+
+dnf update -y
+
+
+dnf install -y epel-release
+
+
+dnf install -y \
+curl \
+wget \
+git \
+gcc \
+gcc-c++ \
+make \
+pkgconf-pkg-config \
+nodejs \
+npm \
+nginx \
+openssl \
+openssl-devel \
+certbot \
+postgresql \
+postgresql-server \
+nano
+
+
+
+systemctl enable nginx
+systemctl start nginx
+
+
+}
+
+
+
+case "$ID" in
+
+
+ubuntu|debian)
+
+    install_debian
+
+    ;;
+
+
+almalinux|rocky|rhel|centos)
+
+    install_rhel
+
+    ;;
+
+
+*)
+
+echo "Unsupported OS"
+
+exit 1
+
+
+;;
+
+esac
+
+
+
+install_go
+
+
+echo "Requirements installed successfully"
