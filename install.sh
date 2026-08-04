@@ -8,6 +8,9 @@
 # Load shared helpers
 source ./scripts/lib.sh
 
+# ===============================
+# Base Package Checker
+# ===============================
 check_base_packages(){
 
     REQUIRED="curl wget openssl"
