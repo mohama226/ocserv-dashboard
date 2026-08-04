@@ -8,6 +8,29 @@
 # Load shared helpers
 source ./scripts/lib.sh
 
+check_base_packages(){
+
+    REQUIRED="curl wget openssl"
+
+    for cmd in $REQUIRED
+    do
+        if ! command -v $cmd >/dev/null 2>&1
+        then
+            echo "$cmd missing, installing..."
+
+            if command -v apt >/dev/null 2>&1
+            then
+                apt update
+                apt install -y $cmd
+
+            elif command -v dnf >/dev/null 2>&1
+            then
+                dnf install -y $cmd
+            fi
+        fi
+    done
+}
+
 # ===============================
 # OS Detection
 # ===============================
@@ -232,7 +255,6 @@ setup_systemd() {
 
     # ... (بدون تغییر تا بخش آخر)
 
-    # Cleanup section (CHANGED)
     if [[ "$OS_FAMILY" == "debian" ]]; then
         apt autoremove -y
         apt autoclean -y
@@ -266,6 +288,7 @@ setup_systemd() {
 main() {
     ensure_root
     detect_os
+    check_base_packages
     choose_deployment
 
     if [[ "$DEPLOY_METHOD" == "uninstall" ]]; then
