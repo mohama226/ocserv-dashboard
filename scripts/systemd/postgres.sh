@@ -3,6 +3,8 @@
 # Script: systemd_postgres.sh
 # ===============================
 
+source /etc/os-release
+
 set -e
 trap 'die "Error on line $LINENO"' ERR
 
@@ -27,44 +29,51 @@ export $(grep -v '^#' "$ENV_FILE" | xargs)
 ok "Environment loaded"
 
 # ===============================
-# Install PostgreSQL 17
+# Install PostgreSQL (OS-based)
 # ===============================
-ok "Installing PostgreSQL 17..."
+ok "Installing PostgreSQL..."
 
-sudo rm -f /etc/apt/sources.list.d/pgdg.list
-sudo rm -f /usr/share/keyrings/postgresql.gpg
+case "$ID" in
 
-sudo apt update -y
-sudo apt install -y wget gnupg lsb-release curl
+    ubuntu|debian)
 
-sudo mkdir -p /usr/share/keyrings
+        apt update -y
+        apt install -y postgresql postgresql-client
 
-# Add PostgreSQL repo
-if [ ! -f /etc/apt/sources.list.d/pgdg.list ]; then
-    log "Adding PostgreSQL repository..."
+        ;;
 
-    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
-        | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+    almalinux|rocky|rhel|centos)
 
-    echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] \
-http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
-        | sudo tee /etc/apt/sources.list.d/pgdg.list
-fi
+        dnf install -y postgresql-server postgresql-contrib
 
-sudo apt update -y
-sudo apt install -y postgresql-17
+        postgresql-setup --initdb
+
+        systemctl enable postgresql
+        systemctl start postgresql
+
+        ;;
+
+    *)
+
+        die "Unsupported OS: $ID"
+
+        ;;
+
+esac
 
 ok "PostgreSQL installed"
 
 # ===============================
-# Start service
+# Start service (Debian-based)
 # ===============================
-ok "Starting PostgreSQL..."
+if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
+    ok "Starting PostgreSQL..."
 
-sudo systemctl enable postgresql
-sudo systemctl restart postgresql
+    systemctl enable postgresql
+    systemctl restart postgresql
 
-ok "PostgreSQL is running"
+    ok "PostgreSQL is running"
+fi
 
 # ===============================
 # Create USER (safe)
@@ -84,7 +93,7 @@ END
 EOF
 
 # ===============================
-# Create DATABASE (must be outside DO)
+# Create DATABASE
 # ===============================
 ok "Creating database..."
 
