@@ -26,7 +26,40 @@
 
 # Load shared helpers
 source ./scripts/lib.sh
+# ===============================
+# Detect Operating System
+# ===============================
+detect_os() {
 
+    source /etc/os-release
+
+    case "$ID" in
+        ubuntu|debian)
+            PKG_MANAGER="apt"
+            ;;
+        almalinux|rocky|rhel|centos)
+            PKG_MANAGER="dnf"
+            ;;
+        *)
+            echo "Unsupported OS: $PRETTY_NAME"
+            exit 1
+            ;;
+    esac
+
+    print_message success "Detected OS: $PRETTY_NAME"
+
+}
+
+install_pkg() {
+
+    if [[ "$PKG_MANAGER" == "apt" ]]; then
+        apt update
+        apt install -y "$@"
+    else
+        dnf install -y "$@"
+    fi
+
+}
 # ===============================
 # Default Configuration
 # ===============================
@@ -59,7 +92,9 @@ LATEST_RELEASE=                                               # dashboard latest
 #   Ensure script is run with root privileges.
 #   Exits if sudo is not installed or accessible.
 # ===============================
-ensure_root() {
+ensure_root
+
+detect_os() {
     if ! command -v sudo >/dev/null 2>&1; then
         print_message error "❌ Error: sudo is not installed."
         exit 1
@@ -775,7 +810,7 @@ main() {
     fi
 
     # Install required tools
-    sudo apt install -y curl
+    install_pkg curl
 
     # Check prerequisites based on deployment method
     if [[ "$DEPLOY_METHOD" == "docker" ]]; then
